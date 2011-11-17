@@ -1188,6 +1188,7 @@ protected:
 
     virtual void syncTouch(nsecs_t when, bool* outHavePointerIds) = 0;
 
+    bool mNeedCorrect;
 private:
     // The surface orientation and width and height set by configureSurface().
     int32_t mSurfaceOrientation;
