@@ -5583,6 +5583,11 @@ void MultiTouchInputMapper::syncTouch(nsecs_t when, bool* outHavePointerIds) {
         if (!inSlot->isInUse()) {
             continue;
         }
+        
+        if((inSlot->getX() == 0) && (inSlot->getY() == 0))
+        {
+        	continue;
+        }
 
         if (outCount >= MAX_POINTERS) {
 #if DEBUG_POINTERS
