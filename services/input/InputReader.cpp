@@ -121,7 +121,8 @@ static const int32_t keyCodeRotationMap[][4] = {
 
 //static const int32_t tp_para[7]={-69671,2328 ,53353268,329,-72405,32656364,65536};
 
-static const int32_t tp_para[7]={-70032, -1019, 54375828, 217, -71962, 33042446, 65536};
+
+static bool resetTouch = false;
 
 
 static const size_t keyCodeRotationMapSize =
@@ -705,6 +706,11 @@ void InputReader::requestRefreshConfiguration(uint32_t changes) {
             mEventHub->wake();
         }
     }
+}
+
+void InputReader::resetTouchCalibration()
+{    
+     resetTouch = true;
 }
 
 void InputReader::dump(String8& dump) {
@@ -2337,13 +2343,16 @@ TouchInputMapper::TouchInputMapper(InputDevice* device) :
         mSurfaceOrientation(-1), mSurfaceWidth(-1), mSurfaceHeight(-1) {
 
 	char product[32];
-	
+/*	
 	property_get("ro.build.product", product, NULL);
 
 	if( strcmp(product, "crane-evb") )
 		mNeedCorrect = false;	
 	else
-		mNeedCorrect = true;
+		mNeedCorrect = true;*/
+
+	mNeedCorrect = false;
+
 
 	LOGD("TouchInputMapper : product = %s, mNeedCorrect=%d", product, mNeedCorrect);
 }
@@ -2478,6 +2487,297 @@ void TouchInputMapper::dump(String8& dump) {
                 mPointerGestureMaxSwipeWidth);
     }
 }
+
+//get tp correct params
+int TouchInputMapper:: _get_str2int(char *saddr, int *flag)
+{
+    char            *src;
+    char            off;
+    unsigned int    value = 0;
+
+    src = saddr;
+    off = 0;         //0\u017d?0\u0153疲?\u017d?6\u0153? 2\u017d?0\u0153频腬u017e菏?
+    if((src[0] == '0') && ((src[1] == 'x') || (src[1] == 'X')))
+    {
+        src += 2;
+        off  = 1;
+    }
+    else if((src[0] == '-'))  {
+        src += 1;
+        off = 2;
+    }
+    if((!off) || (off == 2))
+    {
+        while(*src != '\0')
+        {
+            if((*src >= '0') && (*src <= '9'))
+            {
+                value = value * 10 + (*src - '0');
+                src ++;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+        if(off == 2)
+        {
+            value = -value;
+        }
+    }
+    else if(off == 1)
+    {
+        while(*src != '\0')
+        {
+            if((*src >= '0') && (*src <= '9'))
+            {
+                value = value * 16 + (*src - '0');
+                src ++;
+            }
+            else if((*src >= 'A') && (*src <= 'F'))
+            {
+                value = value * 16 + (*src - 'A' + 10);
+                src ++;
+            }
+            else if((*src >= 'a') && (*src <= 'f'))
+            {
+                value = value * 16 + (*src - 'a' + 10);
+                src ++;;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+    }
+
+    return value;
+}
+//\u017d撕袢eyname, itemname, 以\u0152癷temvalue，返回 0表蔦u0178失败，否则表蔦u0178当前\u017d\u0160理的砛u20ac度
+int TouchInputMapper::_get_item(char *saddr, char *name, char *value, unsigned int line_len)
+{
+    char            *src;
+    char            *dstname;
+    char            *dstvalue;
+    unsigned int    len;
+
+    src = saddr;
+    dstname = name;
+    dstvalue = value;
+
+    len = 0;
+    while(*src != '=')
+    {
+        if(*src != ' ')
+        {
+            *dstname++ = *src;
+            len ++;
+        }
+        src ++;
+        line_len --;
+        if(len > 256)
+        {
+            LOGD("key name too long\n");
+            return -1;
+        }
+    }
+    *dstname = '\0';
+    src ++;      //跳过 '='
+    line_len --;
+
+    len = 0;
+    while((*src != 0x0A) && (line_len--))
+    {
+        if(*src != ' ')
+        {
+            *dstvalue++ = *src;
+            len ++;
+        }
+        src ++;
+        if(len > 256)
+        {
+            LOGD("key name too long\n");
+            return -1;
+        }
+    }
+    *dstvalue = '\0';
+
+    return 0;
+}
+//\u017d撕祷氐鼻靶械某\u20ac度，用謀u017e针返回当前的意义
+/********************************************
+* flag = 0      //当前是注释行，或空行
+*      = 1      //当前是字段行
+*      = 2      //当前是子项行，属于字段的下一项
+*      = -1     //当前行不符合规范，出\u017d?*********************************************/
+int  TouchInputMapper::_get_line(char *daddr, int  *flag, unsigned int total_len)
+{
+    char            *src;
+    unsigned int    len = 0;
+
+    src = daddr;
+    if(*src == ';')          //注释行
+    {
+        *flag = 0;
+    }
+    else if((*src == 0x0A))     //回车行
+    {
+        *flag = 0;
+        len = 1;
+
+        return len;
+    }
+    else                     //子字段行
+    {
+        *flag = 1;
+    }
+
+    src ++;
+    len = 1;
+    while(--total_len)
+    {
+        //LOGD("*src = %x\n",*src);
+        if((*src == 0x0A))     
+        {
+            len += 1;
+            break;
+        }
+
+        src ++;
+        
+        len ++;
+        if(len >= 512)
+        {
+            *flag = -1;
+
+            return 0;
+        }
+    }
+
+    return len;
+}
+
+int TouchInputMapper::tp_getpara(int  *tp_para)
+{
+    FILE*           pfd = 0;
+    char            *data = 0;
+    char            *src = 0;
+    unsigned int   len, line_len, check_sum;
+    int             flag, value;
+    char    itemname[128], itemvalue[128];
+
+    pfd = fopen("/data/pointercal", "r+");            //只读
+    if(!pfd)                                                  
+    {
+        //LOGD("para data file not exist\n");
+        
+        goto _err_out;
+    }
+    fseek(pfd, 0, 2);
+    len = ftell(pfd);
+    fseek(pfd, 0, 0);
+
+    data = NULL;
+    if(!len)
+    {
+        LOGD("bad tp cfg\n");
+        goto _err_out;
+    }
+    data = (char *)malloc(len);
+    if(!data)
+    {
+        //LOGD("fail to malloc memory to store data\n");
+        goto _err_out;
+    }
+    fread(data, 1, len, pfd);
+    fclose(pfd);
+    pfd = NULL;
+    src  = data;
+
+    while(len)
+    {
+        line_len = _get_line(src, &flag, len);
+        LOGD("line_len = %d\n",line_len);
+        len -= line_len;
+        switch(flag)
+        {
+            case 0:              //注释行，回车行
+                src += line_len;
+                break;
+            case 1:
+                if(_get_item(src, itemname, itemvalue, line_len))
+                {
+                    LOGD("get item fail\n");
+
+                    goto _err_out;
+                }
+                src += line_len;
+                value = _get_str2int(itemvalue, 0);
+
+                if(!strcmp(itemname, "TP_PARA1"))
+                {
+                    tp_para[0] = value;
+                    //LOGD("value0 = %d\n",value);
+                }
+                else if(!strcmp(itemname, "TP_PARA2"))
+                {
+                    tp_para[1] = value;
+                    //LOGD("value1 = %d\n",value);
+                }
+                else if(!strcmp(itemname, "TP_PARA3"))
+                {
+                    tp_para[2] = value;
+                    //LOGD("value2 = %d\n",value);
+                }
+                else if(!strcmp(itemname, "TP_PARA4"))
+                {
+                    tp_para[3] = value;
+                    //LOGD("value3 = %d\n",value);
+                }
+                else if(!strcmp(itemname, "TP_PARA5"))
+                {
+                    tp_para[4] = value;
+                    //LOGD("value4 = %d\n",value);
+                }
+                else if(!strcmp(itemname, "TP_PARA6"))
+                {
+                    tp_para[5] = value;
+                    //LOGD("value5 = %d\n",value);
+                }
+                else if(!strcmp(itemname, "TP_PARA7"))
+                {
+                    tp_para[6] = value;
+                    //LOGD("value6 = %d\n",value);
+                }
+                break;
+            default:
+                goto _err_out;
+        }
+    }
+    free(data);
+
+    return 1;
+_err_out:
+    tp_para[0] = -28238;
+    tp_para[1] = 125;
+    tp_para[2] = 54543608;
+    tp_para[3] = 89;
+    tp_para[4] = -19020;
+    tp_para[5] = 34218656;
+    tp_para[6] = 65536;
+
+    if(data)
+    {
+        free(data);
+    }
+    if(pfd)
+    {
+        fclose(pfd);
+    }
+
+    return 0;
+}
+
 
 void TouchInputMapper::configure(nsecs_t when,
         const InputReaderConfiguration* config, uint32_t changes) {
@@ -3902,12 +4202,33 @@ void TouchInputMapper::cookPointerData() {
         }
 
 		//correct the one touch data here	
-		if(mNeedCorrect)
+		if(mNeedCorrect == false)
 		{
-			x = ( tp_para[2] + tp_para[0]*x + tp_para[1]*x ) / tp_para[6];			
-			y = ( tp_para[5] + tp_para[3]*y + tp_para[4]*y ) / tp_para[6];			
-			//mNeedCorrect = false;
+			int ret = tp_getpara(tp_para);
+			if(ret == 1)
+			{
+				x = ( tp_para[2] + tp_para[0]*x + tp_para[1]*x ) / tp_para[6];			
+			    y = ( tp_para[5] + tp_para[3]*y + tp_para[4]*y ) / tp_para[6];	
+				mNeedCorrect = true;
+			}
+			
 		}
+		else
+		{
+			if(resetTouch == true)
+			{
+				int ret = tp_getpara(tp_para);
+				if(ret == 1)
+				{
+					mNeedCorrect = true;
+					resetTouch = false;
+				}				
+			}
+			x = ( tp_para[2] + tp_para[0]*x + tp_para[1]*x ) / tp_para[6];			
+			y = ( tp_para[5] + tp_para[3]*y + tp_para[4]*y ) / tp_para[6];	
+		}
+
+
 	
         // Write output coords.
         PointerCoords& out = mCurrentCookedPointerData.pointerCoords[i];

@@ -200,6 +200,9 @@ public:
     virtual nsecs_t notifyANR(const sp<InputApplicationHandle>& inputApplicationHandle,
             const sp<InputWindowHandle>& inputWindowHandle);
     virtual void notifyInputChannelBroken(const sp<InputWindowHandle>& inputWindowHandle);
+	
+	virtual void resetTouchCalibration();
+	
     virtual bool filterInputEvent(const InputEvent* inputEvent, uint32_t policyFlags);
     virtual void getDispatcherConfiguration(InputDispatcherConfiguration* outConfig);
     virtual bool isKeyRepeatEnabled();
@@ -748,6 +751,12 @@ bool NativeInputManager::filterInputEvent(const InputEvent* inputEvent, uint32_t
     env->DeleteLocalRef(inputEventObj);
     return pass;
 }
+
+void NativeInputManager::resetTouchCalibration() 
+{
+    mInputManager->getReader()->resetTouchCalibration();
+}
+
 
 void NativeInputManager::interceptKeyBeforeQueueing(const KeyEvent* keyEvent,
         uint32_t& policyFlags) {
@@ -1300,6 +1309,16 @@ static jboolean android_server_InputManager_nativeTransferTouchFocus(JNIEnv* env
             transferTouchFocus(fromChannel, toChannel);
 }
 
+static void android_server_InputManager_nativeResetTouchCalibration(JNIEnv* env, jclass clazz) 
+{
+    if (checkInputManagerUnitialized(env)) {
+        return;
+    }
+
+    gNativeInputManager->resetTouchCalibration();
+}
+
+
 static void android_server_InputManager_nativeSetPointerSpeed(JNIEnv* env,
         jclass clazz, jint speed) {
     if (checkInputManagerUnitialized(env)) {
@@ -1390,7 +1409,9 @@ static JNINativeMethod gInputManagerMethods[] = {
     { "nativeDump", "()Ljava/lang/String;",
             (void*) android_server_InputManager_nativeDump },
     { "nativeMonitor", "()V",
-            (void*) android_server_InputManager_nativeMonitor },
+            (void*) android_server_InputManager_nativeMonitor }, 
+	{ "nativeResetTouchCalibration", "()V",
+		 (void*) android_server_InputManager_nativeResetTouchCalibration },
 };
 
 #define FIND_CLASS(var, className) \
@@ -1528,6 +1549,7 @@ int register_android_server_InputManager(JNIEnv* env) {
 
     GET_FIELD_ID(gConfigurationClassInfo.navigation, clazz,
             "navigation", "I");
+
 
     return 0;
 }

@@ -9281,6 +9281,12 @@ public class WindowManagerService extends IWindowManager.Stub
         return mPolicy.hasNavigationBar();
     }
 
+	public void resetInputCalibration() 
+	{
+		mInputManager.resetTouchCalibration();
+	}
+	
+
     void dumpInput(FileDescriptor fd, PrintWriter pw, boolean dumpAll) {
         pw.println("WINDOW MANAGER INPUT (dumpsys window input)");
         mInputManager.dump(pw);

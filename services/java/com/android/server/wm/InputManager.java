@@ -95,6 +95,10 @@ public class InputManager implements Watchdog.Monitor {
             InputChannel toChannel);
     private static native void nativeSetPointerSpeed(int speed);
     private static native void nativeSetShowTouches(boolean enabled);
+
+	//reset tp correct params
+	private static native void nativeResetTouchCalibration();
+	
     private static native String nativeDump();
     private static native void nativeMonitor();
     
@@ -248,7 +252,18 @@ public class InputManager implements Watchdog.Monitor {
         
         return nativeHasKeys(deviceId, sourceMask, keyCodes, keyExists);
     }
-    
+
+	/**
+	 *reset the tp correct params
+	 */
+
+	
+	
+	public void resetTouchCalibration()
+	{
+		nativeResetTouchCalibration();
+	}
+		 
     /**
      * Creates an input channel that will receive all input from the input dispatcher.
      * @param inputChannelName The input channel name.
