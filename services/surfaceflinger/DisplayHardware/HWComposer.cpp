@@ -105,9 +105,9 @@ status_t HWComposer::prepare() const {
         size_t count = mList->numHwLayers;
         for (size_t i=0 ; i<count ; i++) {
             hwc_layer& l(mList->hwLayers[i]);
-            if (l.flags & HWC_SKIP_LAYER) {
-                l.compositionType = HWC_FRAMEBUFFER;
-            }
+            //if ((l.flags & HWC_SKIP_LAYER) {
+            //    l.compositionType = HWC_FRAMEBUFFER;
+            //}
             switch (l.compositionType) {
                 case HWC_OVERLAY:
                     numOVLayers++;
@@ -165,6 +165,27 @@ size_t HWComposer::getNumLayers() const {
 
 hwc_layer_t* HWComposer::getLayers() const {
     return mList ? mList->hwLayers : 0;
+}
+
+int  HWComposer::setParameter(uint32_t cmd,uint32_t value)
+{
+    if (mHwc) 
+    {
+        int err = mHwc->setparameter(mHwc, cmd,value);
+        
+        return (status_t)err;
+    }
+    return NO_ERROR;
+}
+
+uint32_t HWComposer::getParameter(uint32_t cmd)
+{
+    if (mHwc) 
+    {
+        return mHwc->getparameter(mHwc, cmd);
+    }
+    
+    return NO_ERROR;
 }
 
 void HWComposer::dump(String8& result, char* buffer, size_t SIZE,

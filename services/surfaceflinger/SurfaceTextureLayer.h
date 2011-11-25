@@ -53,6 +53,10 @@ protected:
 
     virtual status_t connect(int api,
             uint32_t* outWidth, uint32_t* outHeight, uint32_t* outTransform);
+
+    virtual int      setParameter(uint32_t cmd,uint32_t value);
+
+    virtual uint32_t getParameter(uint32_t cmd);
 };
 
 // ---------------------------------------------------------------------------

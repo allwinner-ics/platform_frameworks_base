@@ -1016,6 +1016,16 @@ void SurfaceTexture::setName(const String8& name) {
     mName = name;
 }
 
+int SurfaceTexture::setParameter(uint32_t cmd,uint32_t value)
+{
+    return 0;
+}
+
+uint32_t SurfaceTexture::getParameter(uint32_t cmd)
+{
+    return 0;
+}
+
 void SurfaceTexture::dump(String8& result) const
 {
     char buffer[1024];

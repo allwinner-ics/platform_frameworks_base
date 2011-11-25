@@ -60,6 +60,13 @@ public:
             PixelFormat format, uint32_t flags=0);
 
     bool isFixedSize() const;
+    
+    int 		texture_srcw;
+    int 		texture_srch;
+    int 		texture_format;
+    int         setDisplayParameter(uint32_t cmd,uint32_t  value);
+    void        setTextureInfo(int w,int h,int format);
+    uint32_t    getDisplayParameter(uint32_t cmd);
 
     // LayerBase interface
     virtual void setGeometry(hwc_layer_t* hwcl);

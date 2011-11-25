@@ -70,6 +70,8 @@ private:
     int dispatchSetUsage(va_list args);
     int dispatchLock(va_list args);
     int dispatchUnlockAndPost(va_list args);
+    int dispatchSetParameter(va_list args);
+    int dispatchGetParameter(va_list args);
 
 protected:
     virtual int cancelBuffer(ANativeWindowBuffer* buffer);
@@ -81,6 +83,8 @@ protected:
     virtual int setSwapInterval(int interval);
 
     virtual int connect(int api);
+    virtual int setParameter(uint32_t cmd,uint32_t value);
+    virtual int getParameter(uint32_t cmd);
     virtual int disconnect(int api);
     virtual int setBufferCount(int bufferCount);
     virtual int setBuffersDimensions(int w, int h);

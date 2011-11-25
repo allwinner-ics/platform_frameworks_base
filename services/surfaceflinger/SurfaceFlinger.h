@@ -205,7 +205,10 @@ public:
 
     GLuint getProtectedTexName() const { return mProtectedTexName; }
 
+    int         setDisplayParameter(uint32_t cmd,uint32_t  value);
 
+    uint32_t    getDisplayParameter(uint32_t cmd);
+    
     class MessageDestroyGLTexture : public MessageBase {
         GLuint texture;
     public:

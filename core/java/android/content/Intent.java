@@ -1712,6 +1712,32 @@ public class Intent implements Parcelable, Cloneable {
      */
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_SHUTDOWN = "android.intent.action.ACTION_SHUTDOWN";
+
+	/**
+     * Broadcast Action:  HDMI Hotplug Changed.
+     * This is broadcast when the hdmi hotplug status (completely turned
+     * off, not sleeping).  Once the broadcast is complete, the final shutdown
+     * will proceed and all unsaved data lost.  Apps will not normally need
+     * to handle this, since the foreground activity will be paused as well.
+     *
+     * <p class="note">This is a protected intent that can only be sent
+     * by the system.
+     */
+	@SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_HDMISTATUS_CHANGED = "android.intent.action.HDMISTATUS_CHANGED";
+
+	/**
+     * Broadcast Action:  tvdac Hotplug Changed.
+     * This is broadcast when the tvdac hotplug status (completely turned
+     * off, not sleeping).  Once the broadcast is complete, the final shutdown
+     * will proceed and all unsaved data lost.  Apps will not normally need
+     * to handle this, since the foreground activity will be paused as well.
+     *
+     * <p class="note">This is a protected intent that can only be sent
+     * by the system.
+     */
+	@SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_TVDACSTATUS_CHANGED = "android.intent.action.TVDACSTATUS_CHANGED";
     /**
      * Activity Action:  Start this activity to request system shutdown.
      * The optional boolean extra field {@link #EXTRA_KEY_CONFIRM} can be set to true

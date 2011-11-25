@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/types.h>
-
+#include <hardware/hwcomposer.h>
 #include <utils/Errors.h>
 
 #include "Layer.h"
@@ -37,7 +37,7 @@ SurfaceTextureLayer::~SurfaceTextureLayer() {
 
 status_t SurfaceTextureLayer::setDefaultBufferSize(uint32_t w, uint32_t h)
 {
-    //LOGD("%s, w=%u, h=%u", __PRETTY_FUNCTION__, w, h);
+    //LOGV("%s, w=%u, h=%u", __PRETTY_FUNCTION__, w, h);
     return SurfaceTexture::setDefaultBufferSize(w, h);
 }
 
@@ -73,7 +73,7 @@ status_t SurfaceTextureLayer::dequeueBuffer(int *buf,
         if (format == 0)
             format = mDefaultFormat;
         uint32_t effectiveUsage = layer->getEffectiveUsage(usage);
-        //LOGD("%s, w=%u, h=%u, format=%u, usage=%08x, effectiveUsage=%08x",
+        //LOGV("%s, w=%u, h=%u, format=%u, usage=%08x, effectiveUsage=%08x",
         //        __PRETTY_FUNCTION__, w, h, format, usage, effectiveUsage);
         res = SurfaceTexture::dequeueBuffer(buf, w, h, format, effectiveUsage);
     }
@@ -115,6 +115,45 @@ status_t SurfaceTextureLayer::connect(int api,
         }
     }
     return err;
+}
+
+int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value) 
+{
+    int res = 0;
+    
+    sp<Layer> layer(mLayer.promote());
+    if (layer != NULL) 
+    {
+    	if(cmd == HWC_LAYER_SETINITPARA)
+    	{
+    		layerinitpara_t  *layer_info;
+    		
+    		layer_info = (layerinitpara_t  *)value;
+    	
+    		LOGV("layer_info = %d\n",layer_info);	
+    		layer->setTextureInfo(layer_info->w,layer_info->h,layer_info->format);
+    		LOGV("after layer_info = %d\n",layer_info);	
+    	}
+    	
+    	LOGV("SurfaceTextureLayer::setParameter cmd = %d,value = %d\n",cmd,value);
+        res = layer->setDisplayParameter(cmd,value);
+    }
+    
+    return res;
+}
+
+
+uint32_t SurfaceTextureLayer::getParameter(uint32_t cmd) 
+{
+    uint32_t res = 0;
+    
+    sp<Layer> layer(mLayer.promote());
+    if (layer != NULL) 
+    {
+        res = layer->getDisplayParameter(cmd);
+    }
+    
+    return res;
 }
 
 // ---------------------------------------------------------------------------

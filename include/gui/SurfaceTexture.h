@@ -94,6 +94,10 @@ public:
     virtual status_t setTransform(uint32_t transform);
     virtual status_t setScalingMode(int mode);
 
+    virtual int      setParameter(uint32_t cmd,uint32_t value);
+
+    virtual uint32_t getParameter(uint32_t cmd);
+
     virtual int query(int what, int* value);
 
     // setSynchronousMode set whether dequeueBuffer is synchronous or

@@ -233,6 +233,7 @@ void LayerBase::validateVisibility(const Transform& planeTransform)
 
     uint32_t w = s.w;
     uint32_t h = s.h;    
+    LOGV("LayerBase::validateVisibility w = %d,h = %d\n",w,h);
     tr.transform(mVertices[0], 0, 0);
     tr.transform(mVertices[1], 0, h);
     tr.transform(mVertices[2], w, h);
@@ -258,8 +259,13 @@ void LayerBase::validateVisibility(const Transform& planeTransform)
     // cache a few things...
     mOrientation = tr.getOrientation();
     mPlaneOrientation = planeTransform.getOrientation();
+     LOGV("LayerBase::validateVisibility mOrientation = %d\n",mOrientation);
     mTransform = tr;
     mTransformedBounds = tr.makeBounds(w, h);
+    LOGV("validateVisibility left = %d\n",mTransformedBounds.left);
+    LOGV("validateVisibility top = %d\n",mTransformedBounds.top);
+    LOGV("validateVisibility right = %d\n",mTransformedBounds.right);
+    LOGV("validateVisibility bottom = %d\n",mTransformedBounds.bottom);
 }
 
 void LayerBase::lockPageFlip(bool& recomputeVisibleRegions)
@@ -325,6 +331,7 @@ void LayerBase::setGeometry(hwc_layer_t* hwcl)
                 HWC_BLENDING_PREMULT : HWC_BLENDING_COVERAGE;
     }
 
+
     // scaling is already applied in mTransformedBounds
     hwcl->displayFrame.left   = mTransformedBounds.left;
     hwcl->displayFrame.top    = mTransformedBounds.top;
@@ -339,6 +346,16 @@ void LayerBase::setGeometry(hwc_layer_t* hwcl)
     hwcl->sourceCrop.top    = 0;
     hwcl->sourceCrop.right  = mTransformedBounds.width();
     hwcl->sourceCrop.bottom = mTransformedBounds.height();
+    
+    LOGV("hwcl->displayFrame.left = %d\n",hwcl->displayFrame.left);
+    LOGV("hwcl->displayFrame.top = %d\n",hwcl->displayFrame.top);
+    LOGV("hwcl->displayFrame.right = %d\n",hwcl->displayFrame.right);
+    LOGV("hwcl->displayFrame.bottom = %d\n",hwcl->displayFrame.bottom);
+    
+    LOGV("hwcl->sourceCrop.left = %d\n",hwcl->sourceCrop.left);
+    LOGV("hwcl->sourceCrop.top = %d\n",hwcl->sourceCrop.top);
+    LOGV("hwcl->sourceCrop.right = %d\n",hwcl->sourceCrop.right);
+    LOGV("hwcl->sourceCrop.bottom = %d\n",hwcl->sourceCrop.bottom);
 }
 
 void LayerBase::setPerFrameData(hwc_layer_t* hwcl) {

@@ -5098,6 +5098,7 @@ package android.content {
     field public static final int CONTEXT_INCLUDE_CODE = 1; // 0x1
     field public static final int CONTEXT_RESTRICTED = 4; // 0x4
     field public static final java.lang.String DEVICE_POLICY_SERVICE = "device_policy";
+    field public static final java.lang.String DISPLAY_SERVICE = "display";
     field public static final java.lang.String DOWNLOAD_SERVICE = "download";
     field public static final java.lang.String DROPBOX_SERVICE = "dropbox";
     field public static final java.lang.String INPUT_METHOD_SERVICE = "input_method";
@@ -5426,6 +5427,7 @@ package android.content {
     field public static final java.lang.String ACTION_GET_CONTENT = "android.intent.action.GET_CONTENT";
     field public static final java.lang.String ACTION_GTALK_SERVICE_CONNECTED = "android.intent.action.GTALK_CONNECTED";
     field public static final java.lang.String ACTION_GTALK_SERVICE_DISCONNECTED = "android.intent.action.GTALK_DISCONNECTED";
+    field public static final java.lang.String ACTION_HDMISTATUS_CHANGED = "android.intent.action.HDMISTATUS_CHANGED";
     field public static final java.lang.String ACTION_HEADSET_PLUG = "android.intent.action.HEADSET_PLUG";
     field public static final java.lang.String ACTION_INPUT_METHOD_CHANGED = "android.intent.action.INPUT_METHOD_CHANGED";
     field public static final java.lang.String ACTION_INSERT = "android.intent.action.INSERT";
@@ -5483,6 +5485,7 @@ package android.content {
     field public static final java.lang.String ACTION_TIMEZONE_CHANGED = "android.intent.action.TIMEZONE_CHANGED";
     field public static final java.lang.String ACTION_TIME_CHANGED = "android.intent.action.TIME_SET";
     field public static final java.lang.String ACTION_TIME_TICK = "android.intent.action.TIME_TICK";
+    field public static final java.lang.String ACTION_TVDACSTATUS_CHANGED = "android.intent.action.TVDACSTATUS_CHANGED";
     field public static final java.lang.String ACTION_UID_REMOVED = "android.intent.action.UID_REMOVED";
     field public static final deprecated java.lang.String ACTION_UMS_CONNECTED = "android.intent.action.UMS_CONNECTED";
     field public static final deprecated java.lang.String ACTION_UMS_DISCONNECTED = "android.intent.action.UMS_DISCONNECTED";
@@ -21721,6 +21724,82 @@ package android.view {
     method public void getSize(android.graphics.Point);
     method public deprecated int getWidth();
     field public static final int DEFAULT_DISPLAY = 0; // 0x0
+  }
+
+  public class DisplayManager {
+    ctor public DisplayManager();
+    method public int closeDisplay(int);
+    method public int getDisplayCount();
+    method public int getDisplayHeight(int);
+    method public int getDisplayHotPlugStatus(int);
+    method public int getDisplayMaster();
+    method public int getDisplayMode();
+    method public boolean getDisplayOpenStatus(int);
+    method public int getDisplayOutputFormat(int);
+    method public int getDisplayOutputType(int);
+    method public int getDisplayPixelFormat(int);
+    method public int getDisplayWidth(int);
+    method public int getMaxHdmiMode();
+    method public int getMaxWidthDisplay();
+    method public int openDisplay(int);
+    method public int setDisplayMaster(int);
+    method public int setDisplayMode(int);
+    method public int setDisplayOutputType(int, int, int);
+    method public int setDisplayParameter(int, int, int);
+    field public static final int DISPLAY_DEVICE_OFF = 1; // 0x1
+    field public static final int DISPLAY_DEVICE_ON = 0; // 0x0
+    field public static final int DISPLAY_DEVICE_PLUGIN = 0; // 0x0
+    field public static final int DISPLAY_DEVICE_PLUGOUT = 1; // 0x1
+    field public static final int DISPLAY_MODE_DUALDIFF = 2; // 0x2
+    field public static final int DISPLAY_MODE_DUALLCD = 1; // 0x1
+    field public static final int DISPLAY_MODE_DUALSAME = 3; // 0x3
+    field public static final int DISPLAY_MODE_SINGLE = 0; // 0x0
+    field public static final int DISPLAY_OUTPUT_TYPE_HDMI = 3; // 0x3
+    field public static final int DISPLAY_OUTPUT_TYPE_LCD = 1; // 0x1
+    field public static final int DISPLAY_OUTPUT_TYPE_NONE = 0; // 0x0
+    field public static final int DISPLAY_OUTPUT_TYPE_TV = 2; // 0x2
+    field public static final int DISPLAY_OUTPUT_TYPE_VGA = 4; // 0x4
+    field public static final int DISPLAY_TVDAC_CVBS = 2; // 0x2
+    field public static final int DISPLAY_TVDAC_NONE = 0; // 0x0
+    field public static final int DISPLAY_TVDAC_SVIDEO = 3; // 0x3
+    field public static final int DISPLAY_TVDAC_YPBPR = 1; // 0x1
+    field public static final int DISPLAY_TVFORMAT_1080I_50HZ = 6; // 0x6
+    field public static final int DISPLAY_TVFORMAT_1080I_60HZ = 7; // 0x7
+    field public static final int DISPLAY_TVFORMAT_1080P_24HZ = 8; // 0x8
+    field public static final int DISPLAY_TVFORMAT_1080P_50HZ = 9; // 0x9
+    field public static final int DISPLAY_TVFORMAT_1080P_60HZ = 10; // 0xa
+    field public static final int DISPLAY_TVFORMAT_480I = 0; // 0x0
+    field public static final int DISPLAY_TVFORMAT_480P = 2; // 0x2
+    field public static final int DISPLAY_TVFORMAT_576I = 1; // 0x1
+    field public static final int DISPLAY_TVFORMAT_576P = 3; // 0x3
+    field public static final int DISPLAY_TVFORMAT_720P_50HZ = 4; // 0x4
+    field public static final int DISPLAY_TVFORMAT_720P_60HZ = 5; // 0x5
+    field public static final int DISPLAY_TVFORMAT_NTSC = 14; // 0xe
+    field public static final int DISPLAY_TVFORMAT_NTSC_CVBS_SVIDEO = 16; // 0x10
+    field public static final int DISPLAY_TVFORMAT_NTSC_SVIDEO = 15; // 0xf
+    field public static final int DISPLAY_TVFORMAT_PAL = 11; // 0xb
+    field public static final int DISPLAY_TVFORMAT_PAL_CVBS_SVIDEO = 13; // 0xd
+    field public static final int DISPLAY_TVFORMAT_PAL_M = 17; // 0x11
+    field public static final int DISPLAY_TVFORMAT_PAL_M_CVBS_SVIDEO = 19; // 0x13
+    field public static final int DISPLAY_TVFORMAT_PAL_M_SVIDEO = 18; // 0x12
+    field public static final int DISPLAY_TVFORMAT_PAL_NC = 20; // 0x14
+    field public static final int DISPLAY_TVFORMAT_PAL_NC_CVBS_SVIDEO = 22; // 0x16
+    field public static final int DISPLAY_TVFORMAT_PAL_NC_SVIDEO = 21; // 0x15
+    field public static final int DISPLAY_TVFORMAT_PAL_SVIDEO = 12; // 0xc
+    field public static final int DISPLAY_VGA_H1024_V768 = 27; // 0x1b
+    field public static final int DISPLAY_VGA_H1280_V1024 = 26; // 0x1a
+    field public static final int DISPLAY_VGA_H1280_V720 = 34; // 0x22
+    field public static final int DISPLAY_VGA_H1360_V768 = 25; // 0x19
+    field public static final int DISPLAY_VGA_H1440_V900 = 24; // 0x18
+    field public static final int DISPLAY_VGA_H1440_V900_RB = 30; // 0x1e
+    field public static final int DISPLAY_VGA_H1680_V1050 = 23; // 0x17
+    field public static final int DISPLAY_VGA_H1680_V1050_RB = 31; // 0x1f
+    field public static final int DISPLAY_VGA_H1920_V1080 = 33; // 0x21
+    field public static final int DISPLAY_VGA_H1920_V1080_RB = 32; // 0x20
+    field public static final int DISPLAY_VGA_H640_V480 = 29; // 0x1d
+    field public static final int DISPLAY_VGA_H800_V600 = 28; // 0x1c
+    field public static final java.lang.String EXTRA_HDMISTATUS = "hdmistatus";
+    field public static final java.lang.String EXTRA_TVSTATUS = "tvdacstatus";
   }
 
   public class DragEvent implements android.os.Parcelable {

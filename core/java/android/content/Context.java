@@ -1674,6 +1674,16 @@ public abstract class Context {
      */
     public static final String TELEPHONY_SERVICE = "phone";
 
+	/**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.telephony.TelephonyManager} for handling management the
+     * display features of the device.
+     *
+     * @see #getSystemService
+     * @see android.view.DisplayManager
+     */
+    public static final String DISPLAY_SERVICE = "display";
+	
     /**
      * Use with {@link #getSystemService} to retrieve a
      * {@link android.text.ClipboardManager} for accessing and modifying

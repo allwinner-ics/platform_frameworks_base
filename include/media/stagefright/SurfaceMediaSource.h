@@ -146,6 +146,9 @@ public:
     // connected to the specified client API.
     virtual status_t disconnect(int api);
 
+    virtual int      setParameter(uint32_t cmd,uint32_t value) {return 0;};
+
+    virtual uint32_t getParameter(uint32_t cmd) {return 0;};
     // getqueuedCount returns the number of queued frames waiting in the
     // FIFO. In asynchronous mode, this always returns 0 or 1 since
     // frames are not accumulating in the FIFO.

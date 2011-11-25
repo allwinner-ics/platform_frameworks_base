@@ -20,7 +20,7 @@
 #include <gui/SurfaceTextureClient.h>
 #include <surfaceflinger/ISurfaceComposer.h>
 #include <surfaceflinger/SurfaceComposerClient.h>
-
+#include <hardware/hwcomposer.h>
 #include <utils/Log.h>
 
 namespace android {
@@ -315,6 +315,15 @@ int SurfaceTextureClient::perform(int operation, va_list args)
     case NATIVE_WINDOW_API_DISCONNECT:
         res = dispatchDisconnect(args);
         break;
+
+    case NATIVE_WINDOW_SETPARAMETER:
+        res = dispatchSetParameter(args);
+        break;
+
+    case NATIVE_WINDOW_GETPARAMETER:
+        res = dispatchGetParameter(args);
+        break;    
+        
     default:
         res = NAME_NOT_FOUND;
         break;
@@ -330,6 +339,21 @@ int SurfaceTextureClient::dispatchConnect(va_list args) {
 int SurfaceTextureClient::dispatchDisconnect(va_list args) {
     int api = va_arg(args, int);
     return disconnect(api);
+}
+
+int SurfaceTextureClient::dispatchSetParameter(va_list args)
+{
+    int cmd     = va_arg(args,int);
+    int value   = va_arg(args,int);
+
+    return setParameter((uint32_t)cmd,(uint32_t)value);
+}
+
+int SurfaceTextureClient::dispatchGetParameter(va_list args)
+{
+    int cmd = va_arg(args,int);
+
+    return getParameter((uint32_t)cmd);
 }
 
 int SurfaceTextureClient::dispatchSetUsage(va_list args) {
@@ -348,14 +372,27 @@ int SurfaceTextureClient::dispatchSetBufferCount(va_list args) {
 }
 
 int SurfaceTextureClient::dispatchSetBuffersGeometry(va_list args) {
+    layerinitpara_t  layer_info;
     int w = va_arg(args, int);
     int h = va_arg(args, int);
     int f = va_arg(args, int);
+    int screenid = va_arg(args, int);
     int err = setBuffersDimensions(w, h);
     if (err != 0) {
         return err;
     }
-    return setBuffersFormat(f);
+    
+    err = setBuffersFormat(f);
+    if (err != 0) 
+    {
+        return err;
+    }
+    
+    layer_info.w 			= w;
+    layer_info.h 			= h;
+    layer_info.format 		= f;
+    layer_info.screenid		= screenid;
+    return setParameter(HWC_LAYER_SETINITPARA,(uint32_t)&layer_info);
 }
 
 int SurfaceTextureClient::dispatchSetBuffersDimensions(va_list args) {
@@ -421,6 +458,20 @@ int SurfaceTextureClient::disconnect(int api) {
         }
     }
     return err;
+}
+
+int SurfaceTextureClient::setParameter(uint32_t cmd,uint32_t value) 
+{
+    LOGV("SurfaceTextureClient::setParameter");
+    
+    return mSurfaceTexture->setParameter(cmd,value);
+}
+
+int SurfaceTextureClient::getParameter(uint32_t cmd) 
+{
+    LOGV("SurfaceTextureClient::setParameter");
+    
+    return mSurfaceTexture->getParameter(cmd);
 }
 
 int SurfaceTextureClient::setUsage(uint32_t reqUsage)

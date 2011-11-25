@@ -798,6 +798,28 @@ void SurfaceFlinger::invalidateHwcGeometry()
     mHwWorkListDirty = true;
 }
 
+int SurfaceFlinger::setDisplayParameter(uint32_t cmd,uint32_t  value)
+{
+    HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+    if (hwc.initCheck() == NO_ERROR) 
+    {
+        return hwc.setParameter(cmd,value);
+    }
+
+    return NO_ERROR;
+}
+
+uint32_t SurfaceFlinger::getDisplayParameter(uint32_t cmd)
+{
+    HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+    if (hwc.initCheck() == NO_ERROR) 
+    {
+        return hwc.getParameter(cmd);
+    }
+
+    return NO_ERROR;
+}
+
 bool SurfaceFlinger::lockPageFlip(const LayerVector& currentLayers)
 {
     bool recomputeVisibleRegions = false;

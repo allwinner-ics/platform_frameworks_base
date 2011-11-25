@@ -15,6 +15,7 @@ LOCAL_SRC_FILES:= \
     com_android_server_VibratorService.cpp \
     com_android_server_location_GpsLocationProvider.cpp \
     com_android_server_connectivity_Vpn.cpp \
+	com_android_server_DisplayManagerService.cpp \
     onload.cpp
 
 LOCAL_C_INCLUDES += \
