@@ -62,7 +62,7 @@ import java.util.List;
 public class UsbDeviceManager {
 
     private static final String TAG = UsbDeviceManager.class.getSimpleName();
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final String USB_STATE_MATCH =
             "DEVPATH=/devices/virtual/android_usb/android0";
@@ -261,6 +261,9 @@ public class UsbDeviceManager {
                 mDefaultFunctions = SystemProperties.get("persist.sys.usb.config", "adb");
                 // sanity check the sys.usb.config system property
                 // this may be necessary if we crashed while switching USB configurations
+                
+                Slog.e(TAG,"mDefaultFunctions="+mDefaultFunctions);
+                
                 String config = SystemProperties.get("sys.usb.config", "none");
                 if (!config.equals(mDefaultFunctions)) {
                     Slog.w(TAG, "resetting config to persistent property: " + mDefaultFunctions);

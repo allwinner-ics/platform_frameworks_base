@@ -905,13 +905,16 @@ public final class StrictMode {
         int threadPolicyMask = StrictMode.DETECT_DISK_WRITE |
                 StrictMode.DETECT_DISK_READ |
                 StrictMode.DETECT_NETWORK;
-
+		
         if (!IS_USER_BUILD) {
             threadPolicyMask |= StrictMode.PENALTY_DROPBOX;
+            /*
             if (IS_ENG_BUILD) {
                 threadPolicyMask |= StrictMode.PENALTY_LOG;
             }
+            */
         }
+        
         if (doFlashes) {
             threadPolicyMask |= StrictMode.PENALTY_FLASH;
         }
