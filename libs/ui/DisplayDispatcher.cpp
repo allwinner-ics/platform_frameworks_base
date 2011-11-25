@@ -190,31 +190,22 @@ namespace android
         int    mode;
         int    outputtype;
         int	   plugin;
-
-		LOGD("startSwapBuffer!\n");
+        
         mode            = mDevice->getdisplaymode(mDevice);
-        LOGD("startSwapBuffer!mode == %d\n",mode);
         master_display  = mDevice->getmasterdisplay(mDevice);
-        LOGD("startSwapBuffer!master_display = %d\n",master_display);
         outputtype		= mDevice->getdisplayparameter(mDevice,1 - master_display,DISPLAY_OUTPUT_TYPE);
-        LOGD("startSwapBuffer!outputtype = %d\n",outputtype);
         if(outputtype == DISPLAY_DEVICE_HDMI)
         {
-            LOGD("startSwapBuffer!outputtype == DISPLAY_DEVICE_HDMI\n");
         	plugin      = mDevice->gethdmistatus(mDevice);
-             LOGD("startSwapBuffer!plugin = %d\n",plugin);
         	if(plugin  == 0)
         	{
         		mThread->resetEvent();
         		
         		return  ;
         	}
-
-            LOGD("startSwapBuffer!mode == DISPLAY_MODE_DUALSAME1\n");
         }
         else if(outputtype == DISPLAY_DEVICE_TV)
         {
-            LOGD("startSwapBuffer!outputtype == DISPLAY_DEVICE_TV\n");
         	plugin      = mDevice->gettvdacstatus(mDevice);
         	if(plugin  == 0)
         	{
@@ -222,8 +213,6 @@ namespace android
         		
         		return  ;
         	}
-
-            LOGD("startSwapBuffer!mode == DISPLAY_MODE_DUALSAM2E\n");
         }
         
         if(mode == DISPLAY_MODE_DUALSAME)
@@ -231,7 +220,6 @@ namespace android
             master_bufid    = mDevice->getdisplaybufid(mDevice,master_display);
 
             mThread->setSrcBuf(master_display,master_bufid);
-            LOGD("startSwapBuffer!mode == DISPLAY_MODE_DUALSAME3\n");
             mThread->signalEvent();
         }
     }
