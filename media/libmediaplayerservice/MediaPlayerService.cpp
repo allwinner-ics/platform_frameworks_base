@@ -826,7 +826,7 @@ status_t MediaPlayerService::Client::setVideoSurface(const sp<Surface>& surface)
 void MediaPlayerService::Client::disconnectNativeWindow() {
     if (mConnectedWindow != NULL) {
         status_t err = native_window_api_disconnect(mConnectedWindow.get(),
-                NATIVE_WINDOW_API_MEDIA);
+                NATIVE_WINDOW_API_MEDIA_HW);
 
         if (err != OK) {
             LOGW("native_window_api_disconnect returned an error: %s (%d)",
@@ -853,7 +853,7 @@ status_t MediaPlayerService::Client::setVideoSurfaceTexture(
     if (surfaceTexture != NULL) {
         anw = new SurfaceTextureClient(surfaceTexture);
         status_t err = native_window_api_connect(anw.get(),
-                NATIVE_WINDOW_API_MEDIA);
+                NATIVE_WINDOW_API_MEDIA_HW);
 
         if (err != OK) {
             LOGE("setVideoSurfaceTexture failed: %d", err);
