@@ -53,19 +53,19 @@ namespace android
 
     void DisplayDispatcherThread::signalEvent()
     {
-    	LOGD("signalEvent!\n");
+    	//LOGD("signalEvent!\n");
         mSemaphore->up();
     }
 
     void DisplayDispatcherThread::waitForEvent()
     {
-    	LOGD("waitForEvent!\n");
+    	//LOGD("waitForEvent!\n");
         mSemaphore->down();
     }
     
     void DisplayDispatcherThread::resetEvent()
     {
-    	LOGD("waitForEvent!\n");
+    	//LOGD("waitForEvent!\n");
         mSemaphore->reset();
     }
     
@@ -77,9 +77,9 @@ namespace android
         int  ret;
         int  write_index;
         
-        LOGD("before waitForEvent!\n");
+        //LOGD("before waitForEvent!\n");
         waitForEvent();
-        LOGD("after waitForEvent!\n");
+        //LOGD("after waitForEvent!\n");
 
         mDispDevice->request_modelock(mDispDevice);
 
@@ -96,12 +96,12 @@ namespace android
             write_index = DISPLAYDISPATCH_MAXBUFNO - 1;
     	}
     	
-    	LOGD("writebufid = %d\n",writebufid);
+    	//LOGD("writebufid = %d\n",writebufid);
 
         ret = mDispDevice->copysrcfbtodstfb(mDispDevice,mSrcfbid,1 - mSrcfboffset,1 - mSrcfbid,writebufid);
         if(ret != 0)
         {
-            LOGE("copy src fb failed!\n");
+            //LOGE("copy src fb failed!\n");
 
             mDispDevice->release_modelock(mDispDevice);
 
@@ -114,7 +114,7 @@ namespace android
         
         mFbOffset = showbufid;
         
-        LOGD("showbufid = %d,mSrcfbid = %d\n",showbufid,mSrcfbid);
+        //LOGD("showbufid = %d,mSrcfbid = %d\n",showbufid,mSrcfbid);
 
         mDispDevice->pandisplay(mDispDevice,1 - mSrcfbid,showbufid);
 
@@ -153,7 +153,7 @@ namespace android
 	    err = hw_get_module(DISPLAY_HARDWARE_MODULE_ID, (hw_module_t const**)&module);
 	    if (err == 0) 
 	    {
-            LOGD("DisplayDispatcher createing1 err = %d!\n",err);
+            //LOGD("DisplayDispatcher createing1 err = %d!\n",err);
             
 		    err = display_open(module, &mDevice);
 		    if (err == 0) 
@@ -166,7 +166,7 @@ namespace android
             LOGD("hw_get display module Failed!\n");
         }
 	    
-	    LOGD("DisplayDispatcher createing err2 = %d!\n",err);
+	    //LOGD("DisplayDispatcher createing err2 = %d!\n",err);
 
         mThread = new DisplayDispatcherThread(mDevice);
         result = mThread->run("DisplayDispatcheR", PRIORITY_HIGHEST);

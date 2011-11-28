@@ -593,6 +593,8 @@ status_t SurfaceTexture::connect(int api,
         case NATIVE_WINDOW_API_CPU:
         case NATIVE_WINDOW_API_MEDIA:
         case NATIVE_WINDOW_API_CAMERA:
+		case NATIVE_WINDOW_API_MEDIA_HW:
+		case NATIVE_WINDOW_API_CAMERA_HW:
             if (mConnectedApi != NO_CONNECTED_API) {
                 ST_LOGE("connect: already connected (cur=%d, req=%d)",
                         mConnectedApi, api);
@@ -1018,6 +1020,9 @@ void SurfaceTexture::setName(const String8& name) {
 
 int SurfaceTexture::setParameter(uint32_t cmd,uint32_t value)
 {
+    mCurrentTransform   = mNextTransform;
+    mCurrentCrop        = mNextCrop;
+    mCurrentScalingMode = mNextScalingMode;
     return 0;
 }
 

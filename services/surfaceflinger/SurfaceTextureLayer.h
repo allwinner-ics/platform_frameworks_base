@@ -40,6 +40,7 @@ public:
 
     status_t setDefaultBufferSize(uint32_t w, uint32_t h);
     status_t setDefaultBufferFormat(uint32_t format);
+	bool     usehwcomposer;
 
 public:
     virtual status_t setBufferCount(int bufferCount);

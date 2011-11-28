@@ -116,7 +116,7 @@ public class DisplayManager
     
     private IDisplayManager mService;
     private IBinder mToken = new Binder();
-
+	
     public DisplayManager() 
     {
         mService = IDisplayManager.Stub.asInterface(ServiceManager.getService(Context.DISPLAY_SERVICE));

@@ -29,6 +29,7 @@ namespace android {
 
 SurfaceTextureLayer::SurfaceTextureLayer(GLuint tex, const sp<Layer>& layer)
     : SurfaceTexture(tex), mLayer(layer) {
+    usehwcomposer = false;
 }
 
 SurfaceTextureLayer::~SurfaceTextureLayer() {
@@ -94,6 +95,11 @@ status_t SurfaceTextureLayer::connect(int api,
             *outTransform = orientation;
         }
         switch(api) {
+			case NATIVE_WINDOW_API_MEDIA_HW:
+			case NATIVE_WINDOW_API_CAMERA_HW:
+				usehwcomposer = true;
+				break;
+				
             case NATIVE_WINDOW_API_MEDIA:
             case NATIVE_WINDOW_API_CAMERA:
                 // Camera preview and videos are rate-limited on the producer
@@ -120,23 +126,26 @@ status_t SurfaceTextureLayer::connect(int api,
 int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value) 
 {
     int res = 0;
-    
+
+	SurfaceTexture::setParameter(cmd,value);
+	
     sp<Layer> layer(mLayer.promote());
     if (layer != NULL) 
     {
-    	if(cmd == HWC_LAYER_SETINITPARA)
+    	if(usehwcomposer)
     	{
-    		layerinitpara_t  *layer_info;
-    		
-    		layer_info = (layerinitpara_t  *)value;
-    	
-    		LOGV("layer_info = %d\n",layer_info);	
-    		layer->setTextureInfo(layer_info->w,layer_info->h,layer_info->format);
-    		LOGV("after layer_info = %d\n",layer_info);	
+	    	if(cmd == HWC_LAYER_SETINITPARA)
+	    	{
+	    		layerinitpara_t  *layer_info;
+	    		
+	    		layer_info = (layerinitpara_t  *)value;
+	    	
+	    		layer->setTextureInfo(layer_info->w,layer_info->h,layer_info->format);
+	    	}
+
+			LOGV("SurfaceTextureLayer::setParameter cmd = %d,value = %d\n",cmd,value);
+        	res = layer->setDisplayParameter(cmd,value);
     	}
-    	
-    	LOGV("SurfaceTextureLayer::setParameter cmd = %d,value = %d\n",cmd,value);
-        res = layer->setDisplayParameter(cmd,value);
     }
     
     return res;

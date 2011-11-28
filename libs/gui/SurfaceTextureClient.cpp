@@ -530,7 +530,7 @@ int SurfaceTextureClient::setBuffersDimensions(int w, int h)
     mReqWidth = w;
     mReqHeight = h;
 
-    status_t err = mSurfaceTexture->setCrop(Rect(0, 0));
+    status_t err = mSurfaceTexture->setCrop(Rect(w, h));
     LOGE_IF(err, "ISurfaceTexture::setCrop(...) returned %s", strerror(-err));
 
     return err;
