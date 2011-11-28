@@ -164,10 +164,12 @@ public class ThumbnailUtils {
 
         if (bitmap == null) return null;
 
+		Log.d(TAG, "createVideoThumbnail check" + kind);
         if (kind == Images.Thumbnails.MINI_KIND) {
             // Scale down the bitmap if it's too large.
             int width = bitmap.getWidth();
             int height = bitmap.getHeight();
+            Log.d(TAG, "createVideoThumbnail size" + width + " " + height);
             int max = Math.max(width, height);
             if (max > 512) {
                 float scale = 512f / max;

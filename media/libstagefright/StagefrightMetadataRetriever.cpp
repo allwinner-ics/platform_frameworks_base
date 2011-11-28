@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "StagefrightMetadataRetriever"
 #include <utils/Log.h>
 
@@ -248,6 +248,8 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
     ColorConverter converter(
             (OMX_COLOR_FORMATTYPE)srcFormat, OMX_COLOR_Format16bitRGB565);
     CHECK(converter.isValid());
+
+    LOGD("Metadata Thumb src w:%d h:%d dst w:%d h:%d",width, height,frame->mWidth,frame->mHeight);
 
     err = converter.convert(
             (const uint8_t *)buffer->data() + buffer->range_offset(),

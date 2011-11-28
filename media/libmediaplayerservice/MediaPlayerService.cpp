@@ -67,8 +67,15 @@
 #include "TestPlayerStub.h"
 #include "StagefrightPlayer.h"
 #include "nuplayer/NuPlayerDriver.h"
+#include "CedarPlayer.h"
+#include "CedarAPlayerWrapper.h"
+#include "SimpleMediaFormatProbe.h"
 
 #include <OMX.h>
+#define PROP_SCREEN_KEY             "media.stagefright.screen"
+#define PROP_MASTER_SCREEN          "master"
+#define PROP_SLAVE_SCREEN           "slave"
+#define PROP_SCREEN_DEFAULT_VALUE   PROP_MASTER_SCREEN
 
 namespace {
 using android::media::Metadata;
@@ -194,6 +201,16 @@ typedef struct {
     const player_type playertype;
 } extmap;
 extmap FILE_EXTS [] =  {
+		{".ogg", STAGEFRIGHT_PLAYER},
+		{".mp3", STAGEFRIGHT_PLAYER},
+		{".wav", STAGEFRIGHT_PLAYER},
+		{".amr", STAGEFRIGHT_PLAYER},
+		{".flac", STAGEFRIGHT_PLAYER},
+		{".m4a", STAGEFRIGHT_PLAYER},
+
+		//{".3gp", STAGEFRIGHT_PLAYER},
+
+		//{".aac", STAGEFRIGHT_PLAYER},
         {".mid", SONIVOX_PLAYER},
         {".midi", SONIVOX_PLAYER},
         {".smf", SONIVOX_PLAYER},
@@ -202,6 +219,11 @@ extmap FILE_EXTS [] =  {
         {".rtttl", SONIVOX_PLAYER},
         {".rtx", SONIVOX_PLAYER},
         {".ota", SONIVOX_PLAYER},
+        {".ape", CEDARA_PLAYER},
+        {".ac3", CEDARA_PLAYER},
+        {".dts", CEDARA_PLAYER},
+        {".wma", CEDARA_PLAYER},
+        {".aac", CEDARA_PLAYER},
 };
 
 // TODO: Find real cause of Audio/Video delay in PV framework and remove this workaround
@@ -535,7 +557,8 @@ void MediaPlayerService::Client::disconnect()
 }
 
 static player_type getDefaultPlayerType() {
-    return STAGEFRIGHT_PLAYER;
+    return CEDARX_PLAYER;
+    //return STAGEFRIGHT_PLAYER;
 }
 
 player_type getPlayerType(int fd, int64_t offset, int64_t length)
@@ -576,7 +599,7 @@ player_type getPlayerType(const char* url)
     if (TestPlayerStub::canBeUsed(url)) {
         return TEST_PLAYER;
     }
-
+#if 0
     if (!strncasecmp("http://", url, 7)
             || !strncasecmp("https://", url, 8)) {
         size_t len = strlen(url);
@@ -588,7 +611,7 @@ player_type getPlayerType(const char* url)
             return NU_PLAYER;
         }
     }
-
+#endif
     // use MidiFile for MIDI extensions
     int lenURL = strlen(url);
     for (int i = 0; i < NELEM(FILE_EXTS); ++i) {
@@ -609,6 +632,14 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
 {
     sp<MediaPlayerBase> p;
     switch (playerType) {
+        case CEDARX_PLAYER:
+            LOGV(" create CedarXPlayer");
+            p = new CedarPlayer;
+            break;
+        case CEDARA_PLAYER:
+            LOGV(" create CedarAPlayer");
+            p = new CedarAPlayerWrapper;
+            break;
         case SONIVOX_PLAYER:
             LOGV(" create MidiFile");
             p = new MidiFile();

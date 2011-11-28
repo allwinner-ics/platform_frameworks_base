@@ -409,7 +409,10 @@ typedef struct OMX_PARAM_COMPONENTROLETYPE {
  */
 #define OMX_BUFFERFLAG_CODECCONFIG 0x00000080
 
-
+/* OMX_BUFFERFLAG_SEEK_SYNC:
+ * Defined by softwinner for hardware sync after seek
+ * */
+#define OMX_BUFFERFLAG_VENDOR_SEEK_SYNC 0x00010000
 
 /** @ingroup buf */
 typedef struct OMX_BUFFERHEADERTYPE

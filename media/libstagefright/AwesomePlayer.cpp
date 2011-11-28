@@ -16,7 +16,7 @@
 
 #undef DEBUG_HDCP
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "AwesomePlayer"
 #include <utils/Log.h>
 
@@ -26,6 +26,7 @@
 #include "include/AwesomePlayer.h"
 #include "include/DRMExtractor.h"
 #include "include/SoftwareRenderer.h"
+#include "include/AwesomeDirectRenderer.h"
 #include "include/NuCachedSource2.h"
 #include "include/ThrottledSource.h"
 #include "include/MPEG2TSExtractor.h"
@@ -169,6 +170,34 @@ private:
     AwesomeNativeWindowRenderer(const AwesomeNativeWindowRenderer &);
     AwesomeNativeWindowRenderer &operator=(
             const AwesomeNativeWindowRenderer &);
+};
+
+struct AwesomeDirectHwRenderer : public AwesomeRenderer {
+	AwesomeDirectHwRenderer(
+            const sp<ANativeWindow> &nativeWindow, const sp<MetaData> &meta)
+        : mTarget(new AwesomeDirectRenderer(nativeWindow, meta)) {
+    }
+
+    virtual void render(MediaBuffer *buffer) {
+        render((const uint8_t *)buffer->data() + buffer->range_offset(),
+               buffer->range_length());
+    }
+
+    void render(const void *data, size_t size) {
+        mTarget->render(data, size, NULL);
+    }
+
+protected:
+    virtual ~AwesomeDirectHwRenderer() {
+        delete mTarget;
+        mTarget = NULL;
+    }
+
+private:
+    AwesomeDirectRenderer *mTarget;
+
+    AwesomeDirectHwRenderer(const AwesomeDirectHwRenderer &);
+    AwesomeDirectHwRenderer &operator=(const AwesomeDirectHwRenderer &);;
 };
 
 // To collect the decoder usage
@@ -1078,22 +1107,30 @@ void AwesomePlayer::initRenderer_l() {
     // Must ensure that mVideoRenderer's destructor is actually executed
     // before creating a new one.
     IPCThreadState::self()->flushCommands();
+#if 0
+	if (format == 0) {
+		mVideoRenderer = new AwesomeDirectHwRenderer(mNativeWindow, meta);
+	}
+	else
+#endif
+	{
+		if (USE_SURFACE_ALLOC
+				&& !strncmp(component, "OMX.", 4)
+				&& strncmp(component, "OMX.google.", 11)) {
+			// Hardware decoders avoid the CPU color conversion by decoding
+			// directly to ANativeBuffers, so we must use a renderer that
+			// just pushes those buffers to the ANativeWindow.
+			mVideoRenderer =
+				new AwesomeNativeWindowRenderer(mNativeWindow, rotationDegrees);
+		} else {
+			// Other decoders are instantiated locally and as a consequence
+			// allocate their buffers in local address space.  This renderer
+			// then performs a color conversion and copy to get the data
+			// into the ANativeBuffer.
+			mVideoRenderer = new AwesomeLocalRenderer(mNativeWindow, meta);
+		}
+	}
 
-    if (USE_SURFACE_ALLOC
-            && !strncmp(component, "OMX.", 4)
-            && strncmp(component, "OMX.google.", 11)) {
-        // Hardware decoders avoid the CPU color conversion by decoding
-        // directly to ANativeBuffers, so we must use a renderer that
-        // just pushes those buffers to the ANativeWindow.
-        mVideoRenderer =
-            new AwesomeNativeWindowRenderer(mNativeWindow, rotationDegrees);
-    } else {
-        // Other decoders are instantiated locally and as a consequence
-        // allocate their buffers in local address space.  This renderer
-        // then performs a color conversion and copy to get the data
-        // into the ANativeBuffer.
-        mVideoRenderer = new AwesomeLocalRenderer(mNativeWindow, meta);
-    }
 }
 
 status_t AwesomePlayer::pause() {

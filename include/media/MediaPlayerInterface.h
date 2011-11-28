@@ -29,8 +29,11 @@
 #include <media/AudioSystem.h>
 #include <media/Metadata.h>
 
+#include "mediaplayerinfo.h"
 namespace android {
 
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
 class Parcel;
 class Surface;
 class ISurfaceTexture;
@@ -46,8 +49,20 @@ enum player_type {
     // The shared library with the test player is passed passed as an
     // argument to the 'test:' url in the setDataSource call.
     TEST_PLAYER = 5,
+
+    CEDARX_PLAYER = 8,
+    CEDARA_PLAYER = 9,
 };
 
+enum player_states {
+	PLAYER_STATE_UNKOWN = 0,
+	PLAYER_STATE_PREPARED,
+	PLAYER_STATE_PAUSE,
+	PLAYER_STATE_PLAYING,
+	PLAYER_STATE_SEEKING,
+	PLAYER_STATE_SUSPEND,
+	PLAYER_STATE_RESUME,
+};
 
 #define DEFAULT_AUDIOSINK_BUFFERCOUNT 4
 #define DEFAULT_AUDIOSINK_BUFFERSIZE 1200
@@ -138,6 +153,176 @@ public:
     virtual player_type playerType() = 0;
     virtual status_t    setParameter(int key, const Parcel &request) = 0;
     virtual status_t    getParameter(int key, Parcel *reply) = 0;
+
+
+    /*-------------------------------- add by vendor start --------------------------------*/
+    virtual int getSubCount()
+    {
+        return 0;
+    };
+
+    virtual int getSubList(MediaPlayer_SubInfo *infoList, int count)
+    {
+        return 0;
+    }
+
+    virtual int getCurSub()
+    {
+        return -1;
+    };
+
+    virtual status_t switchSub(int index)
+    {
+        return OK;
+    };
+
+    virtual status_t setSubGate(bool showSub)
+    {
+        return OK;
+    };
+
+    virtual bool getSubGate()
+    {
+        return true;
+    };
+
+    virtual status_t setSubColor(int color)
+    {
+        return OK;
+    };
+
+    virtual int getSubColor()
+    {
+        return 0xFFFFFFFF;
+    };
+
+    virtual status_t setSubFrameColor(int color)
+    {
+        return OK;
+    };
+
+    virtual int getSubFrameColor()
+    {
+        return 0xFFFFFFFF;
+    };
+
+    virtual status_t setSubFontSize(int size)
+    {
+        return OK;
+    };
+
+    virtual int getSubFontSize()
+    {
+        return -1;
+    };
+
+    virtual status_t setSubCharset(const char *charset)
+    {
+        return OK;
+    };
+
+    virtual status_t getSubCharset(char *charset)
+    {
+        return OK;
+    };
+
+    virtual status_t setSubPosition(int percent)
+    {
+        return OK;
+    };
+
+    virtual int getSubPosition()
+    {
+        return -1;
+    };
+
+    virtual status_t setSubDelay(int time)
+    {
+        return OK;
+    };
+
+    virtual int getSubDelay()
+    {
+        return -1;
+    };
+
+    virtual int getTrackCount()
+    {
+        return 0;
+    };
+
+    virtual int getTrackList(MediaPlayer_TrackInfo *infoList, int count)
+    {
+        return 0;
+    };
+
+    virtual int getCurTrack()
+    {
+        return -1;
+    };
+
+    virtual status_t switchTrack(int index)
+    {
+        return OK;
+    };
+
+    virtual status_t setInputDimensionType(int type)
+    {
+        return -1;
+    };
+
+    virtual int getInputDimensionType()
+    {
+        return -1;
+    };
+
+    virtual status_t setOutputDimensionType(int type)
+    {
+        return -1;
+    };
+
+    virtual int getOutputDimensionType()
+    {
+        return -1;
+    };
+
+    virtual status_t setAnaglaghType(int type)
+    {
+        return -1;
+    };
+
+    virtual int getAnaglaghType()
+    {
+        return -1;
+    };
+
+    virtual status_t getVideoEncode(char *encode)
+    {
+        return -1;
+    };
+
+    virtual int getVideoFrameRate()
+    {
+        return -1;
+    };
+
+    virtual status_t getAudioEncode(char *encode)
+    {
+        return -1;
+    };
+
+    virtual int getAudioBitRate()
+    {
+        return -1;
+    };
+
+    virtual int getAudioSampleRate()
+    {
+        return -1;
+    };
+
+    /*-------------------------------- add by vendor end --------------------------------*/
+
 
     // Invoke a generic method on the player by using opaque parcels
     // for the request and reply.

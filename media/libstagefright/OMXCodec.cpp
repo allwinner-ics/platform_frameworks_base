@@ -849,6 +849,8 @@ static size_t getFrameSize(
     switch (colorFormat) {
         case OMX_COLOR_FormatYCbYCr:
         case OMX_COLOR_FormatCbYCrY:
+        case OMX_CEDAR_COLOR_FormatYVU422MB:
+        case OMX_CEDAR_COLOR_FormatYVU422Planar:
             return width * height * 2;
 
         case OMX_COLOR_FormatYUV420Planar:
@@ -863,7 +865,12 @@ static size_t getFrameSize(
         * this part in the future
         */
         case OMX_COLOR_FormatAndroidOpaque:
+        case OMX_CEDAR_COLOR_FormatYVU420Planar:
+        case OMX_CEDAR_COLOR_FormatYVU420MB:
             return (width * height * 3) / 2;
+
+        case OMX_COLOR_Format24bitRGB888:
+        	return width * height * 3;
 
         default:
             CHECK(!"Should not be here. Unsupported color format.");
@@ -1372,7 +1379,12 @@ status_t OMXCodec::setVideoOutputFormat(
                || format.eColorFormat == OMX_COLOR_FormatYUV420SemiPlanar
                || format.eColorFormat == OMX_COLOR_FormatCbYCrY
                || format.eColorFormat == OMX_TI_COLOR_FormatYUV420PackedSemiPlanar
-               || format.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar);
+               || format.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar
+               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU420Planar
+               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU422Planar
+               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU420MB
+               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU422MB
+               || format.eColorFormat == OMX_COLOR_Format24bitRGB888);
 
         err = mOMX->setParameter(
                 mNode, OMX_IndexParamVideoPortFormat,
@@ -2311,7 +2323,9 @@ void OMXCodec::on_message(const omx_message &msg) {
                     CODEC_LOGE(
                             "Codec lied about its buffer size requirements, "
                             "sending a buffer larger than the originally "
-                            "advertised size in FILL_BUFFER_DONE!");
+                            "advertised size in FILL_BUFFER_DONE!"
+                    		"msg.u.extended_buffer_data.range_offset:%d, msg.u.extended_buffer_data.range_length:%d, buffer->size():%d",
+                    		msg.u.extended_buffer_data.range_offset,msg.u.extended_buffer_data.range_length,buffer->size());
                 }
                 buffer->set_range(
                         msg.u.extended_buffer_data.range_offset,
@@ -3047,6 +3061,8 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
         return false;
     }
 
+    OMX_U32 flags = 0;
+
     if (mCodecSpecificDataIndex < mCodecSpecificData.size()) {
         CHECK(!(mFlags & kUseSecureInputBuffers));
 
@@ -3113,6 +3129,7 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
             options.setSeekTo(mSeekTimeUs, mSeekMode);
 
             mSeekTimeUs = -1;
+            flags |= OMX_BUFFERFLAG_VENDOR_SEEK_SYNC;
             mSeekMode = ReadOptions::SEEK_CLOSEST_SYNC;
             mBufferFilled.signal();
 
@@ -3260,7 +3277,7 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
         LOGV("coalesced %d frames into one input buffer", n);
     }
 
-    OMX_U32 flags = OMX_BUFFERFLAG_ENDOFFRAME;
+    flags |= OMX_BUFFERFLAG_ENDOFFRAME;
 
     if (signalEOS) {
         flags |= OMX_BUFFERFLAG_EOS;
