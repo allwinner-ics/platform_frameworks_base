@@ -28,7 +28,7 @@
 
     <com.android.systemui.statusbar.LatestItemView android:id="@+id/content"
         android:layout_width="match_parent"
-        android:layout_height="76dp"
+        android:layout_height="64dp"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@id/large_icon"
         android:layout_alignParentRight="true"

@@ -18,11 +18,11 @@
 -->
 <resources>
     <!-- Height of the status bar -->
-    <dimen name="status_bar_height">38dip</dimen>
+    <dimen name="status_bar_height">25dip</dimen>
     <!-- Width and height of a single notification icon in the status bar -->
-    <dimen name="status_bar_icon_size">25dip</dimen>
+    <dimen name="status_bar_icon_size">24dip</dimen>
     <!-- Size of the giant number (unread count) in the notifications -->
-    <dimen name="status_bar_content_number_size">38sp</dimen>
+    <dimen name="status_bar_content_number_size">48sp</dimen>
 
     <!-- Default height of a key in the password keyboard for alpha -->
     <dimen name="password_keyboard_key_height_alpha">75dip</dimen>
