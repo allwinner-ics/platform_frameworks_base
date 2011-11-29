@@ -563,9 +563,11 @@ static player_type getDefaultPlayerType() {
 
 player_type getPlayerType(int fd, int64_t offset, int64_t length)
 {
-    char buf[20];
+	int r_size;
+	int file_format;
+    char buf[2048];
     lseek(fd, offset, SEEK_SET);
-    read(fd, buf, sizeof(buf));
+    r_size = read(fd, buf, sizeof(buf));
     lseek(fd, offset, SEEK_SET);
 
     long ident = *((long*)buf);
@@ -589,6 +591,17 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
             return SONIVOX_PLAYER;
         }
         EAS_Shutdown(easdata);
+    }
+
+    file_format = audio_format_detect((unsigned char*)buf, r_size);
+    LOGV("getPlayerType: %d",file_format);
+    if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
+    	LOGV("use STAGEFRIGHT_PLAYER");
+    	return STAGEFRIGHT_PLAYER;
+    }
+    else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
+    	LOGV("use CEDARA_PLAYER");
+    	return CEDARA_PLAYER;
     }
 
     return getDefaultPlayerType();
