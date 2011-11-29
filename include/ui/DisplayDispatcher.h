@@ -36,6 +36,20 @@
 
 #define   DISPLAYDISPATCH_MAXBUFNO      3
 
+#define   DISPLAY_CMD_SETDISPPARA       0
+#define   DISPLAY_CMD_CHANGEDISPMODE    1
+#define   DISPLAY_CMD_OPENDISP          2
+#define   DISPLAY_CMD_CLOSEDISP         3
+#define   DISPLAY_CMD_GETHDMISTATUS     4
+#define   DISPLAY_CMD_GETTVSTATUS       5
+#define   DISPLAY_CMD_GETDISPPARA       6
+#define   DISPLAY_CMD_SETMASTERDISP     7
+#define   DISPLAY_CMD_GETMASTERDISP     8
+#define   DISPLAY_CMD_GETMAXWIDTHDISP   9
+#define   DISPLAY_CMD_GETMAXHDMIMODE    10
+#define   DISPLAY_CMD_GETDISPLAYMODE    11
+#define   DISPLAY_CMD_GETDISPCOUNT      12
+#define   DISPLAY_CMD_SETDISPMODE       13
 namespace android 
 {
     /* 同显时的帧管理线程 */
@@ -67,9 +81,36 @@ namespace android
         public:
             DisplayDispatcher();
             ~DisplayDispatcher();
-
-            void startSwapBuffer();
+            
+            int     setDispProp(int cmd,int param0,int param1,int param2);
+            int     getDispProp(int cmd,int param0,int param1);
+            void    startSwapBuffer();
         private:
+            int  	changeDisplayMode(int displayno, int value0,int value1);
+			int  	setDisplayParameter(int displayno, int value0,int value1);	
+			int  	setDisplayMode(int mode);
+			int		openDisplay(int displayno);
+			int 	closeDisplay(int displayno);
+			int 	getHdmiStatus(void);
+			int 	getTvDacStatus(void);
+			int 	getDisplayParameter(int displayno, int param);
+			int 	setMasterDisplay(int displayno);
+			int 	getMasterDisplay();
+			int 	getDisplayMode();
+			int 	getDisplayCount();
+			int		getMaxWidthDisplay();
+			int     getMaxHdmiMode();
+			
+			bool 	mDisplayOpen0;
+	        bool 	mDisplayOpen1;
+	        int 	mDisplayMaster;
+	        int 	mDisplayMode;
+	        int 	mDisplayPixelFormat0;
+	        int 	mDisplayPixelFormat1;
+	        int 	mDisplayType0;
+	        int 	mDisplayType1;
+	        int 	mDisplayFormat0;
+	        int 	mDisplayFormat1;
             sp<DisplayDispatcherThread>   mThread;
             display_device_t*	mDevice;	
             

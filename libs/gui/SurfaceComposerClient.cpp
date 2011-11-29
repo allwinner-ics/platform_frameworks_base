@@ -520,6 +520,20 @@ status_t SurfaceComposerClient::unfreezeDisplay(DisplayID dpy, uint32_t flags)
     return NO_ERROR;
 }
 
+int  SurfaceComposerClient::setDisplayProp(int cmd,int param0,int param1,int param2)
+{
+    sp<ISurfaceComposer> s(ComposerService::getComposerService());
+    if (s == NULL) return NO_INIT;
+    return s->setDisplayProp(cmd,param0,param1,param2);
+}
+
+int  SurfaceComposerClient::getDisplayProp(int cmd,int param0,int param1)
+{
+    sp<ISurfaceComposer> s(ComposerService::getComposerService());
+    if (s == NULL) return NO_INIT;
+
+    return s->getDisplayProp(cmd,param0,param1);
+}
 // ----------------------------------------------------------------------------
 
 ScreenshotClient::ScreenshotClient()

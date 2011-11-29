@@ -92,6 +92,9 @@ public:
     // only for debugging
     int getCurrentBufferIndex() const;
 
+    int setDispProp(int cmd,int param0,int param1,int param2) const;
+    int getDispProp(int cmd,int param0,int param1) const;
+
 private:
     void init(uint32_t displayIndex) __attribute__((noinline));
     void fini() __attribute__((noinline));

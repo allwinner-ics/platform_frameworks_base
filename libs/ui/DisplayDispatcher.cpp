@@ -183,6 +183,281 @@ namespace android
         
     }
 
+    int DisplayDispatcher::changeDisplayMode(int displayno, int value0,int value1)
+	{
+        int    ret;
+        
+		if(mDevice)
+		{
+			return mDevice->changemode(mDevice,displayno,value0,value1);
+		}
+		
+		return  -1;
+	}
+	
+	int DisplayDispatcher::setDisplayParameter(int displayno, int value0,int value1)
+	{
+		if(displayno == 0)
+		{
+			if(value0 == DISPLAY_DEVICE_LCD)
+			{
+				mDisplayType0 	= DISPLAY_DEVICE_LCD;
+			}
+			else if(value0 == DISPLAY_DEVICE_TV)
+			{
+				mDisplayType0 	= DISPLAY_DEVICE_TV;
+				mDisplayFormat0 = value1;
+			}
+			else if(value0 == DISPLAY_DEVICE_HDMI)
+			{
+				mDisplayType0 	= DISPLAY_DEVICE_HDMI;
+				mDisplayFormat0 = value1;
+			}
+			else if(value0 == DISPLAY_DEVICE_VGA)
+			{
+				mDisplayType0 	= DISPLAY_DEVICE_VGA;
+				mDisplayFormat0 = value1;
+			}
+			else
+			{
+				mDisplayPixelFormat0 = value1;
+			}
+		}
+		else
+		{
+			if(value0 == DISPLAY_DEVICE_LCD)
+			{
+				mDisplayType1 	= DISPLAY_DEVICE_LCD;
+			}
+			else if(value0 == DISPLAY_DEVICE_TV)
+			{
+				mDisplayType1 	= DISPLAY_DEVICE_TV;
+				mDisplayFormat1 = value1;
+			}
+			else if(value0 == DISPLAY_DEVICE_HDMI)
+			{
+				mDisplayType1 	= DISPLAY_DEVICE_HDMI;
+				mDisplayFormat1 = value1;
+			}
+			else if(value0 == DISPLAY_DEVICE_VGA)
+			{
+				mDisplayType1 	= DISPLAY_DEVICE_VGA;
+				mDisplayFormat1 = value1;
+			}
+			else
+			{
+				mDisplayPixelFormat1 = value1;
+			}
+		}
+		
+		return  0;
+	}
+	
+	
+	int DisplayDispatcher::setDisplayMode(int mode)
+	{
+		if(mDevice)
+		{
+			struct display_modepara_t    disp_para;
+			
+			disp_para.d0type			= mDisplayType0;
+    		disp_para.d1type			= mDisplayType1;
+    		disp_para.d0format			= mDisplayFormat0;
+    		disp_para.d1format			= mDisplayFormat1;
+    		disp_para.d0pixelformat		= mDisplayPixelFormat0;
+    		disp_para.d1pixelformat		= mDisplayPixelFormat1;
+    		disp_para.masterdisplay		= mDisplayMaster;
+    		
+			return  mDevice->setdisplaymode(mDevice,mode,&disp_para);
+		}
+		
+		return  -1;
+	}
+	
+	int DisplayDispatcher::openDisplay(int displayno)
+	{
+		if(mDevice)
+		{
+            if(displayno == 0)
+            {
+                mDisplayOpen0 = true;
+            }
+            else
+            {
+                mDisplayOpen1 = true;
+            }
+            
+			return  mDevice->opendisplay(mDevice,displayno);
+		}
+		
+		return  -1;
+	}
+	
+	int DisplayDispatcher::closeDisplay(int displayno)
+	{
+		if(mDevice)
+		{
+            if(displayno == 0)
+            {
+                mDisplayOpen0 = false;
+            }
+            else
+            {
+                mDisplayOpen1 = false;
+            }
+			return  mDevice->closedisplay(mDevice,displayno);
+		}
+		
+		return  -1;
+	}
+	
+	int DisplayDispatcher::getHdmiStatus(void)
+	{
+		if(mDevice)
+		{
+			return  mDevice->gethdmistatus(mDevice);
+		}
+		
+		return  -1;
+	}
+	
+	int DisplayDispatcher::getTvDacStatus(void)
+	{
+		if(mDevice)
+		{
+			return  mDevice->gettvdacstatus(mDevice);
+		}
+		
+		return  -1;
+	}
+	
+	int DisplayDispatcher::getDisplayParameter(int displayno, int param)
+	{
+		if(mDevice)
+		{
+			return  mDevice->getdisplayparameter(mDevice,displayno,param);
+		}
+		
+		return  -1;
+	}
+
+    int DisplayDispatcher::setMasterDisplay(int displayno)
+    {
+        if(mDevice)
+		{
+			return  mDevice->setmasterdisplay(mDevice,displayno);
+		}
+		
+		return  -1;
+    }
+    
+    int DisplayDispatcher::getMasterDisplay()
+    {
+    	if(mDevice)
+		{
+			return  mDevice->getmasterdisplay(mDevice);
+		}
+		
+		return  -1;
+    }
+    
+    int DisplayDispatcher::getMaxWidthDisplay()
+    {
+    	if(mDevice)
+		{
+			return  mDevice->getmaxwidthdisplay(mDevice);
+		}
+		
+		return  -1;
+   	}
+   	
+   	int DisplayDispatcher::getMaxHdmiMode()
+    {
+    	if(mDevice)
+		{
+			return  mDevice->gethdmimaxmode(mDevice);
+		}
+		
+		return  -1;
+   	}
+   	
+    int DisplayDispatcher::getDisplayMode()
+    {
+    	if(mDevice)
+		{
+			return  mDevice->getdisplaymode(mDevice);
+		}
+		
+		return  -1;
+    }
+    
+    int DisplayDispatcher::getDisplayCount()
+    {
+    	if(mDevice)
+		{
+			return  mDevice->getdisplaycount(mDevice);
+		}
+		
+		return  -1;
+    }
+
+    int DisplayDispatcher::setDispProp(int cmd,int param0,int param1,int param2)
+    {
+        switch(cmd)
+        {
+            case  DISPLAY_CMD_SETDISPPARA:
+                return  setDisplayParameter(param0,param1,param2);
+
+            case  DISPLAY_CMD_CHANGEDISPMODE:
+                return  changeDisplayMode(param0,param1,param2);
+
+            case  DISPLAY_CMD_CLOSEDISP:
+                return  closeDisplay(param0);
+
+            case  DISPLAY_CMD_OPENDISP:
+                return  openDisplay(param0);
+
+            case  DISPLAY_CMD_GETDISPCOUNT:
+                return  getDisplayCount();
+
+            case DISPLAY_CMD_GETDISPLAYMODE:
+                return  getDisplayMode();
+
+            case DISPLAY_CMD_GETDISPPARA:
+                return  getDisplayParameter(param0,param1);
+
+            case DISPLAY_CMD_GETHDMISTATUS:
+                return  getHdmiStatus();
+
+            case DISPLAY_CMD_GETMASTERDISP:
+                return  getMasterDisplay();
+
+            case DISPLAY_CMD_GETMAXHDMIMODE:
+                return  getMaxHdmiMode();
+
+            case DISPLAY_CMD_GETMAXWIDTHDISP:
+                return  getMaxWidthDisplay();
+
+            case DISPLAY_CMD_GETTVSTATUS:
+                return  getTvDacStatus();
+
+            case DISPLAY_CMD_SETMASTERDISP:
+                return  setMasterDisplay(param0);
+
+            case DISPLAY_CMD_SETDISPMODE:
+                return  setDisplayMode(param0);
+
+            default:
+                LOGE("Display Cmd not Support!\n");
+                return  -1;
+        }
+    }
+    
+    int DisplayDispatcher::getDispProp(int cmd,int param0,int param1)
+    {
+        return  0;
+    }
+
     void DisplayDispatcher::startSwapBuffer()
     {
         int    master_bufid;

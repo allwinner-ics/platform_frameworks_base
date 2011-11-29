@@ -24,6 +24,8 @@
 #include <utils/Log.h>
 #include <hardware/hardware.h>
 #include <hardware/display.h>
+#include <surfaceflinger/SurfaceComposerClient.h>
+#include <ui/DisplayDispatcher.h>
 #include <stdio.h>
 
 #define LOG_NDEBUG    0
@@ -108,19 +110,10 @@ namespace android
 	    	display_close(disp_device);
 	    }
 	}
-
-    
 	
 	int NativeDisplayManager::changeDisplayMode(int displayno, int value0,int value1)
 	{
-        int    ret;
-        
-		if(disp_device)
-		{
-			return disp_device->changemode(disp_device,displayno,value0,value1);
-		}
-		
-		return  -1;
+		return SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_CHANGEDISPMODE,displayno,value0,value1);
 	}
 	
 	int NativeDisplayManager::setDisplayParameter(int displayno, int value0,int value1)
@@ -177,66 +170,42 @@ namespace android
 				mDisplayPixelFormat1 = value1;
 			}
 		}
-		
-		return  0;
+
+        return SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_SETDISPPARA,displayno,value0,value1);
 	}
 	
 	
 	int NativeDisplayManager::setDisplayMode(int mode)
 	{
-		if(disp_device)
-		{
-			struct display_modepara_t    disp_para;
-			
-			disp_para.d0type			= mDisplayType0;
-    		disp_para.d1type			= mDisplayType1;
-    		disp_para.d0format			= mDisplayFormat0;
-    		disp_para.d1format			= mDisplayFormat1;
-    		disp_para.d0pixelformat		= mDisplayPixelFormat0;
-    		disp_para.d1pixelformat		= mDisplayPixelFormat1;
-    		disp_para.masterdisplay		= mDisplayMaster;
-    		
-			return  disp_device->setdisplaymode(disp_device,mode,&disp_para);
-		}
-		
-		return  -1;
+		return SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_SETDISPMODE,mode,0,0);
 	}
 	
 	int NativeDisplayManager::openDisplay(int displayno)
 	{
-		if(disp_device)
-		{
-            if(displayno == 0)
-            {
-                mDisplayOpen0 = true;
-            }
-            else
-            {
-                mDisplayOpen1 = true;
-            }
-            
-			return  disp_device->opendisplay(disp_device,displayno);
-		}
-		
-		return  -1;
+		if(displayno == 0)
+        {
+            mDisplayOpen0 = true;
+        }
+        else
+        {
+            mDisplayOpen1 = true;
+        }
+        
+		return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_OPENDISP,displayno,0,0);
 	}
 	
 	int NativeDisplayManager::closeDisplay(int displayno)
 	{
-		if(disp_device)
-		{
-            if(displayno == 0)
-            {
-                mDisplayOpen0 = false;
-            }
-            else
-            {
-                mDisplayOpen1 = false;
-            }
-			return  disp_device->closedisplay(disp_device,displayno);
-		}
-		
-		return  -1;
+		if(displayno == 0)
+        {
+            mDisplayOpen0 = false;
+        }
+        else
+        {
+            mDisplayOpen1 = false;
+        }
+        
+		return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_CLOSEDISP,displayno,0,0);
 	}
 	
 	int NativeDisplayManager::getHdmiStatus(void)
@@ -261,72 +230,37 @@ namespace android
 	
 	int NativeDisplayManager::getDisplayParameter(int displayno, int param)
 	{
-		if(disp_device)
-		{
-			return  disp_device->getdisplayparameter(disp_device,displayno,param);
-		}
-		
-		return  -1;
+        return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_GETDISPPARA,displayno,param,0);
 	}
 
     int NativeDisplayManager::setMasterDisplay(int displayno)
     {
-        if(disp_device)
-		{
-			return  disp_device->setmasterdisplay(disp_device,displayno);
-		}
-		
-		return  -1;
+        return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_SETMASTERDISP,displayno,0,0);
     }
     
     int NativeDisplayManager::getMasterDisplay()
     {
-    	if(disp_device)
-		{
-			return  disp_device->getmasterdisplay(disp_device);
-		}
-		
-		return  -1;
+    	return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_GETMASTERDISP,0,0,0);
     }
     
     int NativeDisplayManager::getMaxWidthDisplay()
     {
-    	if(disp_device)
-		{
-			return  disp_device->getmaxwidthdisplay(disp_device);
-		}
-		
-		return  -1;
+    	return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_GETMAXWIDTHDISP,0,0,0);
    	}
    	
    	int NativeDisplayManager::getMaxHdmiMode()
     {
-    	if(disp_device)
-		{
-			return  disp_device->gethdmimaxmode(disp_device);
-		}
-		
-		return  -1;
+    	return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_GETMAXHDMIMODE,0,0,0);
    	}
    	
     int NativeDisplayManager::getDisplayMode()
     {
-    	if(disp_device)
-		{
-			return  disp_device->getdisplaymode(disp_device);
-		}
-		
-		return  -1;
+    	return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0);
     }
     
     int NativeDisplayManager::getDisplayCount()
     {
-    	if(disp_device)
-		{
-			return  disp_device->getdisplaycount(disp_device);
-		}
-		
-		return  -1;
+    	return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_GETDISPCOUNT,0,0,0);
     }
     
     static sp<NativeDisplayManager> gNativeDisplayManager;

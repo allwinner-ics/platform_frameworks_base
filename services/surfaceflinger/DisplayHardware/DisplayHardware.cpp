@@ -405,6 +405,16 @@ void DisplayHardware::makeCurrent() const
     eglMakeCurrent(mDisplay, mSurface, mSurface, mContext);
 }
 
+int DisplayHardware::setDispProp(int cmd,int param0,int param1,int param2) const
+{
+    return mDisplayDispatcher->setDispProp(cmd,param0,param1,param2);
+}
+
+int DisplayHardware::getDispProp(int cmd,int param0,int param1) const 
+{
+    return mDisplayDispatcher->getDispProp(cmd,param0,param1);
+}
+
 void DisplayHardware::dump(String8& res) const
 {
     mNativeWindow->dump(res);
