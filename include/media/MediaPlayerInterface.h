@@ -32,8 +32,14 @@
 #include "mediaplayerinfo.h"
 namespace android {
 
+/* add by Gary. start {{----------------------------------- */
+/**
+*  screen name
+*/
 #define MASTER_SCREEN        0
 #define SLAVE_SCREEN         1
+/* add by Gary. end   -----------------------------------}} */
+
 class Parcel;
 class Surface;
 class ISurfaceTexture;
@@ -72,6 +78,11 @@ enum player_states {
 // callback mechanism for passing messages to MediaPlayer object
 typedef void (*notify_callback_f)(void* cookie,
         int msg, int ext1, int ext2, const Parcel *obj);
+/* add by Gary. start {{----------------------------------- */
+/* 2011-10-9 8:54:30 */
+/* add callback for parsing 3d source */
+typedef void (*parse3dFile_callback_f)(void* cookie, int type);
+/* add by Gary. end   -----------------------------------}} */
 
 // abstract base class - use MediaPlayerInterface
 class MediaPlayerBase : public RefBase
@@ -154,113 +165,123 @@ public:
     virtual status_t    setParameter(int key, const Parcel &request) = 0;
     virtual status_t    getParameter(int key, Parcel *reply) = 0;
 
+    /* add by Gary. start {{----------------------------------- */
+    virtual status_t    setScreen(int screen){
+        return OK;
+    };
+    virtual int    		getMeidaPlayerState(){
+        return PLAYER_STATE_UNKOWN;
+    };
+    /* add by Gary. end   -----------------------------------}} */
 
-    /*-------------------------------- add by vendor start --------------------------------*/
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-14 14:27:12 */
+    /* expend interfaces about subtitle, track and so on */
     virtual int getSubCount()
     {
         return 0;
     };
-
+    
     virtual int getSubList(MediaPlayer_SubInfo *infoList, int count)
     {
         return 0;
     }
-
+    
     virtual int getCurSub()
     {
         return -1;
     };
-
+    
     virtual status_t switchSub(int index)
     {
         return OK;
     };
-
+    
     virtual status_t setSubGate(bool showSub)
     {
         return OK;
     };
-
+    
     virtual bool getSubGate()
     {
         return true;
     };
-
+    
     virtual status_t setSubColor(int color)
     {
         return OK;
     };
-
+    
     virtual int getSubColor()
     {
         return 0xFFFFFFFF;
     };
-
+    
     virtual status_t setSubFrameColor(int color)
     {
         return OK;
     };
-
+    
     virtual int getSubFrameColor()
     {
         return 0xFFFFFFFF;
     };
-
+    
     virtual status_t setSubFontSize(int size)
     {
         return OK;
     };
-
+    
     virtual int getSubFontSize()
     {
         return -1;
     };
-
+    
     virtual status_t setSubCharset(const char *charset)
     {
         return OK;
     };
-
+    
     virtual status_t getSubCharset(char *charset)
     {
         return OK;
     };
-
+    
     virtual status_t setSubPosition(int percent)
     {
         return OK;
     };
-
+    
     virtual int getSubPosition()
     {
         return -1;
     };
-
+    
     virtual status_t setSubDelay(int time)
     {
         return OK;
     };
-
+    
     virtual int getSubDelay()
     {
         return -1;
     };
-
+    
     virtual int getTrackCount()
     {
         return 0;
     };
-
+    
     virtual int getTrackList(MediaPlayer_TrackInfo *infoList, int count)
     {
         return 0;
     };
-
+    
     virtual int getCurTrack()
     {
         return -1;
     };
-
+    
     virtual status_t switchTrack(int index)
     {
         return OK;
@@ -320,9 +341,47 @@ public:
     {
         return -1;
     };
+    /* add by Gary. end   -----------------------------------}} */
 
-    /*-------------------------------- add by vendor end --------------------------------*/
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
+    virtual void setParse3dFileCallback(void* cookie, parse3dFile_callback_f func) { mParse3dFile = func; return; }                            
+    /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
+    virtual status_t enableScaleMode(bool enable, int width, int height)
+    {
+        return -1;
+    }
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
+    virtual status_t setVppGate(bool enableVpp)
+    {
+        return OK;
+    };
+    virtual status_t setLumaSharp(int value)
+    {
+        return OK;
+    };
+    virtual status_t setChromaSharp(int value)
+    {
+        return OK;
+    };
+    virtual status_t setWhiteExtend(int value)
+    {
+        return OK;
+    };
+    virtual status_t setBlackExtend(int value)
+    {
+        return OK;
+    };
+    /* add by Gary. end   -----------------------------------}} */
 
     // Invoke a generic method on the player by using opaque parcels
     // for the request and reply.
@@ -367,6 +426,11 @@ private:
     Mutex               mNotifyLock;
     void*               mCookie;
     notify_callback_f   mNotify;
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
+    parse3dFile_callback_f   mParse3dFile;
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 // Implement this class for media players that use the AudioFlinger software mixer

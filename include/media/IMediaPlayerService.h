@@ -34,6 +34,14 @@ class IMediaRecorder;
 class IOMX;
 struct IStreamSource;
 
+/* add by Gary. start {{----------------------------------- */
+/**
+*  screen name
+*/
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
+/* add by Gary. end   -----------------------------------}} */
+
 class IMediaPlayerService: public IInterface
 {
 public:
@@ -46,6 +54,26 @@ public:
     virtual sp<IMemory>         decode(const char* url, uint32_t *pSampleRate, int* pNumChannels, int* pFormat) = 0;
     virtual sp<IMemory>         decode(int fd, int64_t offset, int64_t length, uint32_t *pSampleRate, int* pNumChannels, int* pFormat) = 0;
     virtual sp<IOMX>            getOMX() = 0;
+    /* add by Gary. start {{----------------------------------- */
+    virtual status_t        setScreen(int screen) = 0;
+    virtual status_t        getScreen(int *screen) = 0;
+    virtual status_t        isPlayingVideo(int *playing) = 0;
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
+    virtual status_t        setVppGate(bool enableVpp) = 0;
+    virtual bool            getVppGate() = 0;
+    virtual status_t        setLumaSharp(int value) = 0;
+    virtual int             getLumaSharp() = 0;
+    virtual status_t        setChromaSharp(int value) = 0;
+    virtual int             getChromaSharp() = 0;
+    virtual status_t        setWhiteExtend(int value) = 0;
+    virtual int             getWhiteExtend() = 0;
+    virtual status_t        setBlackExtend(int value) = 0;
+    virtual int             getBlackExtend() = 0;
+    /* add by Gary. end   -----------------------------------}} */
 
     // codecs and audio devices usage tracking for the battery app
     enum BatteryDataBits {

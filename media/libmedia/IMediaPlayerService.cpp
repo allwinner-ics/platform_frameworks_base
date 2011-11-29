@@ -38,6 +38,28 @@ enum {
     GET_OMX,
     ADD_BATTERY_DATA,
     PULL_BATTERY_DATA
+    /* add by Gary. start {{----------------------------------- */
+    ,
+    SET_SCREEN,
+    GET_SCREEN,
+    IS_PLAYING_VIDEO
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
+    ,
+    SET_VPP_GATE,
+    GET_VPP_GATE,
+    SET_LUMA_SHARP,
+    GET_LUMA_SHARP,
+    SET_CHROMA_SHARP,
+    GET_CHROMA_SHARP,
+    SET_WHITE_EXTEND,
+    GET_WHITE_EXTEND,
+    SET_BLACK_EXTEND,
+    GET_BLACK_EXTEND
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 class BpMediaPlayerService: public BpInterface<IMediaPlayerService>
@@ -123,6 +145,124 @@ public:
         data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
         return remote()->transact(PULL_BATTERY_DATA, data, reply);
     }
+    /* add by Gary. start {{----------------------------------- */
+    status_t setScreen(int screen)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(screen);
+        remote()->transact(SET_SCREEN, data, &reply);
+        return reply.readInt32();
+    }
+
+    status_t getScreen(int *screen)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_SCREEN, data, &reply);
+        *screen = reply.readInt32();
+        return reply.readInt32();
+    }
+    
+    status_t isPlayingVideo(int *ret)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(IS_PLAYING_VIDEO, data, &reply);
+        *ret = reply.readInt32();
+        return reply.readInt32();
+    }
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
+    status_t setVppGate(bool enableVpp)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(enableVpp);
+        remote()->transact(SET_VPP_GATE, data, &reply);
+        return reply.readInt32();
+    }
+
+    bool getVppGate()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_VPP_GATE, data, &reply);
+        return reply.readInt32();
+    }
+
+    status_t setLumaSharp(int value)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(value);
+        remote()->transact(SET_LUMA_SHARP, data, &reply);
+        return reply.readInt32();
+    }
+
+    int getLumaSharp()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_LUMA_SHARP, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setChromaSharp(int value)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(value);
+        remote()->transact(SET_CHROMA_SHARP, data, &reply);
+        return reply.readInt32();
+    }
+
+    int getChromaSharp()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_CHROMA_SHARP, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setWhiteExtend(int value)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(value);
+        remote()->transact(SET_WHITE_EXTEND, data, &reply);
+        return reply.readInt32();
+    }
+
+    int getWhiteExtend()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_WHITE_EXTEND, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setBlackExtend(int value)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(value);
+        remote()->transact(SET_BLACK_EXTEND, data, &reply);
+        return reply.readInt32();
+    }
+
+    int getBlackExtend()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_BLACK_EXTEND, data, &reply);
+        return reply.readInt32();
+    }
+    
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 IMPLEMENT_META_INTERFACE(MediaPlayerService, "android.media.IMediaPlayerService");
@@ -202,6 +342,84 @@ status_t BnMediaPlayerService::onTransact(
             pullBatteryData(reply);
             return NO_ERROR;
         } break;
+        /* add by Gary. start {{----------------------------------- */
+        case SET_SCREEN: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setScreen(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_SCREEN: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int screen;
+            status_t ret = getScreen(&screen);
+            reply->writeInt32(screen);
+            reply->writeInt32(ret);
+            return NO_ERROR;
+        } break;
+        case IS_PLAYING_VIDEO: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int playing;
+            status_t ret = isPlayingVideo(&playing);
+            reply->writeInt32(playing);
+            reply->writeInt32(ret);
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
+
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-14 */
+        /* support adjusting colors while playing video */
+        case SET_VPP_GATE: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setVppGate(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_VPP_GATE: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getVppGate());
+            return NO_ERROR;
+        } break;
+        case SET_LUMA_SHARP: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setLumaSharp(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_LUMA_SHARP: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getLumaSharp());
+            return NO_ERROR;
+        } break;
+        case SET_CHROMA_SHARP: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setChromaSharp(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_CHROMA_SHARP: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getChromaSharp());
+            return NO_ERROR;
+        } break;
+        case SET_WHITE_EXTEND: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setWhiteExtend(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_WHITE_EXTEND: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getWhiteExtend());
+            return NO_ERROR;
+        } break;
+        case SET_BLACK_EXTEND: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setBlackExtend(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_BLACK_EXTEND: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getBlackExtend());
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
         default:
             return BBinder::onTransact(code, data, reply, flags);
     }

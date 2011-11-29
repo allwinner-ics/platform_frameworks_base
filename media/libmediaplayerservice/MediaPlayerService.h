@@ -242,6 +242,27 @@ public:
     virtual void                addBatteryData(uint32_t params);
     // API for the Battery app to pull the data of codecs usage
     virtual status_t            pullBatteryData(Parcel* reply);
+    /* add by Gary. start {{----------------------------------- */
+    virtual status_t            setScreen(int screen);
+    virtual status_t            getScreen(int *screen);
+    virtual status_t            isPlayingVideo(int *playing);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
+    virtual status_t            setVppGate(bool enableVpp);
+    virtual bool                getVppGate();
+    virtual status_t            setLumaSharp(int value);
+    virtual int                 getLumaSharp();
+    virtual status_t            setChromaSharp(int value);
+    virtual int                 getChromaSharp();
+    virtual status_t            setWhiteExtend(int value);
+    virtual int                 getWhiteExtend();
+    virtual status_t            setBlackExtend(int value);
+    virtual int                 getBlackExtend();
+    /* add by Gary. end   -----------------------------------}} */
+
 private:
 
     class Client : public BnMediaPlayer {
@@ -272,6 +293,71 @@ private:
         virtual status_t        attachAuxEffect(int effectId);
         virtual status_t        setParameter(int key, const Parcel &request);
         virtual status_t        getParameter(int key, Parcel *reply);
+
+        /* add by Gary. start {{----------------------------------- */
+        virtual status_t        setScreen(int screen);
+        virtual status_t        isPlayingVideo(int *playing);
+        /* add by Gary. end   -----------------------------------}} */
+
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-9-15 15:39:01 */
+        /* expend interfaces about subtitle, track and so on */
+        virtual int             getSubCount();
+        virtual int             getSubList(MediaPlayer_SubInfo *infoList, int count);
+        virtual int             getCurSub();
+        virtual status_t        switchSub(int index);
+        virtual status_t        setSubGate(bool showSub);
+        virtual bool            getSubGate();
+        virtual status_t        setSubColor(int color);
+        virtual int             getSubColor();
+        virtual status_t        setSubFrameColor(int color);
+        virtual int             getSubFrameColor();
+        virtual status_t        setSubFontSize(int size);
+        virtual int             getSubFontSize();
+        virtual status_t        setSubCharset(const char *charset);
+        virtual status_t        getSubCharset(char *charset);
+        virtual status_t        setSubPosition(int percent);
+        virtual int             getSubPosition();
+        virtual status_t        setSubDelay(int time);
+        virtual int             getSubDelay();
+        virtual int             getTrackCount();
+        virtual int             getTrackList(MediaPlayer_TrackInfo *infoList, int count);
+        virtual int             getCurTrack();
+        virtual status_t        switchTrack(int index);
+        virtual status_t        setInputDimensionType(int type);
+        virtual int             getInputDimensionType();
+        virtual status_t        setOutputDimensionType(int type);
+        virtual int             getOutputDimensionType();
+        virtual status_t        setAnaglaghType(int type);
+        virtual int             getAnaglaghType();
+        virtual status_t        getVideoEncode(char *encode);
+        virtual int             getVideoFrameRate();
+        virtual status_t        getAudioEncode(char *encode);
+        virtual int             getAudioBitRate();
+        virtual int             getAudioSampleRate();
+        /* add by Gary. end   -----------------------------------}} */
+
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-10-9 8:54:30 */
+        /* add callback for parsing 3d source */
+        static  void            parse3dFile(void* cookie, int type);
+        /* add by Gary. end   -----------------------------------}} */
+        
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-14 */
+        /* support scale mode */
+        virtual status_t        enableScaleMode(bool enable, int width, int height);
+        /* add by Gary. end   -----------------------------------}} */
+        
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-14 */
+        /* support adjusting colors while playing video */
+        virtual status_t        setVppGate(bool enableVpp);
+        virtual status_t        setLumaSharp(int value);
+        virtual status_t        setChromaSharp(int value);
+        virtual status_t        setWhiteExtend(int value);
+        virtual status_t        setBlackExtend(int value);
+        /* add by Gary. end   -----------------------------------}} */
 
         sp<MediaPlayerBase>     createPlayer(player_type playerType);
 
@@ -334,6 +420,26 @@ private:
                     uid_t                       mUID;
                     sp<ANativeWindow>           mConnectedWindow;
                     sp<IBinder>                 mConnectedWindowBinder;
+                    /* add by Gary. start {{----------------------------------- */
+                    int                         mHasSurface;
+                    /* 2011-9-28 16:28:24 */
+                    /* save properties before creating the real player */
+                    bool                        mSubGate;
+                    int                         mSubColor;
+                    int                         mSubFrameColor;
+                    int                         mSubPosition;
+                    int                         mSubDelay;
+                    int                         mSubFontSize;
+                    char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
+                    /* add by Gary. end   -----------------------------------}} */
+
+                    /* add by Gary. start {{----------------------------------- */
+                    /* 2011-11-14 */
+                    /* support scale mode */
+                    bool                        mEnableScaleMode;
+                    int                         mScaleWidth;
+                    int                         mScaleHeight;
+                    /* add by Gary. end   -----------------------------------}} */
 
         // Metadata filters.
         media::Metadata::Filter mMetadataAllow;  // protected by mLock
@@ -360,6 +466,19 @@ private:
                 SortedVector< wp<MediaRecorderClient> > mMediaRecorderClients;
                 int32_t                     mNextConnId;
                 sp<IOMX>                    mOMX;
+                /* add by Gary. start {{----------------------------------- */
+                int                         mScreen;
+                /* add by Gary. end   -----------------------------------}} */
+
+                /* add by Gary. start {{----------------------------------- */
+                /* 2011-11-14 */
+                /* support adjusting colors while playing video */
+                bool                        mVppGate;
+                int                         mLumaSharp;
+                int                         mChromaSharp;
+                int                         mWhiteExtend;
+                int                         mBlackExtend;
+                /* add by Gary. end   -----------------------------------}} */
 };
 
 // ----------------------------------------------------------------------------

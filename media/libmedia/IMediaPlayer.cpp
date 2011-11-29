@@ -56,6 +56,49 @@ enum {
     SET_VIDEO_SURFACETEXTURE,
     SET_PARAMETER,
     GET_PARAMETER,
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-15 10:51:10 */
+    /* expend interfaces about subtitle, track and so on */
+    GET_SUB_COUNT,
+    GET_SUB_LIST,
+    GET_CUR_SUB,
+    SWITCH_SUB,
+    SET_SUB_GATE,
+    GET_SUB_GATE,
+    SET_SUB_COLOR,
+    GET_SUB_COLOR,
+    SET_SUB_FRAME_COLOR,
+    GET_SUB_FRAME_COLOR,
+    SET_SUB_FONT_SIZE,
+    GET_SUB_FONT_SIZE,
+    SET_SUB_CHARSET,
+    GET_SUB_CHARSET,
+    SET_SUB_POSITION,
+    GET_SUB_POSITION,
+    SET_SUB_DELAY,
+    GET_SUB_DELAY,
+    GET_TRACK_COUNT,
+    GET_TRACK_LIST,
+    GET_CUR_TRACK,
+    SWITCH_TRACK,
+    SET_INPUT_DIMENSION_TYPE,   
+    GET_INPUT_DIMENSION_TYPE, 
+    SET_OUTPUT_DIMENSION_TYPE,  
+    GET_OUTPUT_DIMENSION_TYPE,
+    SET_ANAGLAGH_TYPE,   
+    GET_ANAGLAGH_TYPE, 
+    GET_VIDEO_ENCODE,                   
+    GET_VIDEO_FRAME_RATE,                            
+    GET_AUDIO_ENCODE,                   
+    GET_AUDIO_BIT_RATE,
+    GET_AUDIO_SAMPLE_RATE,
+    /* add by Gary. end   -----------------------------------}} */
+    
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
+    ENABLE_SCALE_MODE,
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 class BpMediaPlayer: public BpInterface<IMediaPlayer>
@@ -301,6 +344,346 @@ public:
         data.writeInt32(key);
         return remote()->transact(GET_PARAMETER, data, reply);
     }
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-14 14:27:12 */
+    /* expend interfaces about subtitle, track and so on */
+    int getSubCount()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_COUNT, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getSubList(MediaPlayer_SubInfo *infoList, int count)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(count);
+        remote()->transact(GET_SUB_LIST, data, &reply);
+        int nr = reply.readInt32();
+        if(nr > 0){
+            MediaPlayer_SubInfo *info;
+            for(int i = 0; i < nr; i++){
+                info = infoList + i;
+                info->len = reply.readInt32();
+                if(info->len >= 0)
+                    reply.read(info->name, info->len);
+                strcpy(info->charset, reply.readCString());
+                info->type = reply.readInt32();
+            }
+        }
+        return nr;
+    }
+    
+    int getCurSub()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_CUR_SUB, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t switchSub(int index)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(index);
+        remote()->transact(SWITCH_SUB, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setSubGate(bool showSub)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        int v = 0;
+        if(showSub)
+            v = 1;
+        data.writeInt32(v);
+        remote()->transact(SET_SUB_GATE, data, &reply);
+        return reply.readInt32();
+    }    
+    
+    bool getSubGate()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_GATE, data, &reply);
+        int ret = reply.readInt32();
+        if(ret)
+            return true;
+        else
+            return false;
+    }
+    
+    status_t setSubColor(int color)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(color);
+        remote()->transact(SET_SUB_COLOR, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getSubColor()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_COLOR, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setSubFrameColor(int color)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(color);
+        remote()->transact(SET_SUB_FRAME_COLOR, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getSubFrameColor()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_FRAME_COLOR, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setSubFontSize(int size)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(size);
+        remote()->transact(SET_SUB_FONT_SIZE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getSubFontSize()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_FONT_SIZE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setSubCharset(const char *charset)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeCString(charset);
+        remote()->transact(SET_SUB_CHARSET, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t getSubCharset(char *charset)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_CHARSET, data, &reply);
+        status_t ret = reply.readInt32();
+        if(ret == OK)
+            strcpy(charset, reply.readCString());
+        return ret;
+    }
+    
+    status_t setSubPosition(int percent)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(percent);
+        remote()->transact(SET_SUB_POSITION, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getSubPosition()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_POSITION, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setSubDelay(int time)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(time);
+        remote()->transact(SET_SUB_DELAY, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getSubDelay()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_SUB_DELAY, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getTrackCount()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_TRACK_COUNT, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getTrackList(MediaPlayer_TrackInfo *infoList, int count)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(count);
+        remote()->transact(GET_TRACK_LIST, data, &reply);
+        int nr = reply.readInt32();
+        if(nr > 0){
+            MediaPlayer_TrackInfo *info;
+            for(int i = 0; i < nr; i++){
+                info = infoList + i;
+                info->len = reply.readInt32();
+                if(info->len >= 0)
+                    reply.read(info->name, info->len);
+                strcpy(info->charset, reply.readCString());
+            }
+        }
+        return nr;
+    }
+    
+    int getCurTrack()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_CUR_TRACK, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t switchTrack(int index)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(index);
+        remote()->transact(SWITCH_TRACK, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setInputDimensionType(int type)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(type);
+        remote()->transact(SET_INPUT_DIMENSION_TYPE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getInputDimensionType()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_INPUT_DIMENSION_TYPE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setOutputDimensionType(int type)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(type);
+        remote()->transact(SET_OUTPUT_DIMENSION_TYPE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getOutputDimensionType()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_OUTPUT_DIMENSION_TYPE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t setAnaglaghType(int type)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(type);
+        remote()->transact(SET_ANAGLAGH_TYPE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getAnaglaghType()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_ANAGLAGH_TYPE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t getVideoEncode(char *encode)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_VIDEO_ENCODE, data, &reply);
+        status_t ret = reply.readInt32();
+        if(ret == OK){
+            const char *temp = reply.readCString();
+            strcpy(encode, temp);
+        }
+        return ret;
+    }
+    
+    int getVideoFrameRate()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_VIDEO_FRAME_RATE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    status_t getAudioEncode(char *encode)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_AUDIO_ENCODE, data, &reply);
+        status_t ret = reply.readInt32();
+        if(ret == OK){
+            const char *temp = reply.readCString();
+            strcpy(encode, temp);
+        }
+        return ret;
+    }
+    
+    int getAudioBitRate()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_AUDIO_BIT_RATE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getAudioSampleRate()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_AUDIO_SAMPLE_RATE, data, &reply);
+        return reply.readInt32();
+    }
+
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
+    status_t enableScaleMode(bool enable, int width, int height)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(enable);
+        data.writeInt32(width);
+        data.writeInt32(height);
+        remote()->transact(ENABLE_SCALE_MODE, data, &reply);
+        return reply.readInt32();
+    }
+    /* add by Gary. end   -----------------------------------}} */    
 
 };
 
@@ -476,6 +859,261 @@ status_t BnMediaPlayer::onTransact(
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             return getParameter(data.readInt32(), reply);
         } break;
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-9-15 13:06:54 */
+        /* expend interfaces about subtitle, track and so on */
+        case GET_SUB_COUNT: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getSubCount());
+            return NO_ERROR;
+        } break;
+        case GET_SUB_LIST: {       
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int count = data.readInt32();
+            MediaPlayer_SubInfo *subList = new MediaPlayer_SubInfo[count];
+            if(subList == NULL){
+                reply->writeInt32(-1);
+                return NO_ERROR;
+            }
+            count = getSubList(subList, count);
+            if(count > 0){
+                reply->writeInt32(count);
+                MediaPlayer_SubInfo *info;
+                for(int i = 0; i < count; i++){
+                    info = subList + i;
+                    reply->writeInt32(info->len);
+                    if(info->len > 0)
+                        reply->write(info->name, info->len);
+                    reply->writeCString(info->charset);
+                    reply->writeInt32(info->type);
+                }
+            }
+            delete[] subList;
+            return NO_ERROR;
+        } break;
+        case GET_CUR_SUB: {        
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getCurSub());
+            return NO_ERROR;
+        } break;
+        case SWITCH_SUB: {         
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(switchSub(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case SET_SUB_GATE: {       
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int v = data.readInt32();
+            bool b = false;
+            if(v)
+                b = true;
+            reply->writeInt32(setSubGate(b));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_GATE: {       
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            bool b = getSubGate();
+            int v = 0;
+            if(b)
+                v = 1;
+            reply->writeInt32(v);
+            return NO_ERROR;
+        } break;
+        case SET_SUB_COLOR: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setSubColor(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_COLOR: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getSubColor());
+            return NO_ERROR;
+        } break;
+        case SET_SUB_FRAME_COLOR: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setSubFrameColor(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_FRAME_COLOR: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getSubFrameColor());
+            return NO_ERROR;
+        } break;
+        case SET_SUB_FONT_SIZE: {  
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setSubFontSize(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_FONT_SIZE: {  
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getSubFontSize());
+            return NO_ERROR;
+        } break;
+        case SET_SUB_CHARSET: {    
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setSubCharset(data.readCString()));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_CHARSET: {    
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            char *charset = new char[MEDIAPLAYER_NAME_LEN_MAX];
+            status_t ret = getSubCharset(charset);
+            reply->writeInt32(ret);
+            if(ret == OK)
+                reply->writeCString(charset);
+            delete[] charset;
+            return NO_ERROR;
+        } break;
+        case SET_SUB_POSITION: {   
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setSubPosition(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_POSITION: {   
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getSubPosition());
+            return NO_ERROR;
+        } break;
+        case SET_SUB_DELAY: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setSubDelay(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_SUB_DELAY: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getSubDelay());
+            return NO_ERROR;
+        } break;
+        case GET_TRACK_COUNT: {    
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getTrackCount());
+            return NO_ERROR;
+        } break;
+        case GET_TRACK_LIST: {     
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int count = data.readInt32();
+            MediaPlayer_TrackInfo *trackList = new MediaPlayer_TrackInfo[count];
+            if(trackList == NULL){
+                reply->writeInt32(-1);
+                return NO_ERROR;
+            }
+            count = getTrackList(trackList, count);
+            if(count > 0){
+                reply->writeInt32(count);
+                MediaPlayer_TrackInfo *info;
+                for(int i = 0; i < count; i++){
+                    info = trackList + i;
+                    reply->writeInt32(info->len);
+                    if(info->len > 0)
+                        reply->write(info->name, info->len);
+                    reply->writeCString(info->charset);
+                }
+            }
+            delete[] trackList;
+            return NO_ERROR;
+         } break;
+        case GET_CUR_TRACK: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getCurTrack());
+            return NO_ERROR;
+        } break;
+        case SWITCH_TRACK: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(switchTrack(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case SET_INPUT_DIMENSION_TYPE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int type = data.readInt32();
+            reply->writeInt32(setInputDimensionType(type));
+            return NO_ERROR;
+        } break;
+        case GET_INPUT_DIMENSION_TYPE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getInputDimensionType());
+            return NO_ERROR;
+        } break;
+        case SET_OUTPUT_DIMENSION_TYPE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int type = data.readInt32();
+            reply->writeInt32(setOutputDimensionType(type));
+            return NO_ERROR;
+        } break;
+        case GET_OUTPUT_DIMENSION_TYPE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getOutputDimensionType());
+            return NO_ERROR;
+        } break;
+        case SET_ANAGLAGH_TYPE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int type = data.readInt32();
+            reply->writeInt32(setAnaglaghType(type));
+            return NO_ERROR;
+        } break;
+        case GET_ANAGLAGH_TYPE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getAnaglaghType());
+            return NO_ERROR;
+        } break;
+        case GET_VIDEO_ENCODE: {         
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            char *encode = new char[MEDIAPLAYER_NAME_LEN_MAX];
+            if(encode == NULL){
+                reply->writeInt32(-1);
+                return NO_ERROR;
+            }
+            status_t ret = getVideoEncode(encode);
+            reply->writeInt32(ret);
+            if(ret == OK){
+                reply->writeCString(encode);
+            }
+            delete[] encode;
+            return NO_ERROR;
+        } break;
+        case GET_VIDEO_FRAME_RATE: {     
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getVideoFrameRate());
+            return NO_ERROR;
+        } break;
+        case GET_AUDIO_ENCODE: {         
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            char *encode = new char[MEDIAPLAYER_NAME_LEN_MAX];
+            if(encode == NULL){
+                reply->writeInt32(-1);
+                return NO_ERROR;
+            }
+            status_t ret = getAudioEncode(encode);
+            reply->writeInt32(ret);
+            if(ret == OK){
+                reply->writeCString(encode);
+            }
+            delete[] encode;
+            return NO_ERROR;
+        } break;
+        case GET_AUDIO_BIT_RATE: {       
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getAudioBitRate());
+            return NO_ERROR;
+        } break;
+        case GET_AUDIO_SAMPLE_RATE: {     
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getAudioSampleRate());
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
+
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-14 */
+        /* support scale mode */
+        case ENABLE_SCALE_MODE: { 
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int type = data.readInt32();
+            int width = data.readInt32();
+            int height = data.readInt32();
+            reply->writeInt32(enableScaleMode(type, width, height));
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
         default:
             return BBinder::onTransact(code, data, reply, flags);
     }

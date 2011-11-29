@@ -29,6 +29,11 @@ public:
     DECLARE_META_INTERFACE(MediaPlayerClient);
 
     virtual void notify(int msg, int ext1, int ext2, const Parcel *obj) = 0;
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
+    virtual int  parse3dFile(int type) {return 0;};
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 // ----------------------------------------------------------------------------

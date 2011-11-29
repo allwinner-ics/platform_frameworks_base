@@ -10697,42 +10697,185 @@ package android.media {
     method public static android.media.MediaPlayer create(android.content.Context, android.net.Uri);
     method public static android.media.MediaPlayer create(android.content.Context, android.net.Uri, android.view.SurfaceHolder);
     method public static android.media.MediaPlayer create(android.content.Context, int);
+    method public void enableScaleMode(boolean, int, int);
+    method public int getAnaglaghType();
+    method public int getAudioBitRate();
+    method public java.lang.String getAudioEncode();
+    method public int getAudioSampleRate();
     method public int getAudioSessionId();
+    method public static int getBlackExtend();
+    method public static int getChromaSharp();
+    method public int getCurSub();
+    method public int getCurTrack();
     method public int getCurrentPosition();
     method public int getDuration();
+    method public int getInputDimensionType();
+    method public static int getLumaSharp();
+    method public int getOutputDimensionType();
+    method public static int getScreen();
+    method public java.lang.String getSubCharset();
+    method public int getSubColor();
+    method public int getSubDelay();
+    method public int getSubFontSize();
+    method public int getSubFrameColor();
+    method public boolean getSubGate();
+    method public android.media.MediaPlayer.SubInfo[] getSubList();
+    method public int getSubPosition();
+    method public android.media.MediaPlayer.TrackInfo[] getTrackList();
+    method public java.lang.String getVideoEncode();
+    method public int getVideoFrameRate();
     method public int getVideoHeight();
     method public int getVideoWidth();
+    method public static boolean getVppGate();
+    method public static int getWhiteExtend();
     method public boolean isLooping();
     method public boolean isPlaying();
+    method public static boolean isPlayingVideo();
     method public void pause() throws java.lang.IllegalStateException;
     method public void prepare() throws java.io.IOException, java.lang.IllegalStateException;
     method public void prepareAsync() throws java.lang.IllegalStateException;
     method public void release();
     method public void reset();
     method public void seekTo(int) throws java.lang.IllegalStateException;
+    method public int setAnaglaghType(int);
     method public void setAudioSessionId(int) throws java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setAudioStreamType(int);
     method public void setAuxEffectSendLevel(float);
+    method public static int setBlackExtend(int);
+    method public static int setChromaSharp(int);
     method public void setDataSource(android.content.Context, android.net.Uri) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.SecurityException;
     method public void setDataSource(android.content.Context, android.net.Uri, java.util.Map<java.lang.String, java.lang.String>) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.SecurityException;
     method public void setDataSource(java.lang.String) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.SecurityException;
     method public void setDataSource(java.io.FileDescriptor) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setDataSource(java.io.FileDescriptor, long, long) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setDisplay(android.view.SurfaceHolder);
+    method public int setInputDimensionType(int);
     method public void setLooping(boolean);
+    method public static int setLumaSharp(int);
     method public void setOnBufferingUpdateListener(android.media.MediaPlayer.OnBufferingUpdateListener);
     method public void setOnCompletionListener(android.media.MediaPlayer.OnCompletionListener);
     method public void setOnErrorListener(android.media.MediaPlayer.OnErrorListener);
     method public void setOnInfoListener(android.media.MediaPlayer.OnInfoListener);
+    method public void setOnParse3dFileListener(android.media.MediaPlayer.OnParse3dFileListener);
     method public void setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener);
     method public void setOnSeekCompleteListener(android.media.MediaPlayer.OnSeekCompleteListener);
     method public void setOnVideoSizeChangedListener(android.media.MediaPlayer.OnVideoSizeChangedListener);
+    method public int setOutputDimensionType(int);
+    method public static void setScreen(int) throws java.lang.IllegalStateException;
     method public void setScreenOnWhilePlaying(boolean);
+    method public int setSubCharset(java.lang.String);
+    method public int setSubColor(int);
+    method public int setSubDelay(int);
+    method public int setSubFontSize(int);
+    method public int setSubFrameColor(int);
+    method public int setSubGate(boolean);
+    method public int setSubPosition(int);
     method public void setSurface(android.view.Surface);
     method public void setVolume(float, float);
+    method public static int setVppGate(boolean);
     method public void setWakeMode(android.content.Context, int);
+    method public static int setWhiteExtend(int);
     method public void start() throws java.lang.IllegalStateException;
     method public void stop() throws java.lang.IllegalStateException;
+    method public int switchSub(int);
+    method public int switchTrack(int);
+    field public static final int ANAGLAGH_TYPE_DISABLE = -1; // 0xffffffff
+    field public static final int ANAGLAGH_TYPE_FULL_COLOR = 3; // 0x3
+    field public static final int ANAGLAGH_TYPE_HALF_COLOR = 4; // 0x4
+    field public static final int ANAGLAGH_TYPE_OPTIMIZED = 5; // 0x5
+    field public static final int ANAGLAGH_TYPE_RED_BLUE = 0; // 0x0
+    field public static final int ANAGLAGH_TYPE_RED_CYAN = 2; // 0x2
+    field public static final int ANAGLAGH_TYPE_RED_GREEN = 1; // 0x1
+    field public static final int ANAGLAGH_TYPE_YELLOW_BLUE = 6; // 0x6
+    field public static final java.lang.String CHARSET_BIG5 = "Big5";
+    field public static final java.lang.String CHARSET_BIG5_HKSCS = "Big5-HKSCS";
+    field public static final java.lang.String CHARSET_BOCU_1 = "BOCU-1";
+    field public static final java.lang.String CHARSET_CESU_8 = "CESU-8";
+    field public static final java.lang.String CHARSET_CP864 = "cp864";
+    field public static final java.lang.String CHARSET_EUC_JP = "EUC-JP";
+    field public static final java.lang.String CHARSET_EUC_KR = "EUC-KR";
+    field public static final java.lang.String CHARSET_GB18030 = "GB18030";
+    field public static final java.lang.String CHARSET_GBK = "GBK";
+    field public static final java.lang.String CHARSET_HZ_GB_2312 = "HZ-GB-2312";
+    field public static final java.lang.String CHARSET_ISO_2022_CN = "ISO-2022-CN";
+    field public static final java.lang.String CHARSET_ISO_2022_CN_EXT = "ISO-2022-CN-EXT";
+    field public static final java.lang.String CHARSET_ISO_2022_JP = "ISO-2022-JP";
+    field public static final java.lang.String CHARSET_ISO_2022_KR = "ISO-2022-KR";
+    field public static final java.lang.String CHARSET_ISO_8859_1 = "ISO-8859-1";
+    field public static final java.lang.String CHARSET_ISO_8859_10 = "ISO-8859-10";
+    field public static final java.lang.String CHARSET_ISO_8859_13 = "ISO-8859-13";
+    field public static final java.lang.String CHARSET_ISO_8859_14 = "ISO-8859-14";
+    field public static final java.lang.String CHARSET_ISO_8859_15 = "ISO-8859-15";
+    field public static final java.lang.String CHARSET_ISO_8859_16 = "ISO-8859-16";
+    field public static final java.lang.String CHARSET_ISO_8859_2 = "ISO-8859-2";
+    field public static final java.lang.String CHARSET_ISO_8859_3 = "ISO-8859-3";
+    field public static final java.lang.String CHARSET_ISO_8859_4 = "ISO-8859-4";
+    field public static final java.lang.String CHARSET_ISO_8859_5 = "ISO-8859-5";
+    field public static final java.lang.String CHARSET_ISO_8859_6 = "ISO-8859-6";
+    field public static final java.lang.String CHARSET_ISO_8859_7 = "ISO-8859-7";
+    field public static final java.lang.String CHARSET_ISO_8859_8 = "ISO-8859-8";
+    field public static final java.lang.String CHARSET_ISO_8859_9 = "ISO-8859-9";
+    field public static final java.lang.String CHARSET_KOI8_R = "KOI8-R";
+    field public static final java.lang.String CHARSET_KOI8_U = "KOI8-U";
+    field public static final java.lang.String CHARSET_MACINTOSH = "macintosh";
+    field public static final java.lang.String CHARSET_SCSU = "SCSU";
+    field public static final java.lang.String CHARSET_SHIFT_JIS = "Shift_JIS";
+    field public static final java.lang.String CHARSET_TIS_620 = "TIS-620";
+    field public static final java.lang.String CHARSET_UNKNOWN = "UNKNOWN";
+    field public static final java.lang.String CHARSET_US_ASCII = "US-ASCII";
+    field public static final java.lang.String CHARSET_UTF_16 = "UTF-16";
+    field public static final java.lang.String CHARSET_UTF_16BE = "UTF-16BE";
+    field public static final java.lang.String CHARSET_UTF_16LE = "UTF-16LE";
+    field public static final java.lang.String CHARSET_UTF_32 = "UTF-32";
+    field public static final java.lang.String CHARSET_UTF_32BE = "UTF-32BE";
+    field public static final java.lang.String CHARSET_UTF_32LE = "UTF-32LE";
+    field public static final java.lang.String CHARSET_UTF_7 = "UTF-7";
+    field public static final java.lang.String CHARSET_UTF_8 = "UTF-8";
+    field public static final java.lang.String CHARSET_WINDOWS_1250 = "windows-1250";
+    field public static final java.lang.String CHARSET_WINDOWS_1251 = "windows-1251";
+    field public static final java.lang.String CHARSET_WINDOWS_1252 = "windows-1252";
+    field public static final java.lang.String CHARSET_WINDOWS_1253 = "windows-1253";
+    field public static final java.lang.String CHARSET_WINDOWS_1254 = "windows-1254";
+    field public static final java.lang.String CHARSET_WINDOWS_1255 = "windows-1255";
+    field public static final java.lang.String CHARSET_WINDOWS_1256 = "windows-1256";
+    field public static final java.lang.String CHARSET_WINDOWS_1257 = "windows-1257";
+    field public static final java.lang.String CHARSET_WINDOWS_1258 = "windows-1258";
+    field public static final java.lang.String CHARSET_X_DOCOMO_SHIFT_JIS_2007 = "x-docomo-shift_jis-2007";
+    field public static final java.lang.String CHARSET_X_GSM_03_38_2000 = "x-gsm-03.38-2000";
+    field public static final java.lang.String CHARSET_X_IBM_1383_P110_1999 = "x-ibm-1383_P110-1999";
+    field public static final java.lang.String CHARSET_X_IMAP_MAILBOX_NAME = "x-IMAP-mailbox-name";
+    field public static final java.lang.String CHARSET_X_ISCII_BE = "x-iscii-be";
+    field public static final java.lang.String CHARSET_X_ISCII_DE = "x-iscii-de";
+    field public static final java.lang.String CHARSET_X_ISCII_GU = "x-iscii-gu";
+    field public static final java.lang.String CHARSET_X_ISCII_KA = "x-iscii-ka";
+    field public static final java.lang.String CHARSET_X_ISCII_MA = "x-iscii-ma";
+    field public static final java.lang.String CHARSET_X_ISCII_OR = "x-iscii-or";
+    field public static final java.lang.String CHARSET_X_ISCII_PA = "x-iscii-pa";
+    field public static final java.lang.String CHARSET_X_ISCII_TA = "x-iscii-ta";
+    field public static final java.lang.String CHARSET_X_ISCII_TE = "x-iscii-te";
+    field public static final java.lang.String CHARSET_X_ISO_8859_11_2001 = "x-iso-8859_11-2001";
+    field public static final java.lang.String CHARSET_X_JAVAUNICODE = "x-JavaUnicode";
+    field public static final java.lang.String CHARSET_X_KDDI_SHIFT_JIS_2007 = "x-kddi-shift_jis-2007";
+    field public static final java.lang.String CHARSET_X_MAC_CYRILLIC = "x-mac-cyrillic";
+    field public static final java.lang.String CHARSET_X_SOFTBANK_SHIFT_JIS_2007 = "x-softbank-shift_jis-2007";
+    field public static final java.lang.String CHARSET_X_UNICODEBIG = "x-UnicodeBig";
+    field public static final java.lang.String CHARSET_X_UTF16_OPPOSITEENDIAN = "x-UTF16_OppositeEndian";
+    field public static final java.lang.String CHARSET_X_UTF16_PLATFORMENDIAN = "x-UTF16_PlatformEndian";
+    field public static final java.lang.String CHARSET_X_UTF32_OPPOSITEENDIAN = "x-UTF32_OppositeEndian";
+    field public static final java.lang.String CHARSET_X_UTF32_PLATFORMENDIAN = "x-UTF32_PlatformEndian";
+    field public static final java.lang.String CHARSET_X_UTF_16LE_BOM = "x-UTF-16LE-BOM";
+    field public static final int INPUT_DIMENSION_TYPE_2D = 0; // 0x0
+    field public static final int INPUT_DIMENSION_TYPE_3D_BOTTOM_TOP_FULL = 5; // 0x5
+    field public static final int INPUT_DIMENSION_TYPE_3D_BOTTOM_TOP_HALF = 4; // 0x4
+    field public static final int INPUT_DIMENSION_TYPE_3D_FRAME_SEQUENTIAL = 1; // 0x1
+    field public static final int INPUT_DIMENSION_TYPE_3D_LEFT_RIGHT_FULL = 7; // 0x7
+    field public static final int INPUT_DIMENSION_TYPE_3D_LEFT_RIGHT_HALF = 6; // 0x6
+    field public static final int INPUT_DIMENSION_TYPE_3D_LINE_INTERLEAVED = 10; // 0xa
+    field public static final int INPUT_DIMENSION_TYPE_3D_RIGHT_LEFT_FULL = 9; // 0x9
+    field public static final int INPUT_DIMENSION_TYPE_3D_RIGHT_LEFT_HALF = 8; // 0x8
+    field public static final int INPUT_DIMENSION_TYPE_3D_TOP_BOTTOM_FULL = 3; // 0x3
+    field public static final int INPUT_DIMENSION_TYPE_3D_TOP_BOTTOM_HALF = 2; // 0x2
+    field public static final int MASTER_SCREEN = 0; // 0x0
     field public static final int MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK = 200; // 0xc8
     field public static final int MEDIA_ERROR_SERVER_DIED = 100; // 0x64
     field public static final int MEDIA_ERROR_UNKNOWN = 1; // 0x1
@@ -10743,6 +10886,30 @@ package android.media {
     field public static final int MEDIA_INFO_NOT_SEEKABLE = 801; // 0x321
     field public static final int MEDIA_INFO_UNKNOWN = 1; // 0x1
     field public static final int MEDIA_INFO_VIDEO_TRACK_LAGGING = 700; // 0x2bc
+    field public static final int OUTPUT_DIMENSION_TYPE_2D_BOTTOM_HALF = 4; // 0x4
+    field public static final int OUTPUT_DIMENSION_TYPE_2D_LEFT_HALF = 1; // 0x1
+    field public static final int OUTPUT_DIMENSION_TYPE_2D_ORGINAL = 0; // 0x0
+    field public static final int OUTPUT_DIMENSION_TYPE_2D_RIGHT_HALF = 2; // 0x2
+    field public static final int OUTPUT_DIMENSION_TYPE_2D_TOP_HALF = 3; // 0x3
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_FULL_COLOR = 11; // 0xb
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_HALF_COLOR = 12; // 0xc
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_OPTIMIZED = 13; // 0xd
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_BLUE = 8; // 0x8
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_CYAN = 10; // 0xa
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_GREEN = 9; // 0x9
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_YELLOW_BLUE = 14; // 0xe
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_LEFT_RIGHT = 5; // 0x5
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_LINE_INTERLEAVED = 7; // 0x7
+    field public static final int OUTPUT_DIMENSION_TYPE_3D_TOP_BOTTOM = 6; // 0x6
+    field public static final int OUTPUT_DIMENSION_TYPE_DISABLE_3D = -1; // 0xffffffff
+    field public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_1 = 15; // 0xf
+    field public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_2 = 16; // 0x10
+    field public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_3 = 17; // 0x11
+    field public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_4 = 18; // 0x12
+    field public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_5 = 19; // 0x13
+    field public static final int SLAVE_SCREEN = 1; // 0x1
+    field public static final int SUBTITLE_TYPE_BITMAP = 1; // 0x1
+    field public static final int SUBTITLE_TYPE_TEXT = 0; // 0x0
   }
 
   public static abstract interface MediaPlayer.OnBufferingUpdateListener {
@@ -10761,6 +10928,10 @@ package android.media {
     method public abstract boolean onInfo(android.media.MediaPlayer, int, int);
   }
 
+  public static abstract interface MediaPlayer.OnParse3dFileListener {
+    method public abstract int onParse3dFile(int);
+  }
+
   public static abstract interface MediaPlayer.OnPreparedListener {
     method public abstract void onPrepared(android.media.MediaPlayer);
   }
@@ -10771,6 +10942,19 @@ package android.media {
 
   public static abstract interface MediaPlayer.OnVideoSizeChangedListener {
     method public abstract void onVideoSizeChanged(android.media.MediaPlayer, int, int);
+  }
+
+  public static class MediaPlayer.SubInfo {
+    ctor public MediaPlayer.SubInfo(byte[], java.lang.String, int);
+    field public java.lang.String charset;
+    field public byte[] name;
+    field public int type;
+  }
+
+  public static class MediaPlayer.TrackInfo {
+    ctor public MediaPlayer.TrackInfo(byte[], java.lang.String);
+    field public java.lang.String charset;
+    field public byte[] name;
   }
 
   public class MediaRecorder {

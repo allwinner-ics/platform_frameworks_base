@@ -63,6 +63,17 @@ MediaPlayer::MediaPlayer()
     mAudioSessionId = AudioSystem::newAudioSessionId();
     AudioSystem::acquireAudioSessionId(mAudioSessionId);
     mSendLevel = 0;
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-28 16:28:24 */
+    /* save properties before creating the real player */
+    mSubGate = true;
+    mSubColor = 0xFFFFFFF;
+    mSubFrameColor = 0xFF000000;
+    mSubPosition = 0;
+    mSubDelay = 0;
+    mSubFontSize = 24;
+    strcpy(mSubCharset, CHARSET_GBK);
+    /* add by Gary. end   -----------------------------------}} */
 }
 
 MediaPlayer::~MediaPlayer()
@@ -149,6 +160,17 @@ status_t MediaPlayer::setDataSource(
             if (NO_ERROR != player->setDataSource(url, headers)) {
                 player.clear();
             }
+            /* add by Gary. start {{----------------------------------- */
+            /* 2011-9-28 16:28:24 */
+            /* save properties before creating the real player */
+            player->setSubGate(mSubGate);
+            player->setSubColor(mSubColor);
+            player->setSubFrameColor(mSubFrameColor);
+            player->setSubPosition(mSubPosition);
+            player->setSubDelay(mSubDelay);
+            player->setSubFontSize(mSubFontSize);
+            player->setSubCharset(mSubCharset);
+            /* add by Gary. end   -----------------------------------}} */
             err = attachNewPlayer(player);
         }
     }
@@ -717,6 +739,44 @@ void MediaPlayer::notify(int msg, int ext1, int ext2, const Parcel *obj)
     }
 }
 
+/* add by Gary. start {{----------------------------------- */
+/* 2011-10-9 8:54:30 */
+/* add callback for parsing 3d source */
+int MediaPlayer::parse3dFile(int type)
+{
+    LOGD("type = %d", type);
+    bool locked = false;
+
+    // TODO: In the future, we might be on the same thread if the app is
+    // running in the same process as the media server. In that case,
+    // this will deadlock.
+    //
+    // The threadId hack below works around this for the care of prepare
+    // and seekTo within the same process.
+    // FIXME: Remember, this is a hack, it's not even a hack that is applied
+    // consistently for all use-cases, this needs to be revisited.
+     if (mLockThreadId != getThreadId()) {
+        mLock.lock();
+        locked = true;
+    }
+
+    sp<MediaPlayerListener> listener = mListener;
+    if (locked) mLock.unlock();
+
+    // this prevents re-entrant calls into client code
+    if (listener != 0) {
+//        Mutex::Autolock _l(mNotifyLock);
+        LOGV("callback application");
+        listener->parse3dFile(type);
+        LOGV("back from callback");
+        
+        return 0;
+    }
+    
+    return -1;
+}
+/* add by Gary. end   -----------------------------------}} */
+
 /*static*/ sp<IMemory> MediaPlayer::decode(const char* url, uint32_t *pSampleRate, int* pNumChannels, int* pFormat)
 {
     LOGV("decode(%s)", url);
@@ -751,4 +811,505 @@ void MediaPlayer::died()
 
 }
 
+/* add by Gary.  {{----------------------------------- */
+status_t MediaPlayer::setScreen(int screen)
+{
+    LOGV("setScreen");
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setScreen(screen);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+status_t MediaPlayer::getScreen(int *screen)
+{
+    LOGV("getScreen");
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getScreen(screen);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+status_t MediaPlayer::isPlayingVideo(bool *playing)
+{
+    LOGV("isPlayingVideo");
+    int b;
+    int r;
+    
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        r = service->isPlayingVideo(&b);
+        if(b)
+            *playing = true;
+        else
+            *playing = false;
+        
+        return r;
+    }else {
+        return BAD_VALUE;
+    }
+}
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2011-9-14 14:27:12 */
+/* expend interfaces about subtitle, track and so on */
+int MediaPlayer::getSubCount()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getSubCount();
+}
+
+int MediaPlayer::getSubList(MediaPlayer_SubInfo *infoList, int count)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getSubList(infoList, count);
+}
+
+int MediaPlayer::getCurSub()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getCurSub();
+}
+
+
+status_t MediaPlayer::switchSub(int index)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->switchSub(index);
+}
+
+
+status_t MediaPlayer::setSubGate(bool showSub)
+{
+    Mutex::Autolock lock(mLock);
+    mSubGate = showSub;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubGate(showSub);
+}
+
+
+bool MediaPlayer::getSubGate()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return false;
+    }
+    return mPlayer->getSubGate();
+}
+
+
+status_t MediaPlayer::setSubColor(int color)
+{
+    Mutex::Autolock lock(mLock);
+    mSubColor = color;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubColor(color);
+}
+
+
+int MediaPlayer::getSubColor()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return 0xFFFFFFFF;
+    }
+    return mPlayer->getSubColor();
+}
+
+
+status_t MediaPlayer::setSubFrameColor(int color)
+{
+    Mutex::Autolock lock(mLock);
+    mSubFrameColor = color;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubFrameColor(color);
+}
+
+
+int MediaPlayer::getSubFrameColor()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return 0xFFFFFFFF;
+    }
+    return mPlayer->getSubFrameColor();
+}
+
+
+status_t MediaPlayer::setSubFontSize(int size)
+{
+    Mutex::Autolock lock(mLock);
+    mSubFontSize = size;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubFontSize(size);
+}
+
+
+int MediaPlayer::getSubFontSize()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getSubFontSize();
+}
+
+
+status_t MediaPlayer::setSubCharset(const char *charset)
+{
+    Mutex::Autolock lock(mLock);
+    strcpy(mSubCharset, charset);
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubCharset(charset);
+}
+
+
+status_t MediaPlayer::getSubCharset(char *charset)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->getSubCharset(charset);
+}
+
+
+status_t MediaPlayer::setSubPosition(int percent)
+{
+    Mutex::Autolock lock(mLock);
+    mSubPosition = percent;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubPosition(percent);
+}
+
+
+int MediaPlayer::getSubPosition()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->getSubPosition();
+}
+
+
+status_t MediaPlayer::setSubDelay(int time)
+{
+    Mutex::Autolock lock(mLock);
+    mSubDelay = time;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setSubDelay(time);
+}
+
+
+int MediaPlayer::getSubDelay()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getSubDelay();
+}
+
+
+int MediaPlayer::getTrackCount()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getTrackCount();
+}
+
+
+int MediaPlayer::getTrackList(MediaPlayer_TrackInfo *infoList, int count)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getTrackList((MediaPlayer_TrackInfo *)infoList, count);
+}
+
+
+int MediaPlayer::getCurTrack()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getCurTrack();
+}
+
+
+status_t MediaPlayer::switchTrack(int index)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->switchTrack(index);
+}
+
+
+status_t MediaPlayer::setInputDimensionType(int type)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->setInputDimensionType(type);
+}
+
+
+int MediaPlayer::getInputDimensionType()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getInputDimensionType();
+}
+
+
+status_t MediaPlayer::setOutputDimensionType(int type)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->setOutputDimensionType(type);
+}
+
+
+int MediaPlayer::getOutputDimensionType()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getOutputDimensionType();
+}
+
+
+status_t MediaPlayer::setAnaglaghType(int type)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->setAnaglaghType(type);
+}
+
+
+int MediaPlayer::getAnaglaghType()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getAnaglaghType();
+}
+
+
+status_t MediaPlayer::getVideoEncode(char *encode)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getVideoEncode(encode);
+}
+
+
+int MediaPlayer::getVideoFrameRate()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getVideoFrameRate();
+}
+
+
+status_t MediaPlayer::getAudioEncode(char *encode)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getAudioEncode(encode);
+}
+
+
+int MediaPlayer::getAudioBitRate()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getAudioBitRate();
+}
+
+
+int MediaPlayer::getAudioSampleRate()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return -1;
+    }
+    return mPlayer->getAudioSampleRate();
+}
+
+
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2011-11-14 */
+/* support scale mode */
+status_t MediaPlayer::enableScaleMode(bool enable, int width, int height)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->enableScaleMode(enable, width, height);
+}
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2011-11-14 */
+/* support adjusting colors while playing video */
+status_t MediaPlayer::setVppGate(bool enableVpp)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setVppGate(enableVpp);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+bool MediaPlayer::getVppGate()
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getVppGate();
+    }else {
+        return false;
+    }
+}
+
+status_t MediaPlayer::setLumaSharp(int value)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setLumaSharp(value);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+int MediaPlayer::getLumaSharp()
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getLumaSharp();
+    }else {
+        return -1;
+    }
+}
+
+int MediaPlayer::getChromaSharp()
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getChromaSharp();
+    }else {
+        return -1;
+    }
+}
+
+status_t MediaPlayer::setChromaSharp(int value)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setChromaSharp(value);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+int MediaPlayer::getWhiteExtend()
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getWhiteExtend();
+    }else {
+        return -1;
+    }
+}
+
+status_t MediaPlayer::setWhiteExtend(int value)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setWhiteExtend(value);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+int MediaPlayer::getBlackExtend()
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getBlackExtend();
+    }else {
+        return -1;
+    }
+}
+
+status_t MediaPlayer::setBlackExtend(int value)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setBlackExtend(value);
+    }else {
+        return BAD_VALUE;
+    }
+}
+
+/* add by Gary. end   -----------------------------------}} */
 }; // namespace android
