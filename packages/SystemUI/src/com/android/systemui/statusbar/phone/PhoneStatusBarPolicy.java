@@ -37,15 +37,13 @@ import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Slog;
-
 import com.android.internal.telephony.IccCard;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cdma.EriInfo;
 import com.android.internal.telephony.cdma.TtyIntent;
 import com.android.server.am.BatteryStatsService;
 import com.android.systemui.R;
-import android.view.DisplayManager;
-import com.android.systemui.statusbar.DisplayHotPlugPolicy;
+
 
 /**
  * This class contains all of the policy about which icons are installed in the status
@@ -102,13 +100,8 @@ public class PhoneStatusBarPolicy {
 
     private int mLastWifiSignalLevel = -1;
     private boolean mIsWifiConnected = false;
-	private static final boolean SHOW_HDMIPLUG_IN_CALL = true;
-    private static final boolean SHOW_TVPLUG_IN_CALL = true;
     // state of inet connection - 0 not connected, 100 connected
     private int mInetCondition = 0;
-	private final  DisplayManager mDisplayManager;
-	private DisplayHotPlugPolicy  mDispHotPolicy = null;
-
     // sync state
     // If sync is active the SyncActive icon is displayed. If sync is not active but
     // sync is failing the SyncFailing icon is displayed. Otherwise neither are displayed.
@@ -121,12 +114,6 @@ public class PhoneStatusBarPolicy {
 			
             if (action.equals(Intent.ACTION_ALARM_CHANGED)) {
                 updateAlarm(intent);
-            }
-			else if (action.equals(Intent.ACTION_HDMISTATUS_CHANGED)) {
-                onHdmiPlugChanged(intent);
-            }
-            else if(action.equals(Intent.ACTION_TVDACSTATUS_CHANGED)){
-				onTvDacPlugChanged(intent);
             }
             else if (action.equals(Intent.ACTION_SYNC_STATE_CHANGED)) {
                 updateSyncState(intent);
@@ -201,11 +188,7 @@ public class PhoneStatusBarPolicy {
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         filter.addAction(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
-		filter.addAction(Intent.ACTION_HDMISTATUS_CHANGED);
-		filter.addAction(Intent.ACTION_TVDACSTATUS_CHANGED);
         mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
-		mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
-		mDispHotPolicy = new StatusBarPadHotPlug();
     }
 
     private final void updateAlarm(Intent intent) {
@@ -271,16 +254,6 @@ public class PhoneStatusBarPolicy {
         }
     }
 
-	private void onHdmiPlugChanged(Intent intent)
-	{
-		mDispHotPolicy.onHdmiPlugChanged(intent);
-	}
-	
-	private void onTvDacPlugChanged(Intent intent)
-	{
-		mDispHotPolicy.onTvDacPlugChanged(intent);
-	}
-
     private final void updateBluetooth(Intent intent) {
         int iconId = R.drawable.stat_sys_data_bluetooth;
         String contentDescription = null;
@@ -323,126 +296,5 @@ public class PhoneStatusBarPolicy {
             if (false) Slog.v(TAG, "updateTTY: set TTY off");
             mService.setIconVisibility("tty", false);
         }
-    }
-
-	private class StatusBarPadHotPlug implements DisplayHotPlugPolicy
-    {
-    	StatusBarPadHotPlug()
-    	{
-    		
-    	}
-    	
-    	private void onHdmiPlugIn(Intent intent) 
-		{
-			int     maxscreen;
-			int     maxhdmimode;
-			
-	        if (SHOW_HDMIPLUG_IN_CALL) 
-			{
-	          	Slog.d(TAG,"onHdmiPlugIn Starting!\n");
-	          	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-				maxhdmimode	= mDisplayManager.getMaxHdmiMode();
-	          	mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,maxhdmimode);
-		        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
-				maxscreen = mDisplayManager.getMaxWidthDisplay();
-				//MediaPlayer.setScreen(1);
-				//AudioSystem.switchAudioOutMode(AudioSystem.AUDIO_OUT_HDMI);
-				//Camera.setCameraScreen(1);
-		        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,DisplayManager.DISPLAY_TVFORMAT_1080P_60HZ);
-	        }
-	    }
-	
-		private void onTvDacYPbPrPlugIn(Intent intent)
-		{
-			mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-	       mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_TV,DisplayManager.DISPLAY_TVFORMAT_720P_60HZ);
-	       mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
-		   //MediaPlayer.setScreen(1);
-		   //Camera.setCameraScreen(1);
-		}
-		
-		private void onTvDacCVBSPlugIn(Intent intent)
-		{
-		   mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-	       mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_TV,DisplayManager.DISPLAY_TVFORMAT_NTSC);
-	       mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
-		   //MediaPlayer.setScreen(1);
-		   //Camera.setCameraScreen(1);
-		}
-	
-		private void onHdmiPlugOut(Intent intent)
-		{
-			int     maxscreen;
-			
-			Slog.d(TAG,"onHdmiPlugOut Starting!\n");
-			mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_NONE,0);
-	      	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE);
-	        maxscreen = mDisplayManager.getMaxWidthDisplay();
-	        //MediaPlayer.setScreen(0);
-			//AudioSystem.switchAudioOutMode(AudioSystem.AUDIO_OUT_CODEC);
-			//Camera.setCameraScreen(0);
-	        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-		}
-	
-		private void onTvDacPlugOut(Intent intent)
-		{
-			Slog.d(TAG,"onTvDacPlugOut Starting!\n");
-			mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_NONE,0);
-			mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE);
-	        //MediaPlayer.setScreen(0);
-			//Camera.setCameraScreen(0);
-		}
-		
-		public void onHdmiPlugChanged(Intent intent)
-		{
-			int   hdmiplug;
-			
-			hdmiplug = intent.getIntExtra(DisplayManager.EXTRA_HDMISTATUS, 0);
-			if(hdmiplug == 1)
-			{
-				onHdmiPlugIn(intent);
-			}
-			else
-			{
-				onHdmiPlugOut(intent);
-			}
-		}
-		
-		public void onTvDacPlugChanged(Intent intent)
-		{
-			int   tvdacplug;
-			
-			tvdacplug = intent.getIntExtra(DisplayManager.EXTRA_TVSTATUS, 0);
-			if(tvdacplug == 1)
-			{
-				onTvDacYPbPrPlugIn(intent);
-			}
-			else if(tvdacplug == 2)
-			{
-				onTvDacCVBSPlugIn(intent);
-			}
-			else
-			{
-				onTvDacPlugOut(intent);
-			}
-		}
-    }
-    
-    private class StatusBarTVDHotPlug implements DisplayHotPlugPolicy
-    {
-    	StatusBarTVDHotPlug()
-    	{
-    		
-    	}
-
-		public void onHdmiPlugChanged(Intent intent)
-		{
-		}
-		
-		public void onTvDacPlugChanged(Intent intent)
-		{
-		}
     }
 }

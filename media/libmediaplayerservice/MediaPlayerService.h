@@ -441,6 +441,17 @@ private:
                     int                         mScaleHeight;
                     /* add by Gary. end   -----------------------------------}} */
 
+                    /* add by Gary. start {{----------------------------------- */
+                    /* 2011-11-30 */
+                    /* fix the bug about setting global attibute */
+                    int                         mScreen;
+                    bool                        mVppGate;
+                    int                         mLumaSharp;
+                    int                         mChromaSharp;
+                    int                         mWhiteExtend;
+                    int                         mBlackExtend;
+                    /* add by Gary. end   -----------------------------------}} */
+
         // Metadata filters.
         media::Metadata::Filter mMetadataAllow;  // protected by mLock
         media::Metadata::Filter mMetadataDrop;  // protected by mLock

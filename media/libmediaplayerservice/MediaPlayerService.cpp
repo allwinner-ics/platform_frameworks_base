@@ -885,6 +885,18 @@ status_t MediaPlayerService::Client::setDataSource(
         p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
         /* add by Gary. end   -----------------------------------}} */
 
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-30 */
+        /* fix the bug about setting global attibute */
+        LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+        p->setScreen(mScreen);
+        p->setVppGate(mVppGate);
+        p->setLumaSharp(mLumaSharp);
+        p->setChromaSharp(mChromaSharp);
+        p->setWhiteExtend(mWhiteExtend);
+        p->setBlackExtend(mBlackExtend);
+        /* add by Gary. end   -----------------------------------}} */
+
         // now set data source
         LOGV(" setDataSource");
         mStatus = p->setDataSource(url, headers);
@@ -977,6 +989,18 @@ status_t MediaPlayerService::Client::setDataSource(
     /* 2011-11-14 */
     /* support scale mode */
     p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-30 */
+    /* fix the bug about setting global attibute */
+	LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+    p->setScreen(mScreen);
+    p->setVppGate(mVppGate);
+    p->setLumaSharp(mLumaSharp);
+    p->setChromaSharp(mChromaSharp);
+    p->setWhiteExtend(mWhiteExtend);
+    p->setBlackExtend(mBlackExtend);
     /* add by Gary. end   -----------------------------------}} */
 
     // now set data source
@@ -1321,6 +1345,7 @@ status_t MediaPlayerService::getScreen(int *screen)
 status_t MediaPlayerService::Client::setScreen(int screen)
 {
     LOGV("[%d] setScreen(%d)", mConnId, screen);
+    mScreen = screen;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1698,6 +1723,7 @@ bool MediaPlayerService::getVppGate()
 
 status_t MediaPlayerService::Client::setVppGate(bool enableVpp)
 {
+    mVppGate = enableVpp;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1744,6 +1770,7 @@ int MediaPlayerService::getLumaSharp()
 
 status_t MediaPlayerService::Client::setLumaSharp(int value)
 {
+    mLumaSharp = value;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1790,6 +1817,7 @@ int MediaPlayerService::getChromaSharp()
 
 status_t MediaPlayerService::Client::setChromaSharp(int value)
 {
+    mChromaSharp = value;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1836,6 +1864,7 @@ int MediaPlayerService::getWhiteExtend()
 
 status_t MediaPlayerService::Client::setWhiteExtend(int value)
 {
+    mWhiteExtend = value;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1882,6 +1911,7 @@ int MediaPlayerService::getBlackExtend()
 
 status_t MediaPlayerService::Client::setBlackExtend(int value)
 {
+    mBlackExtend = value;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;

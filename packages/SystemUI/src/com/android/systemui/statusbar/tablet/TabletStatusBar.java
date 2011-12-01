@@ -72,6 +72,7 @@ import com.android.internal.statusbar.StatusBarNotification;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.*;
 import com.android.systemui.statusbar.policy.BatteryController;
+import com.android.systemui.statusbar.policy.DisplayController;
 import com.android.systemui.statusbar.policy.BluetoothController;
 import com.android.systemui.statusbar.policy.CompatModeButton;
 import com.android.systemui.statusbar.policy.LocationController;
@@ -160,6 +161,7 @@ public class TabletStatusBar extends StatusBar implements
     BluetoothController mBluetoothController;
     LocationController mLocationController;
     NetworkController mNetworkController;
+	DisplayController mDisplayController;
 
     ViewGroup mBarContents;
     LayoutTransition mBarContentsLayoutTransition;
@@ -500,6 +502,7 @@ public class TabletStatusBar extends StatusBar implements
         mLocationController = new LocationController(mContext); // will post a notification
 
         mBatteryController = new BatteryController(mContext);
+		mDisplayController = new DisplayController(mContext);
         mBatteryController.addIconView((ImageView)sb.findViewById(R.id.battery));
         mBluetoothController = new BluetoothController(mContext);
         mBluetoothController.addIconView((ImageView)sb.findViewById(R.id.bluetooth));
