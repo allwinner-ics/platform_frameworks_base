@@ -4170,45 +4170,17 @@ void TouchInputMapper::cookPointerData() {
         default:
             distance = 0;
         }
-
-        // X and Y
-        // Adjust coords for surface orientation.
-        float x, y;
-        switch (mSurfaceOrientation) {
-        case DISPLAY_ORIENTATION_90:
-            x = float(in.y - mRawPointerAxes.y.minValue) * mYScale;
-            y = float(mRawPointerAxes.x.maxValue - in.x) * mXScale;
-            orientation -= M_PI_2;
-            if (orientation < - M_PI_2) {
-                orientation += M_PI;
-            }
-            break;
-        case DISPLAY_ORIENTATION_180:
-            x = float(mRawPointerAxes.x.maxValue - in.x) * mXScale;
-            y = float(mRawPointerAxes.y.maxValue - in.y) * mYScale;
-            break;
-        case DISPLAY_ORIENTATION_270:
-            x = float(mRawPointerAxes.y.maxValue - in.y) * mYScale;
-            y = float(in.x - mRawPointerAxes.x.minValue) * mXScale;
-            orientation += M_PI_2;
-            if (orientation > M_PI_2) {
-                orientation -= M_PI;
-            }
-            break;
-        default:
-            x = float(in.x - mRawPointerAxes.x.minValue) * mXScale;
-            y = float(in.y - mRawPointerAxes.y.minValue) * mYScale;
-            break;
-        }
-
 		//correct the one touch data here	
+		float adjust_x,adjust_y;
+		adjust_x = float(in.x - mRawPointerAxes.x.minValue) * mXScale;
+        adjust_y = float(in.y - mRawPointerAxes.y.minValue) * mYScale;		
 		if(mNeedCorrect == false)
 		{
 			int ret = tp_getpara(tp_para);
 			if(ret == 1)
 			{
-				x = ( tp_para[2] + tp_para[0]*x + tp_para[1]*x ) / tp_para[6];			
-			    y = ( tp_para[5] + tp_para[3]*y + tp_para[4]*y ) / tp_para[6];	
+				adjust_x= ( tp_para[2] + tp_para[0]*adjust_x + tp_para[1]*adjust_x ) / tp_para[6];			
+			    adjust_y = ( tp_para[5] + tp_para[3]*adjust_y + tp_para[4]*adjust_y ) / tp_para[6];	
 				mNeedCorrect = true;
 			}
 			
@@ -4224,12 +4196,38 @@ void TouchInputMapper::cookPointerData() {
 					resetTouch = false;
 				}				
 			}
-			x = ( tp_para[2] + tp_para[0]*x + tp_para[1]*x ) / tp_para[6];			
-			y = ( tp_para[5] + tp_para[3]*y + tp_para[4]*y ) / tp_para[6];	
+			adjust_x = ( tp_para[2] + tp_para[0]*adjust_x + tp_para[1]*adjust_x ) / tp_para[6];			
+			adjust_y = ( tp_para[5] + tp_para[3]*adjust_y + tp_para[4]*adjust_y ) / tp_para[6];	
 		}
-
-
-	
+        // X and Y
+        // Adjust coords for surface orientation.
+        float x, y;
+        switch (mSurfaceOrientation) {
+        case DISPLAY_ORIENTATION_90:
+            x = adjust_y;
+            y = mSurfaceWidth-adjust_x;
+            orientation -= M_PI_2;
+            if (orientation < - M_PI_2) {
+                orientation += M_PI;
+            }
+            break;
+        case DISPLAY_ORIENTATION_180:
+            x = mSurfaceWidth - adjust_x;
+            y = mSurfaceHeight - adjust_y;
+            break;
+        case DISPLAY_ORIENTATION_270:
+            x = mSurfaceHeight - adjust_y;
+            y = adjust_x;
+            orientation += M_PI_2;
+            if (orientation > M_PI_2) {
+                orientation -= M_PI;
+            }
+            break;
+        default:
+            x = adjust_x;
+            y = adjust_y;
+            break;
+        }	
         // Write output coords.
         PointerCoords& out = mCurrentCookedPointerData.pointerCoords[i];
         out.clear();
