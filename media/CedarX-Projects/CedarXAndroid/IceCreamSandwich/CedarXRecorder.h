@@ -140,8 +140,8 @@ private:
 	AudioRecord 		* mRecord;
 
 
-#define AUDIO_LATENCY_TIME	900000		// US
-#define VIDEO_LATENCY_TIME	900000		// US
+#define AUDIO_LATENCY_TIME	700000		// US
+#define VIDEO_LATENCY_TIME	700000		// US
 	int64_t				mLatencyStartUs;
 
 	sp<DeathNotifier> mDeathNotifier;

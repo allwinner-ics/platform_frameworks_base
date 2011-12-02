@@ -1,4 +1,4 @@
-#define LOG_NDEBUG 0
+// #define LOG_NDEBUG 0
 #define LOG_TAG "CedarXRecorder"
 #include <utils/Log.h>
 
