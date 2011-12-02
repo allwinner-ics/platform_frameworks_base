@@ -1025,7 +1025,8 @@ int SurfaceTexture::setParameter(uint32_t cmd,uint32_t value)
     mCurrentTransform   = mNextTransform;
     mCurrentCrop        = mNextCrop;
     mCurrentScalingMode = mNextScalingMode;
-    return 0;
+	
+    return 100;
 }
 
 uint32_t SurfaceTexture::getParameter(uint32_t cmd)
