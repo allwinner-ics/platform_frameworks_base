@@ -576,6 +576,9 @@ status_t CedarXPlayer::prepareAsync() {
 	mFlags |= PREPARING;
 	mIsAsyncPrepare = true;
 
+	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
+	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
+
 	return (mPlayer->control(mPlayer, CDX_CMD_PREPARE_ASYNC, 0, 0) == 0 ? OK : UNKNOWN_ERROR);
 }
 
@@ -1028,6 +1031,65 @@ int CedarXPlayer::getAudioBitRate()
 int CedarXPlayer::getAudioSampleRate()
 {
     return -1;
+}
+
+status_t CedarXPlayer::enableScaleMode(bool enable, int width, int height)
+{
+	if(mPlayer == NULL){
+		return -1;
+	}
+
+	mMaxOutputWidth = width;
+	mMaxOutputHeight = height;
+	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXWIDTH, width, 0);
+	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXHEIGHT, height, 0);
+
+	return 0;
+}
+
+status_t CedarXPlayer::setVppGate(bool enableVpp)
+{
+	mVppGate = enableVpp;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_VPPON, enableVpp);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setLumaSharp(int value)
+{
+	mLumaSharp = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETLUMASHARP, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setChromaSharp(int value)
+{
+	mChromaSharp = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETCHROMASHARP, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setWhiteExtend(int value)
+{
+	mWhiteExtend = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETWHITEEXTEN, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setBlackExtend(int value)
+{
+	mBlackExtend = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETBLACKEXTEN, value);
+	}
+	return UNKNOWN_ERROR;
 }
 
 #endif

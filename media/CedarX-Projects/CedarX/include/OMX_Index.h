@@ -250,6 +250,11 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorGetScreenInfo,
     OMX_IndexVendorSetScreenInfo,
 
+    OMX_IndexVendorSetCedarvRotation,
+    OMX_IndexVendorSetCedarvMaxOutputWidth,
+    OMX_IndexVendorSetCedarvMaxOutputHeight,
+    OMX_IndexVendorSetCedarvOutputYuvMode,
+
     OMX_IndexVendorSwitchSubtilte = 0xFF001000,
     OMX_IndexVendorDisableSubtilte,
     OMX_IndexVendorSetSubtitleType,

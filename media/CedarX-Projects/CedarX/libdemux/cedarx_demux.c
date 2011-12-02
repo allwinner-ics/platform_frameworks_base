@@ -26,6 +26,24 @@
 #include "sub_dmx.h"
 #endif 
 #include "net_demux.h"
+
+#define __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+#ifdef __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+#include "stagefright_demux.h"
+CedarXDemuxerAPI cdx_dmxs_stagefright = {
+  .name = "sft_dmx",
+  .subname = "",
+  .shortdesc = "all music demuxer packing",
+
+  .open = sft_demux_open,
+  .close = sft_demux_close,
+  .prefetch = sft_demux_prefetch,
+  .read = sft_demux_read,
+  .seek = sft_demux_seek,
+  .control = sft_demux_control,
+};
+#endif
+
 extern CedarXDemuxerAPI cdx_dmxs_music;
 extern CedarXDemuxerAPI cdx_dmxs_idxsub;
 
@@ -42,6 +60,9 @@ CedarXDemuxerAPI* cedarx_demuxers[] =
 #ifdef __CDX_ENABLE_SUBTITLE
 	&cdx_dmxs_idxsub,
 #endif
+#ifdef __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+	&cdx_dmxs_stagefright,
+#endif
 	0
 };
 
@@ -54,7 +75,10 @@ enum CEDARXDEMUXERTYPES{
 	ID_CDX_DMXS_RTSP,
 #endif
 #endif
-	ID_CDX_DMXS_IDXSUB
+	ID_CDX_DMXS_IDXSUB,
+#ifdef __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+	ID_CDX_DMXS_STAGEFRIGHT,
+#endif
 };
 
 CedarXDemuxerAPI *cedarx_demuxer_handle;
@@ -104,6 +128,11 @@ CedarXDemuxerAPI *cedarx_demux_create(int demux_type)
 #ifdef __CDX_ENABLE_SUBTITLE
 	else if(demux_type & CDX_MEDIA_FILE_FMT_IDXSUB){
 		cedarx_demuxer_handle = cedarx_demuxers[ID_CDX_DMXS_IDXSUB];
+	}
+#endif
+#ifdef 	__CDX_ENABLE_STAGEFRIGHT_DEMUXER
+	else if(demux_type & CDX_MEDIA_FILE_FMT_STAGEFRIGHT) {
+		cedarx_demuxer_handle = cedarx_demuxers[ID_CDX_DMXS_STAGEFRIGHT];
 	}
 #endif
 	else {

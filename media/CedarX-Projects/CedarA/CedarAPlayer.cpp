@@ -30,10 +30,15 @@
 #include <media/stagefright/MediaDebug.h>
 #include <media/stagefright/MediaSource.h>
 #include <media/stagefright/MetaData.h>
+#ifdef __ANDROID_VERSION_2_3_4
+#include <media/stagefright/VideoRenderer.h>
+#include <surfaceflinger/ISurface.h>
+#else
 #include <surfaceflinger/Surface.h>
 #include <gui/ISurfaceTexture.h>
 #include <gui/SurfaceTextureClient.h>
 #include <surfaceflinger/ISurfaceComposer.h>
+#endif
 #include <media/stagefright/foundation/ALooper.h>
 #include <OMX_IVCommon.h>
 
@@ -73,12 +78,14 @@ CedarAPlayer::~CedarAPlayer() {
 	LOGV("Deconstruction %x",mFlags);
 }
 
+#ifndef __ANDROID_VERSION_2_3_4
 void CedarAPlayer::setUID(uid_t uid) {
     LOGV("CedarXPlayer running on behalf of uid %d", uid);
 
     mUID = uid;
     mUIDValid = true;
 }
+#endif
 
 void CedarAPlayer::setListener(const wp<MediaPlayerBase> &listener) {
 	Mutex::Autolock autoLock(mLock);
@@ -105,6 +112,7 @@ status_t CedarAPlayer::setDataSource(int fd, int64_t offset, int64_t length) {
 	return OK;
 }
 
+#ifndef __ANDROID_VERSION_2_3_4
 status_t CedarAPlayer::setDataSource(const sp<IStreamSource> &source) {
     return INVALID_OPERATION;
 }
@@ -117,6 +125,7 @@ status_t CedarAPlayer::setParameter(int key, const Parcel &request)
 status_t CedarAPlayer::getParameter(int key, Parcel *reply) {
 	return ERROR_UNSUPPORTED;
 }
+#endif
 
 void CedarAPlayer::reset() {
 	//Mutex::Autolock autoLock(mLock);
@@ -246,6 +255,12 @@ bool CedarAPlayer::isPlaying() const {
 	return (mFlags & PLAYING) || (mFlags & CACHE_UNDERRUN);
 }
 
+#ifdef __ANDROID_VERSION_2_3_4
+void CedarAPlayer::setISurface(const sp<ISurface> &isurface) {
+	//Mutex::Autolock autoLock(mLock);
+	mISurface = isurface;
+}
+#else
 status_t CedarAPlayer::setSurface(const sp<Surface> &surface) {
     //Mutex::Autolock autoLock(mLock);
 
@@ -257,6 +272,7 @@ status_t CedarAPlayer::setSurfaceTexture(const sp<ISurfaceTexture> &surfaceTextu
     //Mutex::Autolock autoLock(mLock);
     return OK;
 }
+#endif
 
 void CedarAPlayer::setAudioSink(const sp<MediaPlayerBase::AudioSink> &audioSink) {
 	//Mutex::Autolock autoLock(mLock);

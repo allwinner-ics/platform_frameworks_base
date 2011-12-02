@@ -101,6 +101,13 @@ public:
     virtual int getAudioBitRate();
     virtual int getAudioSampleRate();
 
+    virtual status_t        enableScaleMode(bool enable, int width, int height);
+    virtual status_t        setVppGate(bool enableVpp);
+    virtual status_t        setLumaSharp(int value);
+    virtual status_t        setChromaSharp(int value);
+    virtual status_t        setWhiteExtend(int value);
+    virtual status_t        setBlackExtend(int value);
+
 private:
     CedarXPlayer *mPlayer;
 

@@ -37,6 +37,7 @@ cp $SRCDIR0/libmp4_muxer_intermediates/libmp4_muxer.a ./
 cp $SRCDIR0/libm3u_intermediates/libm3u.a ./
 cp $SRCDIR0/libcedara_decoder_intermediates/libcedara_decoder.a ./
 cp $SRCDIR0/libcedarx_rtsp_intermediates/libcedarx_rtsp.a ./
+cp ~/workspace/android4.0.1/out/target/product/crane-evb/system/lib/libstagefright_soft_cedar_h264dec.so ./
 
 
 arm-eabi-strip -g *.a

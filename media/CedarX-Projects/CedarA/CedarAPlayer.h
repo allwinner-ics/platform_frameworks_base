@@ -51,8 +51,9 @@ struct CedarAPlayer {
             const KeyedVector<String8, String8> *headers = NULL);
 
     status_t setDataSource(int fd, int64_t offset, int64_t length);
+#ifndef __ANDROID_VERSION_2_3_4
     status_t setDataSource(const sp<IStreamSource> &source);
-
+#endif
     void reset();
 
     status_t prepare();
@@ -66,18 +67,21 @@ struct CedarAPlayer {
     status_t stop();
 
     bool isPlaying() const;
-
+#ifdef __ANDROID_VERSION_2_3_4
+    void setISurface(const sp<ISurface> &isurface);
+#else
     status_t setSurface(const sp<Surface> &surface);
     status_t setSurfaceTexture(const sp<ISurfaceTexture> &surfaceTexture);
+    status_t setParameter(int key, const Parcel &request);
+    status_t getParameter(int key, Parcel *reply);
+    status_t setCacheStatCollectFreq(const Parcel &request);
+#endif
     void setAudioSink(const sp<MediaPlayerBase::AudioSink> &audioSink);
     status_t setLooping(bool shouldLoop);
 
     status_t getDuration(int64_t *durationUs);
     status_t getPosition(int64_t *positionUs);
 
-    status_t setParameter(int key, const Parcel &request);
-    status_t getParameter(int key, Parcel *reply);
-    status_t setCacheStatCollectFreq(const Parcel &request);
     status_t seekTo(int64_t timeUs);
 
     status_t getVideoDimensions(int32_t *width, int32_t *height) const;
@@ -98,17 +102,17 @@ private:
     //friend struct CedarXEvent;
 
     enum {
-        PLAYING             = 0x01,
-        LOOPING             = 0x02,
-        FIRST_FRAME         = 0x04,
-        PREPARING           = 0x08,
-        PREPARED            = 0x10,
-        AT_EOS              = 0x20,
-        PREPARE_CANCELLED   = 0x40,
-        CACHE_UNDERRUN      = 0x80,
-        AUDIO_AT_EOS        = 0x0100,
-        VIDEO_AT_EOS        = 0x0200,
-        AUTO_LOOPING        = 0x0400,
+        PLAYING             = 1,
+        LOOPING             = 2,
+        FIRST_FRAME         = 4,
+        PREPARING           = 8,
+        PREPARED            = 16,
+        AT_EOS              = 32,
+        PREPARE_CANCELLED   = 64,
+        CACHE_UNDERRUN      = 128,
+        AUDIO_AT_EOS        = 256,
+        VIDEO_AT_EOS        = 512,
+        AUTO_LOOPING        = 1024,
         WAIT_TO_PLAY        = 2048,
         WAIT_VO_EXIT        = 4096,
         CEDARX_LIB_INIT     = 8192,
@@ -124,11 +128,16 @@ private:
 
     bool mQueueStarted;
     wp<MediaPlayerBase> mListener;
+#ifdef __ANDROID_VERSION_2_3_4
+    sp<ISurface> mISurface;
+#else
     bool mUIDValid;
     uid_t mUID;
 
     sp<Surface> mSurface;
     sp<ANativeWindow> mNativeWindow;
+#endif
+
     sp<MediaPlayerBase::AudioSink> mAudioSink;
 
     String8 mUri;

@@ -327,32 +327,32 @@ status_t CedarPlayer::switchTrack(int index)
 status_t CedarPlayer::setInputDimensionType(int type)
 {
 	return mPlayer->setInputDimensionType(type);
-};
+}
 
 int CedarPlayer::getInputDimensionType()
 {
 	return mPlayer->getInputDimensionType();
-};
+}
 
 status_t CedarPlayer::setOutputDimensionType(int type)
 {
 	return mPlayer->setOutputDimensionType(type);
-};
+}
 
 int CedarPlayer::getOutputDimensionType()
 {
 	return mPlayer->getOutputDimensionType();
-};
+}
 
 status_t CedarPlayer::setAnaglaghType(int type)
 {
 	return mPlayer->setAnaglaghType(type);
-};
+}
 
 int CedarPlayer::getAnaglaghType()
 {
 	return mPlayer->getAnaglaghType();
-};
+}
 
 status_t CedarPlayer::getVideoEncode(char *encode)
 {
@@ -378,5 +378,36 @@ int CedarPlayer::getAudioSampleRate()
 {
     return -1;
 }
+
+status_t CedarPlayer::enableScaleMode(bool enable, int width, int height)
+{
+	return mPlayer->enableScaleMode(enable, width, height);
+}
+
+status_t CedarPlayer::setVppGate(bool enableVpp)
+{
+	return mPlayer->setVppGate(enableVpp);
+}
+
+status_t CedarPlayer::setLumaSharp(int value)
+{
+	return mPlayer->setLumaSharp(value);
+}
+
+status_t CedarPlayer::setChromaSharp(int value)
+{
+	return mPlayer->setChromaSharp(value);
+}
+
+status_t CedarPlayer::setWhiteExtend(int value)
+{
+	return mPlayer->setWhiteExtend(value);
+}
+
+status_t CedarPlayer::setBlackExtend(int value)
+{
+	return mPlayer->setBlackExtend(value);
+}
+
 
 }  // namespace android

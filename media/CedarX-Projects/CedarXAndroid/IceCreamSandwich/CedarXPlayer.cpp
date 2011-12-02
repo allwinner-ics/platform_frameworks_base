@@ -22,6 +22,7 @@
 
 #include "CedarXPlayer.h"
 #include "CedarXNativeRenderer.h"
+#include "CedarXSoftwareRenderer.h"
 #include <libcedarv.h>
 
 #include <binder/IPCThreadState.h>
@@ -55,8 +56,8 @@ namespace android {
 
 extern "C" int CedarXPlayerCallbackWrapper(void *cookie, int event, void *info);
 
-struct CedarXLocalRenderer : public CedarXRenderer {
-    CedarXLocalRenderer(
+struct CedarXDirectHwRenderer : public CedarXRenderer {
+    CedarXDirectHwRenderer(
             const sp<ANativeWindow> &nativeWindow, const sp<MetaData> &meta)
         : mTarget(new CedarXNativeRenderer(nativeWindow, meta)) {
     }
@@ -70,7 +71,7 @@ struct CedarXLocalRenderer : public CedarXRenderer {
     }
 
 protected:
-    virtual ~CedarXLocalRenderer() {
+    virtual ~CedarXDirectHwRenderer() {
         delete mTarget;
         mTarget = NULL;
     }
@@ -78,10 +79,37 @@ protected:
 private:
     CedarXNativeRenderer *mTarget;
 
+    CedarXDirectHwRenderer(const CedarXDirectHwRenderer &);
+    CedarXDirectHwRenderer &operator=(const CedarXDirectHwRenderer &);;
+};
+
+struct CedarXLocalRenderer : public CedarXRenderer {
+    CedarXLocalRenderer(
+            const sp<ANativeWindow> &nativeWindow, const sp<MetaData> &meta)
+        : mTarget(new CedarXSoftwareRenderer(nativeWindow, meta)) {
+    }
+
+    int control(int cmd, int para) {
+        //return mTarget->control(cmd, para);
+    	return 0;
+    }
+
+    void render(const void *data, size_t size) {
+        mTarget->render(data, size, NULL);
+    }
+
+protected:
+    virtual ~CedarXLocalRenderer() {
+        delete mTarget;
+        mTarget = NULL;
+    }
+
+private:
+    CedarXSoftwareRenderer *mTarget;
+
     CedarXLocalRenderer(const CedarXLocalRenderer &);
     CedarXLocalRenderer &operator=(const CedarXLocalRenderer &);;
 };
-
 
 CedarXPlayer::CedarXPlayer() :
 	mQueueStarted(false), mVideoRendererIsPreview(false),
@@ -228,6 +256,11 @@ status_t CedarXPlayer::play() {
 	Mutex::Autolock autoLock(mLock);
 	LOGV("CedarXPlayer::play()");
 
+	if(mFlags & NATIVE_SUSPENDING) {
+		LOGW("you has been suspend by other's");
+		return UNKNOWN_ERROR;
+	}
+
 	mFlags &= ~CACHE_UNDERRUN;
 
 	status_t ret = play_l(CDX_CMD_START_ASYNC);
@@ -257,29 +290,30 @@ status_t CedarXPlayer::play_l(int command) {
 		mAudioPlayer->resume();
 	}
 
-	if(mFlags & RESTORE_CONTROL_PARA){
-		if(mMediaInfo.mSubtitleStreamCount > 0) {
-			LOGV("Restore control parameter!");
-			if(mSubtitleParameter.mSubtitleDelay != 0){
-				setSubDelay(mSubtitleParameter.mSubtitleDelay);
-			}
-
-			if(mSubtitleParameter.mSubtitleColor != 0){
-				setSubColor(mSubtitleParameter.mSubtitleColor);
-			}
-
-			if(mSubtitleParameter.mSubtitleFontSize != 0){
-				setSubFontSize(mSubtitleParameter.mSubtitleFontSize);
-			}
-
-			if(mSubtitleParameter.mSubtitlePosition != 0){
-				setSubPosition(mSubtitleParameter.mSubtitlePosition);
-			}
-
-			setSubGate(mSubtitleParameter.mSubtitleGate);
-		}
-		mFlags &= ~RESTORE_CONTROL_PARA;
-	}
+//	if(mFlags & RESTORE_CONTROL_PARA){
+//		if(mMediaInfo.mSubtitleStreamCount > 0) {
+//			LOGV("Restore control parameter!");
+//			if(mSubtitleParameter.mSubtitleDelay != 0){
+//				setSubDelay(mSubtitleParameter.mSubtitleDelay);
+//			}
+//
+//			if(mSubtitleParameter.mSubtitleColor != 0){
+//				LOGV("-------mSubtitleParameter.mSubtitleColor: %x",mSubtitleParameter.mSubtitleColor);
+//				setSubColor(mSubtitleParameter.mSubtitleColor);
+//			}
+//
+//			if(mSubtitleParameter.mSubtitleFontSize != 0){
+//				setSubFontSize(mSubtitleParameter.mSubtitleFontSize);
+//			}
+//
+//			if(mSubtitleParameter.mSubtitlePosition != 0){
+//				setSubPosition(mSubtitleParameter.mSubtitlePosition);
+//			}
+//
+//			setSubGate(mSubtitleParameter.mSubtitleGate);
+//		}
+//		mFlags &= ~RESTORE_CONTROL_PARA;
+//	}
 
 	if(mSeeking && mTagPlay && mSeekTimeUs > 0){
 		mPlayer->control(mPlayer, CDX_CMD_TAG_START_ASYNC, (unsigned int)&mSeekTimeUs, 0);
@@ -577,6 +611,11 @@ status_t CedarXPlayer::prepareAsync() {
 	mFlags |= PREPARING;
 	mIsAsyncPrepare = true;
 
+	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
+	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
+
+	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUT_YUV_MODE, CEDARX_OUTPUT_MODE_PLANNER, 0);
+
 	return (mPlayer->control(mPlayer, CDX_CMD_PREPARE_ASYNC, 0, 0) == 0 ? OK : UNKNOWN_ERROR);
 }
 
@@ -687,21 +726,21 @@ status_t CedarXPlayer::resume() {
 
 
 status_t CedarXPlayer::setScreen(int screen) {
-//	mScreenID = screen;
-//	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-//		LOGV("CedarX setScreen to:%d", screen);
-//		return mVideoRenderer->control(VIDEORENDER_CMD_SETSCREEN, screen);
-//	}
+	mScreenID = screen;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		LOGV("CedarX setScreen to:%d", screen);
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETSCREEN, screen);
+	}
 	return UNKNOWN_ERROR;
 }
-//
-//status_t CedarXPlayer::set3DMode(int mode){
-//	if(mVideoRenderer != NULL){
-//		LOGV("CedarX set3Dmode to:%d", mode);
-//		return mVideoRenderer->control(VIDEORENDER_CMD_SET3DMODE, mode);
-//	}
-//	return UNKNOWN_ERROR;
-//}
+
+status_t CedarXPlayer::set3DMode(int mode){
+	if(mVideoRenderer != NULL){
+		LOGV("CedarX set3Dmode to:%d", mode);
+		return mVideoRenderer->control(VIDEORENDER_CMD_SET3DMODE, mode);
+	}
+	return UNKNOWN_ERROR;
+}
 
 int CedarXPlayer::getMeidaPlayerState() {
     return mPlayerState;
@@ -1031,6 +1070,65 @@ int CedarXPlayer::getAudioSampleRate()
     return -1;
 }
 
+status_t CedarXPlayer::enableScaleMode(bool enable, int width, int height)
+{
+	if(mPlayer == NULL){
+		return -1;
+	}
+
+	mMaxOutputWidth = width;
+	mMaxOutputHeight = height;
+	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXWIDTH, width, 0);
+	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXHEIGHT, height, 0);
+
+	return 0;
+}
+
+status_t CedarXPlayer::setVppGate(bool enableVpp)
+{
+	mVppGate = enableVpp;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_VPPON, enableVpp);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setLumaSharp(int value)
+{
+	mLumaSharp = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETLUMASHARP, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setChromaSharp(int value)
+{
+	mChromaSharp = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETCHROMASHARP, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setWhiteExtend(int value)
+{
+	mWhiteExtend = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETWHITEEXTEN, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
+status_t CedarXPlayer::setBlackExtend(int value)
+{
+	mBlackExtend = value;
+	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
+		return mVideoRenderer->control(VIDEORENDER_CMD_SETBLACKEXTEN, value);
+	}
+	return UNKNOWN_ERROR;
+}
+
 uint32_t CedarXPlayer::flags() const {
 	if(mCanSeek) {
 		return MediaExtractor::CAN_PAUSE | MediaExtractor::CAN_SEEK  | MediaExtractor::CAN_SEEK_FORWARD  | MediaExtractor::CAN_SEEK_BACKWARD;
@@ -1040,6 +1138,22 @@ uint32_t CedarXPlayer::flags() const {
 	}
 }
 
+int CedarXPlayer::nativeSuspend()
+{
+	if (mFlags & PLAYING) {
+		LOGV("nativeSuspend may fail, I'am still playing");
+		return -1;
+	}
+
+	if(mPlayer != NULL){
+		LOGV("I'm force to quit!");
+		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
+	}
+
+	mFlags |= NATIVE_SUSPENDING;
+
+	return 0;
+}
 
 #if 0
 
@@ -1075,7 +1189,7 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
 	mDisplayWidth = width;
 	mDisplayHeight = height;
 	mFirstFrame = 1;
-	mDisplayFormat = (format == 0x11) ? HWC_FORMAT_MBYUV422 : HWC_FORMAT_MBYUV420;
+	mDisplayFormat = (format == 0x11) ? HWC_FORMAT_MBYUV422 : ((format == 0xd) ? HAL_PIXEL_FORMAT_YV12 : HWC_FORMAT_MBYUV420);
 
 	if(mVideoWidth!=width ||  mVideoHeight!=height){
 		mVideoWidth = width;
@@ -1086,9 +1200,10 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
 	//cedarv_picture_t * frm_inf = (cedarv_picture_t *)frame_info;
 
 	sp<MetaData> meta = new MetaData;
-    (meta->setInt32(kKeyColorFormat, mDisplayFormat));
-    (meta->setInt32(kKeyWidth, mDisplayWidth));
-    (meta->setInt32(kKeyHeight, mDisplayHeight));
+	meta->setInt32(kKeyScreenID, mScreenID);
+    meta->setInt32(kKeyColorFormat, mDisplayFormat);
+    meta->setInt32(kKeyWidth, mDisplayWidth);
+    meta->setInt32(kKeyHeight, mDisplayHeight);
 
     mVideoRenderer.clear();
 
@@ -1096,41 +1211,65 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
     // before creating a new one.
     IPCThreadState::self()->flushCommands();
 
-    mVideoRenderer = new CedarXLocalRenderer(mNativeWindow, meta);
+    if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12){
+    	mVideoRenderer = new CedarXDirectHwRenderer(mNativeWindow, meta);
+    }
+    else {
+    	mLocalRenderFrameIDCurr = -1;
+    	mVideoRenderer = new CedarXLocalRenderer(mNativeWindow, meta);
+    }
 
     return 0;
+}
+
+void CedarXPlayer::StagefrightVideoRenderExit() {
+	if(mVideoRenderer != NULL){
+		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
+			//mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 0);
+		}
+	}
 }
 
 void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 {
 	if(mVideoRenderer != NULL){
 		cedarv_picture_t *frm_inf = (cedarv_picture_t *) frame_info;
-		libhwclayerpara_t overlay_para;
-		int args[6];
-		int _3d_mode;
-		int display_mode;
-		int is_mode_changed;
-		int format;
 
-		args[0] = mDisplayWidth;
-		args[1] = mDisplayHeight;
+		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
+			libhwclayerpara_t overlay_para;
+			int args[6];
+			int _3d_mode;
+			int display_mode;
+			int is_mode_changed;
+			int format;
 
-		overlay_para.bProgressiveSrc = frm_inf->is_progressive;
-		overlay_para.bTopFieldFirst = frm_inf->top_field_first;
-		overlay_para.pVideoInfo.frame_rate = frm_inf->frame_rate;
+			args[0] = mDisplayWidth;
+			args[1] = mDisplayHeight;
 
-		{
-			overlay_para.top_y 		= (unsigned int)frm_inf->y;
-			overlay_para.top_c 		= (unsigned int)frm_inf->u;
-			//overlay_para.top_v		= (unsigned int)frm_inf->v;
-			overlay_para.bottom_y 	= 0;
-			overlay_para.bottom_c 	= 0;
-			//overlay_para.bottom_v 	= 0;
+			overlay_para.bProgressiveSrc = frm_inf->is_progressive;
+			overlay_para.bTopFieldFirst = frm_inf->top_field_first;
+			overlay_para.pVideoInfo.frame_rate = frm_inf->frame_rate;
+
+			{
+				overlay_para.top_y 		= (unsigned int)frm_inf->y;
+				overlay_para.top_c 		= (unsigned int)frm_inf->u;
+				//overlay_para.top_v		= (unsigned int)frm_inf->v;
+				overlay_para.bottom_y 	= 0;
+				overlay_para.bottom_c 	= 0;
+				//overlay_para.bottom_v 	= 0;
+			}
+			overlay_para.number = frame_id;
+			overlay_para.first_frame_flg = mFirstFrame;
+			mVideoRenderer->render(&overlay_para, 0);
+			if(mFirstFrame) {
+				//mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 1);
+				mFirstFrame = 0;
+			}
 		}
-		overlay_para.number = frame_id;
-		overlay_para.first_frame_flg = mFirstFrame;
-		mFirstFrame = 0;
-		mVideoRenderer->render(&overlay_para, 0);
+		else {
+			mVideoRenderer->render(frm_inf->y2, frm_inf->size_y2);
+			mLocalRenderFrameIDCurr = frame_id;
+		}
 	}
 }
 
@@ -1139,9 +1278,15 @@ int CedarXPlayer::StagefrightVideoRenderGetFrameID()
 	int ret = -1;
 
 	if(mVideoRenderer != NULL){
-		ret = mVideoRenderer->control(VIDEORENDER_CMD_GETFRAMEID, 0);
-		//LOGV("get disp frame id:%d",ret);
+		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
+			ret = mVideoRenderer->control(VIDEORENDER_CMD_GETCURFRAMEPARA, 0);
+			//LOGV("get disp frame id:%d",ret);
+		}
+		else {
+			ret = mLocalRenderFrameIDCurr;
+		}
 	}
+
 	return ret;
 }
 
@@ -1222,6 +1367,10 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 		StagefrightVideoRenderData((void*)para[0],para[1]);
 		break;
 
+	case CDX_EVENT_VIDEORENDEREXIT:
+		StagefrightVideoRenderExit();
+		break;
+
 	case CDX_EVENT_VIDEORENDERGETDISPID:
 		*((int*)para) = StagefrightVideoRenderGetFrameID();
 		break;
@@ -1279,6 +1428,11 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 
 	case CDX_EVENT_SEEK_COMPLETE:
 		finishSeek_l(0);
+		break;
+
+	case CDX_EVENT_NATIVE_SUSPEND:
+		LOGV("receive CDX_EVENT_NATIVE_SUSPEND");
+		ret = nativeSuspend();
 		break;
 
 //	case CDX_MEDIA_INFO_SRC_3D_MODE:

@@ -156,6 +156,13 @@ struct CedarXPlayer {
     status_t getAudioEncode(char *encode);
     int 	 getAudioBitRate();
     int 	 getAudioSampleRate();
+
+    status_t enableScaleMode(bool enable, int width, int height);
+    status_t setVppGate(bool enableVpp);
+    status_t setLumaSharp(int value);
+    status_t setChromaSharp(int value);
+    status_t setWhiteExtend(int value);
+    status_t setBlackExtend(int value);
 #endif
     // This is a mask of MediaExtractor::Flags.
     uint32_t flags() const;
@@ -176,15 +183,16 @@ private:
         AT_EOS              = 0x20,
         PREPARE_CANCELLED   = 0x40,
         CACHE_UNDERRUN      = 0x80,
-        AUDIO_AT_EOS        = 0x0100,
-        VIDEO_AT_EOS        = 0x0200,
-        AUTO_LOOPING        = 0x0400,
-        WAIT_TO_PLAY         = 2048,
-        WAIT_VO_EXIT         = 4096,
-        CEDARX_LIB_INIT      = 8192,
-        SUSPENDING           = 16384,
-        PAUSING				 = 32768,
-        RESTORE_CONTROL_PARA = 65536,
+        AUDIO_AT_EOS        = 0x100,
+        VIDEO_AT_EOS        = 0x200,
+        AUTO_LOOPING        = 0x400,
+        WAIT_TO_PLAY        = 0x800,
+        WAIT_VO_EXIT        = 0x1000,
+        CEDARX_LIB_INIT     = 0x2000,
+        SUSPENDING          = 0x4000,
+        PAUSING				= 0x8000,
+        RESTORE_CONTROL_PARA= 0x10000,
+        NATIVE_SUSPENDING   = 0x20000,
     };
 
     mutable Mutex mLock;
@@ -224,6 +232,7 @@ private:
     int32_t mVideoWidth, mVideoHeight, mFirstFrame;
     int32_t mCanSeek;
     int32_t mDisplayWidth, mDisplayHeight, mDisplayFormat;
+    int32_t mLocalRenderFrameIDCurr;
     int64_t mTimeSourceDeltaUs;
     int64_t mVideoTimeUs;
 
@@ -265,7 +274,14 @@ private:
 
     /*user defined parameters*/
     int32_t mScreenID;
+    int32_t mVppGate;
+    int32_t mLumaSharp;
+    int32_t mChromaSharp;
+    int32_t mWhiteExtend;
+    int32_t mBlackExtend;
     int32_t mAudioTrackIndex;
+    int32_t mMaxOutputWidth;
+    int32_t mMaxOutputHeight;
 
     struct SubtitleParameter {
 		int32_t mSubtitleFontSize;
@@ -318,14 +334,16 @@ private:
     static bool ContinuePreparation(void *cookie);
 
     bool getBitrate(int64_t *bitrate);
+    int nativeSuspend();
 
     status_t setNativeWindow_l(const sp<ANativeWindow> &native);
 
     int StagefrightVideoRenderInit(int width, int height, int format, void *frame_info);
-    int StagefrightAudioRenderInit(int samplerate, int channels, int format);
+    void StagefrightVideoRenderExit();
     void StagefrightVideoRenderData(void *frame_info, int frame_id);
     int StagefrightVideoRenderGetFrameID();
 
+    int StagefrightAudioRenderInit(int samplerate, int channels, int format);
     void StagefrightAudioRenderExit(int immed);
     int StagefrightAudioRenderData(void* data, int len);
     int StagefrightAudioRenderGetSpace(void);

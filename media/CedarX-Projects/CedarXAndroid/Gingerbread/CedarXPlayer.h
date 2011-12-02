@@ -136,6 +136,13 @@ struct CedarXPlayer {
     status_t getAudioEncode(char *encode);
     int 	 getAudioBitRate();
     int 	 getAudioSampleRate();
+
+    status_t enableScaleMode(bool enable, int width, int height);
+    status_t setVppGate(bool enableVpp);
+    status_t setLumaSharp(int value);
+    status_t setChromaSharp(int value);
+    status_t setWhiteExtend(int value);
+    status_t setBlackExtend(int value);
 #endif
     // This is a mask of MediaExtractor::Flags.
     uint32_t flags() const;
@@ -242,7 +249,14 @@ private:
 
     /*user defined parameters*/
     int32_t mScreenID;
+    int32_t mVppGate;
+    int32_t mLumaSharp;
+    int32_t mChromaSharp;
+    int32_t mWhiteExtend;
+    int32_t mBlackExtend;
     int32_t mAudioTrackIndex;
+    int32_t mMaxOutputWidth;
+    int32_t mMaxOutputHeight;
 
     struct SubtitleParameter {
 		int32_t mSubtitleFontSize;

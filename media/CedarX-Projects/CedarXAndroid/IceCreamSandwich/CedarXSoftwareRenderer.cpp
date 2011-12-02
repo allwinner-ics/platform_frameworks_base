@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "CedarXNativeRenderer"
+#define LOG_NDEBUG 0
+#define LOG_TAG "CedarXSoftwareRenderer"
 #include <utils/Log.h>
 
-#include "CedarXNativeRenderer.h"
+#include "CedarXSoftwareRenderer.h"
 
 #include <binder/MemoryHeapBase.h>
 #include <binder/MemoryHeapPmem.h>
@@ -30,15 +31,16 @@
 
 namespace android {
 
-CedarXNativeRenderer::CedarXNativeRenderer(
+CedarXSoftwareRenderer::CedarXSoftwareRenderer(
         const sp<ANativeWindow> &nativeWindow, const sp<MetaData> &meta)
-    : mNativeWindow(nativeWindow) {
+    : mYUVMode(None),
+      mNativeWindow(nativeWindow) {
+    int32_t tmp;
+    CHECK(meta->findInt32(kKeyColorFormat, &tmp));
+    mColorFormat = (OMX_COLOR_FORMATTYPE)tmp;
 
-    int32_t halFormat,screenID;
-    size_t bufWidth, bufHeight;
-
-    CHECK(meta->findInt32(kKeyScreenID, &screenID));
-    CHECK(meta->findInt32(kKeyColorFormat, &halFormat));
+    //CHECK(meta->findInt32(kKeyScreenID, &screenID));
+    //CHECK(meta->findInt32(kKeyColorFormat, &halFormat));
     CHECK(meta->findInt32(kKeyWidth, &mWidth));
     CHECK(meta->findInt32(kKeyHeight, &mHeight));
 
@@ -47,6 +49,10 @@ CedarXNativeRenderer::CedarXNativeRenderer(
         rotationDegrees = 0;
     }
 
+    int halFormat;
+    size_t bufWidth, bufHeight;
+
+    halFormat = HAL_PIXEL_FORMAT_YV12;
     bufWidth = mWidth;
     bufHeight = mHeight;
 
@@ -64,12 +70,11 @@ CedarXNativeRenderer::CedarXNativeRenderer(
             NATIVE_WINDOW_SCALING_MODE_SCALE_TO_WINDOW));
 
     // Width must be multiple of 32???
-    CHECK_EQ(0, native_window_set_buffers_geometryex(
+    CHECK_EQ(0, native_window_set_buffers_geometry(
                 mNativeWindow.get(),
                 bufWidth,
                 bufHeight,
-                halFormat,
-                screenID));
+                halFormat));
 
     uint32_t transform;
     switch (rotationDegrees) {
@@ -86,46 +91,45 @@ CedarXNativeRenderer::CedarXNativeRenderer(
     }
 }
 
-CedarXNativeRenderer::~CedarXNativeRenderer() {
+CedarXSoftwareRenderer::~CedarXSoftwareRenderer() {
 }
 
-void CedarXNativeRenderer::render(
+static int ALIGN(int x, int y) {
+    // y must be a power of 2.
+    return (x + y - 1) & ~(y - 1);
+}
+
+void CedarXSoftwareRenderer::render(
         const void *data, size_t size, void *platformPrivate) {
+    ANativeWindowBuffer *buf;
+    int err;
+    if ((err = mNativeWindow->dequeueBuffer(mNativeWindow.get(), &buf)) != 0) {
+        LOGW("Surface::dequeueBuffer returned error %d", err);
+        return;
+    }
 
-    mNativeWindow->perform(mNativeWindow.get(), NATIVE_WINDOW_SETPARAMETER, HWC_LAYER_SETFRAMEPARA, (uint32_t)data);
-}
+    CHECK_EQ(0, mNativeWindow->lockBuffer(mNativeWindow.get(), buf));
 
-int CedarXNativeRenderer::control(int cmd, int para) {
+    GraphicBufferMapper &mapper = GraphicBufferMapper::get();
 
-	switch(cmd){
-	case VIDEORENDER_CMD_ROTATION_DEG    :
-	case VIDEORENDER_CMD_DITHER          :
-	case VIDEORENDER_CMD_SETINITPARA     :
-	case VIDEORENDER_CMD_SETVIDEOPARA    :
-	case VIDEORENDER_CMD_SETFRAMEPARA    :
-	case VIDEORENDER_CMD_GETCURFRAMEPARA :
-	case VIDEORENDER_CMD_QUERYVBI        :
-	case VIDEORENDER_CMD_SETSCREEN       :
-	case VIDEORENDER_CMD_SHOW            :
-	case VIDEORENDER_CMD_SET3DMODE       :
-	case VIDEORENDER_CMD_SETFORMAT       :
-	case VIDEORENDER_CMD_VPPON           :
-	case VIDEORENDER_CMD_VPPGETON        :
-	case VIDEORENDER_CMD_SETLUMASHARP    :
-	case VIDEORENDER_CMD_GETLUMASHARP    :
-	case VIDEORENDER_CMD_SETCHROMASHARP  :
-	case VIDEORENDER_CMD_GETCHROMASHARP  :
-	//case VIDEORENDER_CMD_SETWHITEEXTEN   :
-	//case VIDEORENDER_CMD_GETWHITEEXTEN   :
-	case VIDEORENDER_CMD_SETBLACKEXTEN   :
-	case VIDEORENDER_CMD_GETBLACKEXTEN   :
-		return mNativeWindow->perform(mNativeWindow.get(), NATIVE_WINDOW_SETPARAMETER, cmd, para);
-	default:
-		LOGW("undefined command!");
-		break;
-	}
+    Rect bounds(mWidth, mHeight);
 
-    return 0;
+    void *dst;
+    CHECK_EQ(0, mapper.lock(
+                buf->handle, GRALLOC_USAGE_SW_WRITE_OFTEN, bounds, &dst));
+
+    //LOGV("mColorFormat: %d", mColorFormat);
+
+    memcpy(dst, data, buf->stride * buf->height * 3 / 2);
+
+    CHECK_EQ(0, mapper.unlock(buf->handle));
+
+    if ((err = mNativeWindow->queueBuffer(mNativeWindow.get(), buf)) != 0) {
+        LOGW("Surface::queueBuffer returned error %d", err);
+    }
+    buf = NULL;
+
+
 }
 
 }  // namespace android

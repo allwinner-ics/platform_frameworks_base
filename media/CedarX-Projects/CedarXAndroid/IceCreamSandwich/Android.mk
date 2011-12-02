@@ -10,6 +10,7 @@ LOCAL_SRC_FILES:=                         \
         CedarXMetadataRetriever.cpp		  \
         CedarXMetaData.cpp				  \
         CedarXNativeRenderer.cpp		  \
+        CedarXSoftwareRenderer.cpp		  \
         CedarXRecorder.cpp
 		 
 
@@ -160,7 +161,7 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libaacenc.a 
 
 
-LOCAL_SHARED_LIBRARIES += libstagefright_foundation
+LOCAL_SHARED_LIBRARIES += libstagefright_foundation libstagefright
 
 ifeq ($(TARGET_OS)-$(TARGET_SIMULATOR),linux-true)
         LOCAL_LDLIBS += -lpthread -ldl

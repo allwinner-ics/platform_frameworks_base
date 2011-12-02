@@ -28,6 +28,7 @@ extern "C" {
 #include <CDX_Component.h>
 #include <CDX_Common.h>
 #include <CDX_PlayerAPI.h>
+#include <CDX_Resource_Manager.h>
 
 typedef struct CedarXRecorderContext{
 	CDX_S32 init_flags;
@@ -37,6 +38,7 @@ typedef struct CedarXRecorderContext{
 	void * cookie;
 	OMX_PTR pAppData;
 	RECORDER_MODE mode;
+	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 
 	tsem_t tsem_recorder_source_cmd;
 	tsem_t tsem_video_encoder_cmd;

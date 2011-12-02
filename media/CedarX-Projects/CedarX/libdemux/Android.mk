@@ -9,7 +9,8 @@ LOCAL_SRC_FILES := \
 	cedarx_demux.c \
 	epdk_demux/epdk_demux.c \
 	music_demux.c \
-	idxsub_demux.c
+	idxsub_demux.c \
+	stagefright_demux.cpp
 		
 LOCAL_C_INCLUDES := \
 	${CEDARX_TOP}/include/include_platform/CHIP_$(CEDARX_CHIP_VERSION) \
@@ -26,6 +27,7 @@ LOCAL_C_INCLUDES := \
 	${CEDARX_TOP}/librender \
 	${CEDARX_TOP}/include/include_cedarv \
 	${CEDARX_TOP}/libsub/include \
+	$(TOP)/frameworks/base/media/libstagefright/include 
 
 LOCAL_MODULE_TAGS := optional
  

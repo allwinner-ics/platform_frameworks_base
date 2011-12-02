@@ -26,6 +26,7 @@
 #include <CDX_PlayerAPI.h>
 #include <cedarx_demux.h>
 #include <GetAudio_format.h>
+#include <CDX_Resource_Manager.h>
 #include <tmessage.h>
 #include <tsemaphore.h>
 
@@ -56,6 +57,7 @@ typedef struct CedarXPlayerContext{
 	OMX_S32 is_hardware_init;
 	OMX_S32 fatal_error;
 	audio_file_info_t audio_metadata;
+	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 
 	OMX_S32 sub_enable;
 	OMX_S32 curr_subtrack_idx;
@@ -95,6 +97,10 @@ typedef struct CedarXPlayerContext{
 	OMX_U32				anaglagh_enable;
 	OMX_U32				display_3d_enable;
 
+	OMX_S32 	cedarv_rotation;
+	OMX_S32 	cedarv_max_width;
+	OMX_S32 	cedarv_max_height;
+	OMX_S32 	cedarv_output_yuv_mode;
 }CedarXPlayerContext;
 
 #include "CDX_PlayerAPI.h"
@@ -103,6 +109,7 @@ typedef struct CedarXMediaRetriverContext{
 	int bIsCaptureInit;
 	audio_file_info_t audio_metadata;
 	CedarXDataSourceDesc data_source_desc;
+	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 }CedarXMediaRetriverContext;
 
 //enum CedarXPlayerMessage

@@ -380,14 +380,14 @@ typedef struct OMX_BUFFERHEADERTYPE
                                      to determine absolute time.  This is an
                                      optional entry and not all components
                                      will update it.*/
- OMX_TICKS nTimeStamp;          /**< Timestamp corresponding to the sample 
+  OMX_TICKS nTimeStamp;         /**< Timestamp corresponding to the sample
                                      starting at the first logical sample 
                                      boundary in the buffer. Timestamps of 
                                      successive samples within the buffer may
                                      be inferred by adding the duration of the 
                                      of the preceding buffer to the timestamp
                                      of the preceding buffer.*/
- 	OMX_S64  duration; /*  for subtitle */
+  OMX_S64  duration; 			/*  for subtitle */
   OMX_U32     nFlags;           /**< buffer specific flags */
   OMX_U32 nOutputPortIndex;     /**< The index of the output port (if any) using 
                                      this buffer */
@@ -401,7 +401,6 @@ typedef struct OMX_BUFFERHEADERTYPE
 typedef struct OMX_BUFFERSTATE{
   OMX_U32 nValidSizePercent;
   OMX_U32 nElementCounter;
-
   unsigned int video_stream_type;
 }OMX_BUFFERSTATE;
 
@@ -411,7 +410,6 @@ typedef struct OMX_PORT_PARAM_TYPE {
     OMX_U32 nPorts;             /**< The number of ports for this component */
     OMX_U32 nStartPortNumber;   /** first port number for this type of port */
 } OMX_PORT_PARAM_TYPE; 
-
 
 typedef enum OMX_EVENTTYPE
 {
