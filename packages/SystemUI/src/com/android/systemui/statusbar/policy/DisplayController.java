@@ -97,7 +97,7 @@ public class DisplayController extends BroadcastReceiver {
 		        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
 				maxscreen = mDisplayManager.getMaxWidthDisplay();
 				MediaPlayer.setScreen(1);
-				//AudioSystem.switchAudioOutMode(AudioSystem.AUDIO_OUT_HDMI);
+				AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
 				//Camera.setCameraScreen(1);
 		        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,DisplayManager.DISPLAY_TVFORMAT_1080P_60HZ);
 	        }
@@ -131,7 +131,7 @@ public class DisplayController extends BroadcastReceiver {
 	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE);
 	        maxscreen = mDisplayManager.getMaxWidthDisplay();
 	        MediaPlayer.setScreen(0);
-			//AudioSystem.switchAudioOutMode(AudioSystem.AUDIO_OUT_CODEC);
+			AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
 			//Camera.setCameraScreen(0);
 	        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
 		}

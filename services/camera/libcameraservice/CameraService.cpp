@@ -469,10 +469,10 @@ status_t CameraService::Client::connect(const sp<ICameraClient>& client) {
 static void disconnectWindow(const sp<ANativeWindow>& window) {
     if (window != 0) {
         status_t result = native_window_api_disconnect(window.get(),
-                NATIVE_WINDOW_API_CAMERA);
+                NATIVE_WINDOW_API_CAMERA_HW);	// [star] NATIVE_WINDOW_API_CAMERA_HW
         if (result != NO_ERROR) {
-            LOGW("native_window_api_disconnect failed: %s (%d)", strerror(-result),
-                    result);
+            LOGW("native_window_api_disconnect failed: %s (%d), api: %d", strerror(-result),
+                    result, NATIVE_WINDOW_API_CAMERA_HW);
         }
     }
 }
@@ -534,10 +534,10 @@ status_t CameraService::Client::setPreviewWindow(const sp<IBinder>& binder,
     }
 
     if (window != 0) {
-        result = native_window_api_connect(window.get(), NATIVE_WINDOW_API_CAMERA);
+        result = native_window_api_connect(window.get(), NATIVE_WINDOW_API_CAMERA_HW);		// [star] NATIVE_WINDOW_API_CAMERA_HW
         if (result != NO_ERROR) {
-            LOGE("native_window_api_connect failed: %s (%d)", strerror(-result),
-                    result);
+            LOGE("native_window_api_connect failed: %s (%d), api: %d", strerror(-result),
+                    result, NATIVE_WINDOW_API_CAMERA_HW);
             return result;
         }
     }
@@ -904,6 +904,7 @@ void CameraService::Client::disableMsgType(int32_t msgType) {
 #define CHECK_MESSAGE_INTERVAL 10 // 10ms
 bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     int sleepCount = 0;
+#if 0	// star comment for taking picture deadlock
     while (mMsgEnabled & msgType) {
         if (mLock.tryLock() == NO_ERROR) {
             if (sleepCount > 0) {
@@ -919,6 +920,9 @@ bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     }
     LOGW("lockIfMessageWanted(%d): dropped unwanted message", msgType);
     return false;
+#else
+	return true;
+#endif
 }
 
 // ----------------------------------------------------------------------------

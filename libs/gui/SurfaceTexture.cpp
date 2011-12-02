@@ -628,6 +628,8 @@ status_t SurfaceTexture::disconnect(int api) {
         case NATIVE_WINDOW_API_CPU:
         case NATIVE_WINDOW_API_MEDIA:
         case NATIVE_WINDOW_API_CAMERA:
+		case NATIVE_WINDOW_API_MEDIA_HW:
+        case NATIVE_WINDOW_API_CAMERA_HW:
             if (mConnectedApi == api) {
                 drainQueueAndFreeBuffersLocked();
                 mConnectedApi = NO_CONNECTED_API;

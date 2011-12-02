@@ -773,6 +773,14 @@ status_t AudioFlinger::setParameters(int ioHandle, const String8& keyValuePairs)
                 mBtNrecIsOff = btNrecIsOff;
             }
         }
+
+		// add for switch audio out mode
+		if (param.get(String8(AUDIO_PARAMETER_STREAM_ROUTING), value) == NO_ERROR) {
+			for (uint32_t i = 0; i < mPlaybackThreads.size(); i++) {
+				mPlaybackThreads.valueAt(i)->setParameters(keyValuePairs);
+			}
+		}
+
         return final_result;
     }
 
