@@ -81,6 +81,8 @@ import com.android.systemui.statusbar.policy.Prefs;
 import com.android.systemui.recent.RecentTasksLoader;
 import com.android.systemui.recent.RecentsPanelView;
 
+import android.os.storage.StorageManager;
+
 public class TabletStatusBar extends StatusBar implements
         HeightReceiver.OnBarHeightChangedListener,
         InputMethodsPanel.OnHardKeyboardEnabledChangeListener {
@@ -190,6 +192,8 @@ public class TabletStatusBar extends StatusBar implements
     // used to notify status bar for suppressing notification LED
     private boolean mPanelSlightlyVisible;
 
+	private StorageManager mStorageManager;
+	
     public Context getContext() { return mContext; }
 
     protected void addPanelWindows() {
@@ -390,6 +394,11 @@ public class TabletStatusBar extends StatusBar implements
     @Override
     public void start() {
         super.start(); // will add the main bar view
+
+		// storage
+        mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        mStorageManager.registerListener(
+                new com.android.systemui.usb.StorageNotification(mContext));
     }
 
     @Override
