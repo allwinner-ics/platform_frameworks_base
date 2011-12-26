@@ -169,6 +169,14 @@ CedarXPlayer::CedarXPlayer() :
 
 	mPlayer->control(mPlayer, CDX_CMD_REGISTER_CALLBACK, (unsigned int)&CedarXPlayerCallbackWrapper, (unsigned int)this);
 	isCedarXInitialized = true;
+	mMaxOutputWidth = 0;
+	mMaxOutputHeight = 0;
+	mDisableXXXX = 0;
+
+    _3d_mode		 = 0;
+    _3d_mode_new	 = 0;		//* new source 3d mode set by user.
+    display_3d_mode  = 0;
+    anaglagh_type    = 0;
 }
 
 CedarXPlayer::~CedarXPlayer() {
@@ -203,9 +211,13 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 	if (headers) {
 	    mUriHeaders = *headers;
 	}
-
+#if 0
+	//const char* dbg_url = "http://192.168.1.102/hb.mp4";
+	const char* dbg_url = "/mnt/extsd/hb.mp4";
+	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)dbg_url, 0);
+#else
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)uri, 0);
-
+#endif
 	return OK;
 }
 
@@ -262,7 +274,8 @@ void CedarXPlayer::reset_l() {
 	mSeekNotificationSent = false;
 	mSeekTimeUs = 0;
 	mLastValidPosition = 0;
-
+	mUri.setTo("");
+	mUriHeaders.clear();
 	mAudioTrackIndex = 0;
 	memset(&mSubtitleParameter, 0, sizeof(struct SubtitleParameter));
 
@@ -579,6 +592,16 @@ status_t CedarXPlayer::prepareAsync() {
 	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
 	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
 
+	//mMaxOutputWidth = 720;
+	//mMaxOutputHeight = 576;
+	if(mMaxOutputWidth && mMaxOutputHeight) {
+		LOGV("Max ouput size %dX%d", mMaxOutputWidth, mMaxOutputHeight);
+		mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXWIDTH, mMaxOutputWidth, 0);
+		mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXHEIGHT, mMaxOutputHeight, 0);
+	}
+
+	mPlayer->control(mPlayer, CDX_CMD_DISABLE_XXXX, mDisableXXXX, 0);
+
 	return (mPlayer->control(mPlayer, CDX_CMD_PREPARE_ASYNC, 0, 0) == 0 ? OK : UNKNOWN_ERROR);
 }
 
@@ -722,7 +745,7 @@ int CedarXPlayer::getSubCount()
 	LOGV("getSubCount:%d",tmp);
 
     return tmp;
-};
+}
 
 int CedarXPlayer::getSubList(MediaPlayer_SubInfo *infoList, int count)
 {
@@ -757,7 +780,7 @@ status_t CedarXPlayer::switchSub(int index)
 
 	mSubtitleParameter.mSubtitleIndex = index;
 	return mPlayer->control(mPlayer, CDX_CMD_SWITCHSUB, index, 0);
-};
+}
 
 status_t CedarXPlayer::setSubGate(bool showSub)
 {
@@ -767,7 +790,7 @@ status_t CedarXPlayer::setSubGate(bool showSub)
 
 	mSubtitleParameter.mSubtitleGate = showSub;
 	return mPlayer->control(mPlayer, CDX_CMD_SETSUBGATE, showSub, 0);
-};
+}
 
 bool CedarXPlayer::getSubGate()
 {
@@ -789,7 +812,7 @@ status_t CedarXPlayer::setSubColor(int color)
 
 	mSubtitleParameter.mSubtitleColor = color;
 	return mPlayer->control(mPlayer, CDX_CMD_SETSUBCOLOR, color, 0);
-};
+}
 
 int CedarXPlayer::getSubColor()
 {
@@ -801,7 +824,7 @@ int CedarXPlayer::getSubColor()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETSUBCOLOR, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 status_t CedarXPlayer::setSubFrameColor(int color)
 {
@@ -811,7 +834,7 @@ status_t CedarXPlayer::setSubFrameColor(int color)
 
 	mSubtitleParameter.mSubtitleFrameColor = color;
     return mPlayer->control(mPlayer, CDX_CMD_SETSUBFRAMECOLOR, color, 0);
-};
+}
 
 int CedarXPlayer::getSubFrameColor()
 {
@@ -823,7 +846,7 @@ int CedarXPlayer::getSubFrameColor()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETSUBFRAMECOLOR, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 status_t CedarXPlayer::setSubFontSize(int size)
 {
@@ -833,7 +856,7 @@ status_t CedarXPlayer::setSubFontSize(int size)
 
 	mSubtitleParameter.mSubtitleFontSize = size;
 	return mPlayer->control(mPlayer, CDX_CMD_SETSUBFONTSIZE, size, 0);
-};
+}
 
 int CedarXPlayer::getSubFontSize()
 {
@@ -845,7 +868,7 @@ int CedarXPlayer::getSubFontSize()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETSUBFONTSIZE, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 status_t CedarXPlayer::setSubCharset(const char *charset)
 {
@@ -855,7 +878,7 @@ status_t CedarXPlayer::setSubCharset(const char *charset)
 
 	//mSubtitleParameter.mSubtitleCharset = percent;
     return mPlayer->control(mPlayer, CDX_CMD_SETSUBCHARSET, (unsigned int)charset, 0);
-};
+}
 
 status_t CedarXPlayer::getSubCharset(char *charset)
 {
@@ -864,7 +887,7 @@ status_t CedarXPlayer::getSubCharset(char *charset)
 	}
 
     return mPlayer->control(mPlayer, CDX_CMD_GETSUBCHARSET, (unsigned int)charset, 0);
-};
+}
 
 status_t CedarXPlayer::setSubPosition(int percent)
 {
@@ -874,7 +897,7 @@ status_t CedarXPlayer::setSubPosition(int percent)
 
 	mSubtitleParameter.mSubtitlePosition = percent;
 	return mPlayer->control(mPlayer, CDX_CMD_SETSUBPOSITION, percent, 0);
-};
+}
 
 int CedarXPlayer::getSubPosition()
 {
@@ -886,7 +909,7 @@ int CedarXPlayer::getSubPosition()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETSUBPOSITION, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 status_t CedarXPlayer::setSubDelay(int time)
 {
@@ -896,7 +919,7 @@ status_t CedarXPlayer::setSubDelay(int time)
 
 	mSubtitleParameter.mSubtitleDelay = time;
 	return mPlayer->control(mPlayer, CDX_CMD_SETSUBDELAY, time, 0);
-};
+}
 
 int CedarXPlayer::getSubDelay()
 {
@@ -908,7 +931,7 @@ int CedarXPlayer::getSubDelay()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETSUBDELAY, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 int CedarXPlayer::getTrackCount()
 {
@@ -920,7 +943,7 @@ int CedarXPlayer::getTrackCount()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETTRACKCOUNT, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 int CedarXPlayer::getTrackList(MediaPlayer_TrackInfo *infoList, int count)
 {
@@ -933,7 +956,7 @@ int CedarXPlayer::getTrackList(MediaPlayer_TrackInfo *infoList, int count)
 	}
 
 	return -1;
-};
+}
 
 int CedarXPlayer::getCurTrack()
 {
@@ -945,7 +968,7 @@ int CedarXPlayer::getCurTrack()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETCURTRACK, (unsigned int)&tmp, 0);
 	return tmp;
-};
+}
 
 status_t CedarXPlayer::switchTrack(int index)
 {
@@ -955,58 +978,71 @@ status_t CedarXPlayer::switchTrack(int index)
 
 	mAudioTrackIndex = index;
 	return mPlayer->control(mPlayer, CDX_CMD_SWITCHTRACK, index, 0);
-};
+}
 
 status_t CedarXPlayer::setInputDimensionType(int type)
 {
-	if(mPlayer == NULL){
+	if(mPlayer == NULL)
 		return -1;
-	}
-	this->input_3d_type = type;
-	return mPlayer->control(mPlayer, CDX_CMD_SET_DECODER_SOURCE_3D_FORMAT, type, 0);
-};
+
+	this->_3d_mode_new = (cedarv_3d_mode_e)type;
+	mPlayer->control(mPlayer, CDX_CMD_SET_PICTURE_3D_MODE, this->_3d_mode_new, 0);
+
+	//* the 3d mode you set may be invalid, get the valid 3d mode from mPlayer.
+	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&this->_3d_mode_new, 0);
+
+	return 0;
+}
 
 int CedarXPlayer::getInputDimensionType()
 {
-	if(mPlayer == NULL){
+	cedarv_3d_mode_e tmp;
+
+	if(mPlayer == NULL)
 		return -1;
+
+	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&tmp, 0);
+
+	if((unsigned int)tmp != this->_3d_mode_new)
+	{
+		this->_3d_mode_new = tmp;
 	}
-	return this->input_3d_type;
-};
+
+	return (int)this->_3d_mode;
+}
 
 status_t CedarXPlayer::setOutputDimensionType(int type)
 {
-	if(mPlayer == NULL){
+	if(mPlayer == NULL)
 		return -1;
-	}
-	this->output_3d_type = type;
+
 	return mPlayer->control(mPlayer, CDX_CMD_SET_DISPLAY_MODE, type, 0);
-};
+}
 
 int CedarXPlayer::getOutputDimensionType()
 {
-	if(mPlayer == NULL){
+	if(mPlayer == NULL)
 		return -1;
-	}
-	return this->output_3d_type;
-};
+
+	return (int)this->display_3d_mode;
+}
 
 status_t CedarXPlayer::setAnaglaghType(int type)
 {
-	if(mPlayer == NULL){
+	if(mPlayer == NULL)
 		return -1;
-	}
-	this->anaglagh_type = type;
+
+	this->anaglagh_type = (cedarv_anaglath_trans_mode_e)type;
 	return mPlayer->control(mPlayer, CDX_CMD_SET_ANAGLAGH_TYPE, type, 0);
-};
+}
 
 int CedarXPlayer::getAnaglaghType()
 {
-	if(mPlayer == NULL){
+	if(mPlayer == NULL)
 		return -1;
-	}
-	return this->anaglagh_type;
-};
+
+	return (int)this->anaglagh_type;
+}
 
 status_t CedarXPlayer::getVideoEncode(char *encode)
 {
@@ -1039,8 +1075,10 @@ status_t CedarXPlayer::enableScaleMode(bool enable, int width, int height)
 		return -1;
 	}
 
-	mMaxOutputWidth = width;
-	mMaxOutputHeight = height;
+	if(enable) {
+		mMaxOutputWidth = width;
+		mMaxOutputHeight = height;
+	}
 	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXWIDTH, width, 0);
 	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXHEIGHT, height, 0);
 
@@ -1051,7 +1089,7 @@ status_t CedarXPlayer::setVppGate(bool enableVpp)
 {
 	mVppGate = enableVpp;
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-		return mVideoRenderer->control(VIDEORENDER_CMD_VPPON, enableVpp);
+//		return mVideoRenderer->control(VIDEORENDER_CMD_VPPON, enableVpp);
 	}
 	return UNKNOWN_ERROR;
 }
@@ -1060,7 +1098,7 @@ status_t CedarXPlayer::setLumaSharp(int value)
 {
 	mLumaSharp = value;
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-		return mVideoRenderer->control(VIDEORENDER_CMD_SETLUMASHARP, value);
+//		return mVideoRenderer->control(VIDEORENDER_CMD_SETLUMASHARP, value);
 	}
 	return UNKNOWN_ERROR;
 }
@@ -1069,7 +1107,7 @@ status_t CedarXPlayer::setChromaSharp(int value)
 {
 	mChromaSharp = value;
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-		return mVideoRenderer->control(VIDEORENDER_CMD_SETCHROMASHARP, value);
+//		return mVideoRenderer->control(VIDEORENDER_CMD_SETCHROMASHARP, value);
 	}
 	return UNKNOWN_ERROR;
 }
@@ -1078,7 +1116,7 @@ status_t CedarXPlayer::setWhiteExtend(int value)
 {
 	mWhiteExtend = value;
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-		return mVideoRenderer->control(VIDEORENDER_CMD_SETWHITEEXTEN, value);
+//		return mVideoRenderer->control(VIDEORENDER_CMD_SETWHITEEXTEN, value);
 	}
 	return UNKNOWN_ERROR;
 }
@@ -1087,7 +1125,7 @@ status_t CedarXPlayer::setBlackExtend(int value)
 {
 	mBlackExtend = value;
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-		return mVideoRenderer->control(VIDEORENDER_CMD_SETBLACKEXTEN, value);
+//		return mVideoRenderer->control(VIDEORENDER_CMD_SETBLACKEXTEN, value);
 	}
 	return UNKNOWN_ERROR;
 }
@@ -1156,56 +1194,54 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
 			LOGV("CedarXLocalRenderer width:%d height:%d",decodedWidth,decodedHeight);
 
 #ifndef __CHIP_VERSION_F20
+			if(frm_inf->display_3d_mode != CEDARX_DISPLAY_3D_MODE_2D){
 
-			if(frm_inf->display_mode != CDX_DISP_MODE_ORIGINAL){
+				LOGV("source 3d mode %d, display mode %d", frm_inf->_3d_mode, frm_inf->display_3d_mode);
 
-				LOGV("source 3d mode %d, output 3d mode %d, display mode %d", frm_inf->source_3d_mode, frm_inf->output_3d_mode, frm_inf->display_mode);
-
-				if(frm_inf->source_3d_mode == CDX_3D_MODE_FS)
-					_3d_mode = 1;
-				else if(frm_inf->source_3d_mode == CDX_3D_MODE_LRF || frm_inf->source_3d_mode == CDX_3D_MODE_RLF)
-					_3d_mode = 2;
-				else if(frm_inf->source_3d_mode == CDX_3D_MODE_LRH || frm_inf->source_3d_mode == CDX_3D_MODE_RLH)
-					_3d_mode = 3;
-				else if(frm_inf->source_3d_mode == CDX_3D_MODE_TBH || frm_inf->source_3d_mode == CDX_3D_MODE_BTH ||
-						frm_inf->source_3d_mode == CDX_3D_MODE_TBF || frm_inf->source_3d_mode == CDX_3D_MODE_BTF)
-					_3d_mode = 0;
-				else if(frm_inf->source_3d_mode == CDX_3D_MODE_LI)
-					_3d_mode = 4;
+				if(frm_inf->_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM)
+					_3d_mode = 1;		//* OVERLAY_3D_OUT_MODE_FP
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+					_3d_mode = 3;		//* OVERLAY_3D_OUT_MODE_SSH
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+					_3d_mode = 0;		//* OVERLAY_3D_OUT_MODE_TB
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_LINE_INTERLEAVE)
+					_3d_mode = 4;		//* OVERLAY_3D_OUT_MODE_LI
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_COLUME_INTERLEAVE)
+					_3d_mode = 5;		//* OVERLAY_3D_OUT_MODE_CI_1
 				else
-					_3d_mode = 0xff;
-
+					_3d_mode = 0xff;	//* OVERLAY_3D_OUT_MODE_NORMAL
 
 				format_local = (frm_inf->pixel_format == CEDARV_PIXEL_FORMAT_AW_YUV422) ? OMX_COLOR_FormatVendorMBYUV422 : OMX_COLOR_FormatVendorMBYUV420;
 
 				args[0] = mDisplayWidth;
 				args[1] = mDisplayHeight;
 
-				if(frm_inf->display_mode == CDX_DISP_MODE_ANAGLAGH)
+				if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 				{
-					if(frm_inf->source_3d_mode == CDX_3D_MODE_LRH || frm_inf->source_3d_mode == CDX_3D_MODE_RLH)
+					if(frm_inf->_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
 					{
 						//frm_inf->width /=2;
 						args[0] = mDisplayWidth/2;
 					}
-					else if(frm_inf->source_3d_mode == CDX_3D_MODE_TBH || frm_inf->source_3d_mode == CDX_3D_MODE_BTH)
+					else if(frm_inf->_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
 					{
 						args[1] = mDisplayHeight/2;//frm_inf->height /=2;
 					}
+
 					format_local = OMX_COLOR_FormatYUV420Planar;
-					display_mode = 2;
+					display_mode = 2;	//* OVERLAY_DISP_MODE_2D
 				}
-				else if(frm_inf->display_mode == CDX_DISP_MODE_3D)
+				else if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
 				{
-					display_mode = 1;
+					display_mode = 1;	//* OVERLAY_DISP_MODE_3D
 				}
-				else if(frm_inf->display_mode == CDX_DISP_MODE_ORIGINAL)
+				else if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_2D)
 				{
-					display_mode = 3;
+					display_mode = 3;	//* OVERLAY_DISP_MODE_ORIGINAL, display the original 2D picture of 'side to side' or 'top to bottom'
 				}
-				else
+				else	/* frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_HALF_PICTURE */
 				{
-					display_mode = 0;
+					display_mode = 0;	//* OVERLAY_DISP_MODE_2D, display half picture.
 				}
 
 				args[2] = format_local;
@@ -1214,6 +1250,9 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
 				args[5] = 0;
 
 				set3DMode((int)args);
+
+				this->_3d_mode = frm_inf->_3d_mode;
+				this->display_3d_mode = frm_inf->display_3d_mode;
 			}
 #endif
 		}
@@ -1236,64 +1275,81 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 		args[0] = mDisplayWidth;
 		args[1] = mDisplayHeight;
 
-		if(frm_inf->is_display_mode_changed)
+		LOGV("frm->anaglath_mode = %d, this->mode = %d", frm_inf->anaglath_transform_mode, this->anaglagh_type);
+
+		if((this->display_3d_mode != frm_inf->display_3d_mode || this->_3d_mode != frm_inf->_3d_mode) &&
+		   this->_3d_mode_new == frm_inf->_3d_mode)
 		{
-			if(frm_inf->source_3d_mode == CDX_3D_MODE_FS)
-				_3d_mode = 1;
-			else if(frm_inf->source_3d_mode == CDX_3D_MODE_LRF || frm_inf->source_3d_mode == CDX_3D_MODE_RLF)
-				_3d_mode = 2;
-			else if(frm_inf->source_3d_mode == CDX_3D_MODE_LRH || frm_inf->source_3d_mode == CDX_3D_MODE_RLH)
-				_3d_mode = 3;
-			else if(frm_inf->source_3d_mode == CDX_3D_MODE_TBH || frm_inf->source_3d_mode == CDX_3D_MODE_BTH ||
-					frm_inf->source_3d_mode == CDX_3D_MODE_TBF || frm_inf->source_3d_mode == CDX_3D_MODE_BTF)
-				_3d_mode = 0;
-			else if(frm_inf->source_3d_mode == CDX_3D_MODE_LI)
-				_3d_mode = 4;
-			else
-				_3d_mode = 0xFF;
-
-			format = (frm_inf->pixel_format == CEDARV_PIXEL_FORMAT_AW_YUV422) ? OMX_COLOR_FormatVendorMBYUV422 : OMX_COLOR_FormatVendorMBYUV420;
-			is_mode_changed = 1;
-
-			if(frm_inf->display_mode == CDX_DISP_MODE_ANAGLAGH)
+			if(frm_inf->display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH ||
+			   frm_inf->anaglath_transform_mode == this->anaglagh_type)
 			{
-				if(frm_inf->source_3d_mode == CDX_3D_MODE_LRH || frm_inf->source_3d_mode == CDX_3D_MODE_RLH)
+				LOGV("xxxxxxxxxxx switch 3d mode.");
+				if(frm_inf->_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM)
+					_3d_mode = 1;		//* OVERLAY_3D_OUT_MODE_FP
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+					_3d_mode = 3;		//* OVERLAY_3D_OUT_MODE_SSH
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+					_3d_mode = 0;		//* OVERLAY_3D_OUT_MODE_TB
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_LINE_INTERLEAVE)
+					_3d_mode = 4;		//* OVERLAY_3D_OUT_MODE_LI
+				else if(frm_inf->_3d_mode == CEDARV_3D_MODE_COLUME_INTERLEAVE)
+					_3d_mode = 5;		//* OVERLAY_3D_OUT_MODE_CI_1
+				else
+					_3d_mode = 0xff;	//* OVERLAY_3D_OUT_MODE_NORMAL
+
+				format = (frm_inf->pixel_format == CEDARV_PIXEL_FORMAT_AW_YUV422) ? OMX_COLOR_FormatVendorMBYUV422 : OMX_COLOR_FormatVendorMBYUV420;
+				is_mode_changed = 1;
+
+				if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 				{
-					args[0] = mDisplayWidth/2;//frm_inf->width /=2;
+					if(frm_inf->_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+					{
+						//frm_inf->width /=2;
+						args[0] = mDisplayWidth/2;
+						LOGV("xxxxxxxxxxxxxxxx side by side mode, original width = %d, cur_width = %d, height = %d",
+								mDisplayWidth, args[0], mDisplayHeight);
+					}
+					else if(frm_inf->_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+					{
+						args[1] = mDisplayHeight/2;//frm_inf->height /=2;
+						LOGV("xxxxxxxxxxxxxxxx side by side mode, original height = %d, cur_height = %d, width = %d",
+								mDisplayHeight, args[1], mDisplayWidth);
+					}
+
+					format = OMX_COLOR_FormatYUV420Planar;
+					display_mode = 2;	//* OVERLAY_DISP_MODE_2D
 				}
-				else if(frm_inf->source_3d_mode == CDX_3D_MODE_TBH || frm_inf->source_3d_mode == CDX_3D_MODE_BTH)
+				else if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
 				{
-					args[1] = mDisplayHeight/2;//frm_inf->height /=2;
+					display_mode = 1;	//* OVERLAY_DISP_MODE_3D
 				}
-				format = OMX_COLOR_FormatYUV420Planar;
-				display_mode = 2;
+				else if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_2D)
+				{
+					display_mode = 3;	//* OVERLAY_DISP_MODE_ORIGINAL, display the original 2D picture of 'side to side' or 'top to bottom'
+				}
+				else	/* frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_HALF_PICTURE */
+				{
+					display_mode = 0;	//* OVERLAY_DISP_MODE_2D, display half picture.
+				}
 
-			}
-			else if(frm_inf->display_mode == CDX_DISP_MODE_3D)
-			{
-				display_mode = 1;
-			}
-			else if(frm_inf->display_mode == CDX_DISP_MODE_ORIGINAL)
-			{
-				display_mode = 3;
-			}
-			else
-			{
-				display_mode = 0;
-			}
-			LOGV("line %d, display mode changed, frm_inf->source_3d_mode %d, frm_inf->display_mode %d", __LINE__, frm_inf->source_3d_mode, frm_inf->display_mode);
-			args[2] = format;
-			args[3] = _3d_mode;
-			args[4] = display_mode;
-			args[5] = is_mode_changed;
+				args[2] = format;
+				args[3] = _3d_mode;
+				args[4] = display_mode;
+				args[5] = is_mode_changed;
 
-			set3DMode((int)args);
+				LOGV(" ==================== set 3d mode, _3d_mode = %d, display_mode = %d", _3d_mode, display_mode);
+				set3DMode((int)args);
+
+				this->_3d_mode = frm_inf->_3d_mode;
+				this->display_3d_mode = frm_inf->display_3d_mode;
+			}
 		}
+
 		overlay_para.bProgressiveSrc = frm_inf->is_progressive;
 		overlay_para.bTopFieldFirst = frm_inf->top_field_first;
 		overlay_para.pVideoInfo.frame_rate = frm_inf->frame_rate;
 
-		if(frm_inf->display_mode == CDX_DISP_MODE_3D && frm_inf->output_3d_mode == CDX_3D_MODE_FS)
+		if(frm_inf->_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM && frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
 		{
 			overlay_para.top_y 		= (unsigned int)frm_inf->y;
 			overlay_para.top_c 		= (unsigned int)frm_inf->u;
@@ -1303,7 +1359,7 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 			//overlay_para.bottom_v 	= (unsigned int)frm_inf->v2;
 
 		}
-		else if(frm_inf->display_mode == CDX_DISP_MODE_ANAGLAGH)
+		else if(frm_inf->display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 		{
 			overlay_para.top_y 		= (unsigned int)frm_inf->u2;
 			overlay_para.top_c 		= (unsigned int)frm_inf->y2;
@@ -1471,15 +1527,6 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 
 	case CDX_EVENT_SEEK_COMPLETE:
 		finishSeek_l(0);
-		break;
-
-	case CDX_MEDIA_INFO_SRC_3D_MODE:
-		{
-			cdx_3d_mode_e tmp_3d_mode;
-			tmp_3d_mode = *((cdx_3d_mode_e *)info);
-			LOGV("source 3d mode get from parser is %d", tmp_3d_mode);
-			notifyListener_l(MEDIA_INFO_SRC_3D_MODE, tmp_3d_mode);
-		}
 		break;
 
 	default:

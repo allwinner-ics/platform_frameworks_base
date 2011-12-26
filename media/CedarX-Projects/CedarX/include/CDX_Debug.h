@@ -13,12 +13,6 @@ extern "C" {
 
 #include<CDX_MemWatch.h>
 
-
-// #ifdef __OS_ANDROID
-#define ADD_AUDIO_ENC
-#define ADD_AUDIO_STREAM
-// #endif
-
 #if 0
 
 #define LOGV(...)   ((void)0)

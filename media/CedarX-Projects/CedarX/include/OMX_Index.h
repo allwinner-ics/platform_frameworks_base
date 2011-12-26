@@ -236,11 +236,12 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorSetVideoPortDef,
 
     OMX_IndexVendorSet3DSourceFormat,
-    OMX_IndexVendorSetDisplayMode,
-    OMX_IndexVendorChangeDisplayMode,
+    OMX_IndexVendorGet3DSourceFormat,
     OMX_IndexVendorSetAnaglaghType,
-    OMX_IndexVendorSwitchAnaglagh,
-    OMX_IndexVendorSetVbvStyle,
+    OMX_IndexVendorOpenAnaglathTransform,
+    OMX_IndexVendorCloseAnaglathTransform,
+
+    OMX_IndexVendorSetDisplayMode,
     OMX_IndexDataReady,
     OMX_IndexVendorIsRequstingData,
 
@@ -253,13 +254,17 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorSetCedarvRotation,
     OMX_IndexVendorSetCedarvMaxOutputWidth,
     OMX_IndexVendorSetCedarvMaxOutputHeight,
-    OMX_IndexVendorSetCedarvOutputYuvMode,
+    OMX_IndexVendorSetCedarvOutputSetting,
+
+    OMX_IndexVendorDisableProprityTrack,
+    OMX_IndexVendorSetAudioChannelMute,
 
     OMX_IndexVendorSwitchSubtilte = 0xFF001000,
     OMX_IndexVendorDisableSubtilte,
     OMX_IndexVendorSetSubtitleType,
 	OMX_IndexGetParamSubtitle,
 	OMX_IndexSetParamSubtitle,
+	OMX_IndexVendorSwitchDiffStyleSubtitle,
 
 	// star add for recorder
 	OMX_IndexVendorSetFP = 0xFF100000,
@@ -268,6 +273,8 @@ typedef enum OMX_INDEXTYPE {
 	OMX_IndexVendorSetPreviewInfo,
 	OMX_IndexVendorGetDuration,
 	OMX_IndexVendorGetFileSize,
+	OMX_IndexVendorSetRecMode,
+	OMX_IndexVendorSetTimeLapse,
 	
     /* Vendor specific structures should be in the range of 0xFF000000 
        to 0xFFFFFFFF.  This range is not broken out by vendor, so

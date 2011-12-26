@@ -17,9 +17,6 @@
 #ifndef ANDROID_HARDWARE_CAMERA_HARDWARE_INTERFACE_H
 #define ANDROID_HARDWARE_CAMERA_HARDWARE_INTERFACE_H
 
-#define LOG_NDEBUG 0
-#define LOG_TAG "CameraHardwareInterface"
-
 #include <binder/IMemory.h>
 #include <binder/MemoryBase.h>
 #include <binder/MemoryHeapBase.h>

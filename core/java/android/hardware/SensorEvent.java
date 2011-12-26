@@ -432,6 +432,7 @@ public class SensorEvent {
      */
 
     public final float[] values;
+	public final float[] originalValue;
 
     /**
      * The sensor that generated this event. See
@@ -454,5 +455,6 @@ public class SensorEvent {
 
     SensorEvent(int size) {
         values = new float[size];
+		originalValue = new float[size];
     }
 }

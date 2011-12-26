@@ -107,7 +107,8 @@ public:
     virtual status_t        setChromaSharp(int value);
     virtual status_t        setWhiteExtend(int value);
     virtual status_t        setBlackExtend(int value);
-
+    virtual status_t 		extensionControl(int command, int para0, int para1);
+    //don't add any extension interface in future!!
 private:
     CedarXPlayer *mPlayer;
 

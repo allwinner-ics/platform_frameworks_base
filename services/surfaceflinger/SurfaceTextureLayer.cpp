@@ -30,6 +30,7 @@ namespace android {
 SurfaceTextureLayer::SurfaceTextureLayer(GLuint tex, const sp<Layer>& layer)
     : SurfaceTexture(tex), mLayer(layer) {
     usehwcomposer = false;
+    usehwinit     = false;
 }
 
 SurfaceTextureLayer::~SurfaceTextureLayer() {
@@ -123,6 +124,29 @@ status_t SurfaceTextureLayer::connect(int api,
     return err;
 }
 
+status_t SurfaceTextureLayer::disconnect(int api) 
+{
+    status_t err = SurfaceTexture::disconnect(api);
+
+    switch (api) 
+    {
+		case NATIVE_WINDOW_API_MEDIA_HW:
+        case NATIVE_WINDOW_API_CAMERA_HW:
+        {
+            sp<Layer> layer(mLayer.promote());
+            usehwcomposer = false;
+            usehwinit     = false;
+            if (layer != NULL) 
+            {
+                layer->setTextureInfo(0,0,0);
+            }
+        }
+        default:
+            break;
+    }
+    return err;
+}
+
 int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value) 
 {
     int res = 0;
@@ -139,12 +163,19 @@ int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value)
 	    		layerinitpara_t  *layer_info;
 	    		
 	    		layer_info = (layerinitpara_t  *)value;
-	    	
-	    		layer->setTextureInfo(layer_info->w,layer_info->h,layer_info->format);
+
+                if(IsHardwareRenderSupport())
+                {
+	    		    layer->setTextureInfo(layer_info->w,layer_info->h,layer_info->format);
+
+                    usehwinit = true;
+                }
 	    	}
 
-			LOGV("SurfaceTextureLayer::setParameter cmd = %d,value = %d\n",cmd,value);
-        	res = layer->setDisplayParameter(cmd,value);
+            if(usehwinit == true)
+            {
+            	res = layer->setDisplayParameter(cmd,value);
+            }
     	}
     }
     

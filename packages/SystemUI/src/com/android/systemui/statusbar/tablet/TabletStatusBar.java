@@ -86,7 +86,7 @@ import android.os.storage.StorageManager;
 public class TabletStatusBar extends StatusBar implements
         HeightReceiver.OnBarHeightChangedListener,
         InputMethodsPanel.OnHardKeyboardEnabledChangeListener {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final boolean DEBUG_COMPAT_HELP = false;
     public static final String TAG = "TabletStatusBar";
 
@@ -1273,10 +1273,11 @@ public class TabletStatusBar extends StatusBar implements
 
     public void onClickRecentButton() {
         if (DEBUG) Slog.d(TAG, "clicked recent apps; disabled=" + mDisabled);
-        if ((mDisabled & StatusBarManager.DISABLE_EXPAND) == 0) {
-            int msg = (mRecentsPanel.getVisibility() == View.GONE)
+        if ((mDisabled & StatusBarManager.DISABLE_EXPAND) == 0) { 
+            int msg = (mRecentsPanel.getVisibility() == View.GONE || mRecentsPanel.getVisibility() == View.INVISIBLE)
                 ? MSG_OPEN_RECENTS_PANEL
                 : MSG_CLOSE_RECENTS_PANEL;
+			if (DEBUG) Slog.d(TAG, "clicked recent apps; mRecentsPanel.getVisibility()=" + mRecentsPanel.getVisibility());
             mHandler.removeMessages(msg);
             mHandler.sendEmptyMessage(msg);
         }

@@ -39,6 +39,14 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
+import android.opengl.GLSurfaceView;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.provider.Settings;
+import android.view.Display;
+
+
 /**
  * Provides a dedicated drawing surface embedded inside of a view hierarchy.
  * You can control the format of this surface and, if you like, its size; the
@@ -81,7 +89,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SurfaceView extends View {
     static private final String TAG = "SurfaceView";
-    static private final boolean DEBUG = false;
+    static private final boolean DEBUG = true;
     static private final boolean localLOGV = DEBUG ? true : false;
 
     final ArrayList<SurfaceHolder.Callback> mCallbacks
@@ -155,6 +163,15 @@ public class SurfaceView extends View {
     int mWidth = -1;
     int mHeight = -1;
     int mFormat = -1;
+	
+	static int mScreenWidth	= -1;
+	static int mScreenHeight	= -1;
+	static int mScreenOrientation = -1;
+	static int mAdapterMode = -1;
+	int mSurfaceWidth	= -1;
+	int mSurfaceHeight 		= -1;
+	boolean  mSupportXLarge = false;
+	
     final Rect mSurfaceFrame = new Rect();
     Rect mTmpDirty;
     int mLastSurfaceWidth = -1, mLastSurfaceHeight = -1;
@@ -191,6 +208,9 @@ public class SurfaceView extends View {
 
     private void init() {
         setWillNotDraw(true);
+		IsAppSupportAnyDensity();
+		getSettingAdapter();
+
     }
     
     /**
@@ -266,8 +286,12 @@ public class SurfaceView extends View {
             try {
                 DisplayMetrics metrics = getResources().getDisplayMetrics();
                 mLayout.x = metrics.widthPixels * 3;
-                mSession.relayout(mWindow, mWindow.mSeq, mLayout, mWidth, mHeight, VISIBLE, false,
-                        mWinFrame, mContentInsets, mVisibleInsets, mConfiguration, mSurface);
+                mSurfaceWidth = mWidth;
+                mSurfaceHeight = mHeight;
+				
+                updateGLSmartScaleSurfaceSize();
+                mSession.relayout(mWindow, mWindow.mSeq, mLayout, mSurfaceWidth, mSurfaceHeight, VISIBLE, false,
+                        mWinFrame, mContentInsets, mVisibleInsets, mConfiguration, mSurface);			
             } catch (RemoteException e) {
                 // Ignore
             } finally {
@@ -275,7 +299,552 @@ public class SurfaceView extends View {
             }
         }
     }
+    public void getSettingAdapter()
+    {
+    	String   ScreenAdaptionMode;
+        boolean isAdaptionEnable = Settings.System.getInt(getContext().getContentResolver(), 
+	            Settings.System.DISPLAY_ADAPTION_ENABLE, 0) == 1;
+		if(isAdaptionEnable == false)
+		{
+			mAdapterMode = 0;
+		}
+		else
+		{
+			ScreenAdaptionMode = Settings.System.getString(getContext().getContentResolver(),Settings.System.DISPLAY_ADAPTION_MODE);
+        	if(ScreenAdaptionMode.equals("full"))
+        	{
+        		mAdapterMode = GLSurfaceView.RENDERPOS_FULLSCREEN;
+        	}
+        	else if(ScreenAdaptionMode.equals("upon"))
+        	{
+        		mAdapterMode = GLSurfaceView.RENDERPOS_HCENTER|GLSurfaceView.RENDERPOS_TOP;
+        	}
+        	else if(ScreenAdaptionMode.equals("below"))
+        	{
+        		mAdapterMode = GLSurfaceView.RENDERPOS_HCENTER|GLSurfaceView.RENDERPOS_BOTTOM;
+        	}
+        	else
+	        {
+	        	mAdapterMode = GLSurfaceView.RENDERPOS_HCENTER|GLSurfaceView.RENDERPOS_VCENTER;
+	        }
+		}
+    }
     
+    public static int getGLRenderPosMode()
+    {
+    	return mAdapterMode;
+    }
+    
+    private void IsAppSupportAnyDensity()
+    {
+    	String  			pckname;
+    	String              substr = "gameloft";
+    	ApplicationInfo   	appInfo;
+    	int					index;
+    	
+    	pckname = getContext().getPackageName();
+    	
+    	Log.d(TAG,"pckname = " + pckname);
+    	
+    	index  = pckname.indexOf(substr);
+    	PackageManager pm = getContext().getPackageManager();
+        try 
+        {
+            appInfo = pm.getApplicationInfo(pckname, 0);
+
+            if(((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_XLARGE_SCREENS) != 0))
+            {
+            	mSupportXLarge = true;
+            }
+            else if(index >= 0 && (mAdapterMode != 0))
+            {
+            	Display.setAdapterDisable();
+            	
+            	WindowManager wm = (WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE);
+		        Display mDisplay = wm.getDefaultDisplay();
+		        mScreenOrientation = mDisplay.getOrientation();
+		        mScreenWidth	   = mDisplay.getRawWidth();
+		        mScreenHeight	   = mDisplay.getRawHeight();
+            	if((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_LARGE_SCREENS) != 0)
+            	{
+            		GLSurfaceView.setGLAdpaterSize(800,480);
+            		
+            		Display.setAdapterSize(480,800);
+            	}
+            	else if((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_NORMAL_SCREENS) != 0)
+            	{
+            		GLSurfaceView.setGLAdpaterSize(800,480);
+            		
+            		Display.setAdapterSize(480,800);
+            	}
+            	else if((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_SMALL_SCREENS) != 0)
+            	{
+            		GLSurfaceView.setGLAdpaterSize(480,320);
+            		
+            		Display.setAdapterSize(320,480);
+            	}
+            	else
+            	{
+            		GLSurfaceView.setGLAdpaterSize(800,480);
+            		
+            		Display.setAdapterSize(480,800);
+            	}
+            	
+            	Display.setAdapterEnable();
+            	
+            	mSupportXLarge = false;
+            }
+            else
+            {
+            	mSupportXLarge = true;
+            }
+        } catch (NameNotFoundException e) {
+            Log.d(TAG,"Should be able to find application info for this package");
+            
+            mSupportXLarge = false;
+        }
+    }
+    
+    private void updateGLSmartScaleSurfaceSize()
+    {
+    	GLSurfaceView.setGLAdapterWinMatch(false);
+  Log.d(TAG,"mWidth"+mWidth+"mHight =" + mHeight);   	
+    	if(this instanceof GLSurfaceView)
+		{
+			int  adpaterMode	= getGLRenderPosMode();
+			
+			if(mSupportXLarge == false && (adpaterMode != 0))
+			{
+				/*only used full hd glsurfaceview adpater*/
+		    	if(mWidth == mScreenWidth && mHeight == mScreenHeight)
+				{
+	
+					if(mScreenOrientation == Surface.ROTATION_0 || mScreenOrientation == Surface.ROTATION_180)
+					{
+						mSurfaceWidth 	= GLSurfaceView.getGLAdpaterWidth();
+						mSurfaceHeight 	= GLSurfaceView.getGLAdpaterHeight();
+					}
+					else
+					{
+						mSurfaceHeight 	= GLSurfaceView.getGLAdpaterWidth();
+						mSurfaceWidth 	= GLSurfaceView.getGLAdpaterHeight();
+					}
+	
+					GLSurfaceView.setGLAdapterWinMatch(true);
+				}
+			}
+		}
+    }
+    
+    private void updateGLSmartScaleWinFrame()
+    {
+    	if(this instanceof GLSurfaceView)
+		{
+			int  adpaterMode	= getGLRenderPosMode();
+			
+			if(mSupportXLarge == false && (adpaterMode != 0))
+			{
+				/*only used full hd glsurfaceview adpater*/
+		    	if(mWinFrame.width() == mScreenWidth && mWinFrame.height() == mScreenHeight)
+			    {
+			    	int  adpaterWidth;
+			    	int  adpaterHeight;
+			    	int  adpaterleft 	= -1;
+			    	int  adpaterright 	= -1;
+			    	int  adpatertop 	= -1;
+			    	int  adpaterbottom 	= -1;
+			    	
+			    	if(mScreenOrientation == Surface.ROTATION_0 || mScreenOrientation == Surface.ROTATION_180)
+					{
+						adpaterWidth 	= GLSurfaceView.getGLAdpaterWidth();
+						adpaterHeight 	= GLSurfaceView.getGLAdpaterHeight();
+					}
+					else
+					{
+						adpaterHeight 	= GLSurfaceView.getGLAdpaterWidth();
+						adpaterWidth 	= GLSurfaceView.getGLAdpaterHeight();
+					}
+					
+			    	if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_TOP)
+			    	{
+			    		adpatertop = 0;
+			    	}
+			    	else if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_BOTTOM)
+			    	{
+			    		adpatertop = mHeight - adpaterHeight;
+			    	}
+			    	else
+			    	{
+			    		adpatertop = (mHeight - adpaterHeight)>>1;
+			    	}
+			    	
+			    	if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_LEFT)
+			    	{
+			    		adpaterleft = 0;
+			    	}
+			    	else if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_RIGHT)
+			    	{
+			    		adpaterleft = mWidth - adpaterWidth;
+			    	}
+			    	else
+			    	{
+			    		adpaterleft = (mWidth - adpaterWidth)>>1;
+			    	}
+			    	
+			    	adpaterbottom 	= adpatertop + adpaterHeight;
+			    	adpaterright 	= adpaterleft + adpaterWidth;
+			    	
+			    	mWinFrame.set(adpaterleft,adpatertop,adpaterright,adpaterbottom);
+			    	
+			    	GLSurfaceView.setGLAdapterWinMatch(true);
+			    }
+			}
+		}
+    }
+    
+    private void updateGLSmartScaleLayout()
+    {
+    	if(this instanceof GLSurfaceView)
+		{
+			int  adpaterMode	= getGLRenderPosMode();
+			
+			if(mSupportXLarge == false && (adpaterMode != 0))
+			{
+				/*only used full hd glsurfaceview adpater*/
+		    	if(mWidth == mScreenWidth && mHeight == mScreenHeight)
+			    {
+			    	int  adpaterWidth;
+			    	int  adpaterHeight;
+			    	int  adpaterleft 	= 0;
+			    	int  adpaterright 	= 0;
+			    	int  adpatertop 	= 0;
+			    	int  adpaterbottom 	= 0;
+			    	
+			    	if(mScreenOrientation == Surface.ROTATION_0 || mScreenOrientation == Surface.ROTATION_180)
+					{
+						adpaterWidth 	= GLSurfaceView.getGLAdpaterWidth();
+						adpaterHeight 	= GLSurfaceView.getGLAdpaterHeight();
+					}
+					else
+					{
+						adpaterHeight 	= GLSurfaceView.getGLAdpaterWidth();
+						adpaterWidth 	= GLSurfaceView.getGLAdpaterHeight();
+					}
+					
+			    	if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_TOP)
+			    	{
+			    		if(mScreenOrientation == Surface.ROTATION_0)
+			    		{
+			    			adpatertop = 0;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_90)
+			    		{
+			    			adpaterleft = 0;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_180)
+			    		{
+			    			adpatertop = mHeight - adpaterHeight;
+			    		}
+			    		else
+			    		{
+			    			adpaterleft = mWidth - adpaterWidth;
+			    		}
+			    	}
+			    	else if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_BOTTOM)
+			    	{
+			    		if(mScreenOrientation == Surface.ROTATION_0)
+			    		{
+			    			adpatertop = mHeight - adpaterHeight;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_90)
+			    		{
+			    			adpaterleft = mWidth - adpaterWidth;;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_180)
+			    		{
+			    			adpatertop = 0;
+			    		}
+			    		else
+			    		{
+			    			adpaterleft = 0;
+			    		}
+			    	}
+			    	else if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_VCENTER)
+			    	{
+			    		if(mScreenOrientation == Surface.ROTATION_0)
+			    		{
+			    			adpatertop = (mHeight - adpaterHeight)>>1;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_90)
+			    		{
+			    			adpaterleft = (mWidth - adpaterWidth)>>1;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_180)
+			    		{
+			    			adpatertop = (mHeight - adpaterHeight)>>1;
+			    		}
+			    		else
+			    		{
+			    			adpaterleft = (mWidth - adpaterWidth)>>1;
+			    		}
+			    	}
+			    	
+			    	if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_LEFT)
+			    	{
+			    		if(mScreenOrientation == Surface.ROTATION_0)
+			    		{
+			    			adpaterleft = 0;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_90)
+			    		{
+			    			adpatertop = mHeight - adpaterHeight;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_180)
+			    		{
+			    			adpaterleft = mWidth - adpaterWidth;
+			    		}
+			    		else
+			    		{
+			    			adpatertop = 0;
+			    		}
+			    	}
+			    	else if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_RIGHT)
+			    	{
+			    		if(mScreenOrientation == Surface.ROTATION_0)
+			    		{
+			    			adpaterleft = mWidth - adpaterWidth;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_90)
+			    		{
+			    			adpatertop = 0;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_180)
+			    		{
+			    			adpaterleft = 0;
+			    		}
+			    		else
+			    		{
+			    			adpaterleft = mHeight - adpaterHeight;
+			    		}
+			    	}
+			    	else if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_HCENTER)
+			    	{
+			    		if(mScreenOrientation == Surface.ROTATION_0)
+			    		{
+			    			adpaterleft = (mWidth - adpaterWidth)>>1;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_90)
+			    		{
+			    			adpatertop = (mHeight - adpaterHeight)>>1;
+			    		}
+			    		else if(mScreenOrientation == Surface.ROTATION_180)
+			    		{
+			    			adpaterleft = (mWidth - adpaterWidth)>>1;
+			    		}
+			    		else
+			    		{
+			    			adpatertop = (mHeight - adpaterHeight)>>1;
+			    		}
+			    	}
+			    	
+			    	/*not adpater full screen mode*/
+			    	if((adpaterMode & GLSurfaceView.RENDERPOS_FULLSCREEN) != GLSurfaceView.RENDERPOS_FULLSCREEN)
+			    	{
+			    		mLayout.x 		= adpaterleft;
+				    	mLayout.y 		= adpatertop;
+				    	mLayout.width 	= adpaterWidth;
+				    	mLayout.height 	= adpaterHeight;
+			    	}
+			    	else
+			    	{
+			    		mLayout.x 		= mLeft;
+		                mLayout.y 		= mTop;
+		                mLayout.width 	= getWidth();
+		                mLayout.height 	= getHeight();
+			    	}
+			    	
+			    	//Log.d("updateGLSmartScaleLayout","RENDERPOS_BOTTOM mLayout.x = " + mLayout.x);
+			    	//Log.d("updateGLSmartScaleLayout","RENDERPOS_BOTTOM mLayout.y = " + mLayout.y);
+			    	//Log.d("updateGLSmartScaleLayout","RENDERPOS_BOTTOM mLayout.width = " + mLayout.width);
+			    	//Log.d("updateGLSmartScaleLayout","RENDERPOS_BOTTOM mLayout.height = " + mLayout.height);
+			    	
+			    	GLSurfaceView.setGLAdapterWinMatch(true);
+			    	
+			    	return ;
+			    }
+			}
+		}
+		
+		GLSurfaceView.setGLAdapterWinMatch(false);
+    }
+    
+    public static void GLAdapterMotionEvent(MotionEvent evt)
+    {
+    	int  adpaterWidth;
+    	int  adpaterHeight;
+    	int  adpaterMode	= getGLRenderPosMode();
+    	boolean  isWinMatchRunning = GLSurfaceView.getGLAdapterWinMatch();
+    	
+		if(mScreenOrientation == Surface.ROTATION_0 || mScreenOrientation == Surface.ROTATION_180)
+		{
+			adpaterWidth 	= GLSurfaceView.getGLAdpaterWidth();
+			adpaterHeight 	= GLSurfaceView.getGLAdpaterHeight();
+		}
+		else
+		{
+			adpaterHeight 	= GLSurfaceView.getGLAdpaterWidth();
+			adpaterWidth 	= GLSurfaceView.getGLAdpaterHeight();
+		}    
+
+    	if(isWinMatchRunning)
+    	{
+    		if(adpaterMode != 0)
+    		{
+    			if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_TOP)
+		    	{
+		    		float offx = 0.0f;
+		    		float offy = 0.0f;
+		    		
+		    		if(mScreenOrientation == Surface.ROTATION_180)
+		    		{
+		    			offy = (float)(adpaterHeight - mScreenHeight);
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_270)
+		    		{
+		    			offx = (float)(adpaterWidth - mScreenWidth);
+		    		}
+		    		
+		    		evt.offsetLocation(offx,offy);
+		    	}
+		    	else if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_BOTTOM)
+		    	{
+		    		float offx = 0.0f;
+		    		float offy = 0.0f;
+		    		
+		    		//Log.d("GLAdapterMotionEvent","RENDERPOS_BOTTOM offy = " + offy);
+		    		
+		    		if(mScreenOrientation == Surface.ROTATION_0)
+		    		{
+		    			offy = (float)(adpaterHeight - mScreenHeight);
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_90)
+		    		{
+		    			offx = (float)(adpaterWidth - mScreenWidth);
+		    		}
+		    		
+		    		evt.offsetLocation(offx,offy);
+		    	}
+		    	else if((adpaterMode & GLSurfaceView.RENDERPOS_VMASK) == GLSurfaceView.RENDERPOS_VCENTER)
+		    	{
+		    		float offx = 0.0f;
+		    		float offy = 0.0f;
+		    		
+		    		Log.d("GLAdapterMotionEvent","RENDERPOS_VCENTER offy = " + offy);
+		    		
+		    		if(mScreenOrientation == Surface.ROTATION_0)
+		    		{
+		    			offy = (adpaterHeight - mScreenHeight)>>1;
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_90)
+		    		{
+		    			offx = (adpaterWidth - mScreenWidth)>>1;
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_180)
+		    		{
+		    			offy = (adpaterWidth - mScreenWidth)>>1;
+		    		}
+		    		else
+		    		{
+		    			offx = (adpaterWidth - mScreenWidth)>>1;
+		    		}
+			    		
+			    	evt.offsetLocation(offx,offy);
+		    	}
+		    	
+		    	if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_LEFT)
+		    	{
+		    		float offx = 0.0f;
+		    		float offy = 0.0f;
+		    		
+		    		if(mScreenOrientation == Surface.ROTATION_180)
+		    		{
+		    			offx = (float)(adpaterWidth - mScreenWidth);
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_90)
+		    		{
+		    			offy = (float)(adpaterHeight - mScreenHeight);
+		    		}
+		    		
+		    		evt.offsetLocation(offx,offy);
+		    	}
+		    	else if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_RIGHT)
+		    	{
+		    		float offx = 0.0f;
+		    		float offy = 0.0f;
+		    		
+		    		if(mScreenOrientation == Surface.ROTATION_0)
+		    		{
+		    			offx = (float)(adpaterWidth - mScreenWidth);
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_270)
+		    		{
+		    			offy = (float)(adpaterHeight - mScreenHeight);
+		    		}
+		    		
+		    		evt.offsetLocation(offx,offy);
+		    	}
+		    	else if((adpaterMode & GLSurfaceView.RENDERPOS_HMASK) == GLSurfaceView.RENDERPOS_HCENTER)
+		    	{
+		    		float offx = 0.0f;
+		    		float offy = 0.0f;
+		    		
+		    		Log.d("GLAdapterMotionEvent","RENDERPOS_VCENTER offy = " + offy);
+		    		
+		    		if(mScreenOrientation == Surface.ROTATION_0)
+		    		{
+		    			offx = (adpaterWidth - mScreenWidth)>>1;
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_90)
+		    		{
+		    			offy = (adpaterHeight - mScreenHeight)>>1;
+		    		}
+		    		else if(mScreenOrientation == Surface.ROTATION_180)
+		    		{
+		    			offx = (adpaterWidth - mScreenWidth)>>1;
+		    		}
+		    		else
+		    		{
+		    			offy = (adpaterHeight - mScreenHeight)>>1;
+		    		}
+			    		
+			    	evt.offsetLocation(offx,offy);
+		    	}
+		    	
+		    	/*not adpater full screen mode*/
+		    	if((adpaterMode & GLSurfaceView.RENDERPOS_FULLSCREEN) == GLSurfaceView.RENDERPOS_FULLSCREEN)
+		    	{
+		    		float  scalex = 1.0f,scaley = 1.0f;
+		    		
+		    		if(adpaterWidth != 0)
+		    		{
+		    			scalex = (float)(((float)adpaterWidth)/((float)mScreenWidth));
+		    		}
+		    		
+		    		if(adpaterHeight != 0)
+		    		{
+		    			scaley = (float)(((float)adpaterHeight)/((float)mScreenHeight));
+		    		}
+		    		
+		    		//Log.d("GLAdapterMotionEvent","RENDERPOS_FULLSCREEN scalex = " + scalex + " scaley = " + scaley);
+		    		//Log.d("GLAdapterMotionEvent","RENDERPOS_FULLSCREEN mScreenWidth = " + mScreenWidth + " mScreenHeight = " + mScreenHeight);
+		    		//Log.d("GLAdapterMotionEvent","RENDERPOS_FULLSCREEN adpaterWidth = " + adpaterWidth + " adpaterHeight = " + adpaterHeight);
+		    		evt.scale(scalex,scaley);
+		    		
+		    	}
+    		}
+    	}
+    }
+	
     @Override
     protected void onDetachedFromWindow() {
         if (mGlobalListenersAdded) {
@@ -434,7 +1003,6 @@ public class SurfaceView extends View {
         if (mTranslator != null) {
             mSurface.setCompatibilityTranslator(mTranslator);
         }
-        
         int myWidth = mRequestedWidth;
         if (myWidth <= 0) myWidth = getWidth();
         int myHeight = mRequestedHeight;
@@ -472,6 +1040,8 @@ public class SurfaceView extends View {
                 mLayout.y = mTop;
                 mLayout.width = getWidth();
                 mLayout.height = getHeight();
+	
+				updateGLSmartScaleLayout();
                 if (mTranslator != null) {
                     mTranslator.translateLayoutParamsInAppWindowToScreen(mLayout);
                 }
@@ -511,9 +1081,12 @@ public class SurfaceView extends View {
                     reportDrawNeeded = mReportDrawNeeded;
                     mReportDrawNeeded = false;
                     mDrawingStopped = !visible;
-    
+    				mSurfaceWidth   = mWidth;
+    				mSurfaceHeight  = mHeight;
+    				
+    				updateGLSmartScaleSurfaceSize();    
                     final int relayoutResult = mSession.relayout(
-                        mWindow, mWindow.mSeq, mLayout, mWidth, mHeight,
+                        mWindow, mWindow.mSeq, mLayout, mSurfaceWidth, mSurfaceHeight,
                             visible ? VISIBLE : GONE, false, mWinFrame, mContentInsets,
                             mVisibleInsets, mConfiguration, mSurface);
                     if ((relayoutResult&WindowManagerImpl.RELAYOUT_FIRST_TIME) != 0) {

@@ -37,6 +37,10 @@ public:
         SEEK_COMPLETE
     };
 
+    enum {
+    	FlagsFillBuffer = 1,
+    };
+
     CedarXAudioPlayer(const sp<MediaPlayerBase::AudioSink> &audioSink,
                 CedarXPlayer *audioObserver = NULL);
 
@@ -77,7 +81,7 @@ private:
     int64_t mLatencyUs;
     size_t mFrameSize;
 
-    Mutex mLock;
+    Mutex mLock, mLock2;
     int64_t mNumFramesPlayed;
 
     int64_t mPositionTimeMediaUs;
@@ -98,6 +102,9 @@ private:
     CedarXPlayer *mObserver;
     char *mAudioBufferPtr;
     int mAudioBufferSize;
+    char *mAudioBufferPtrBak;
+    int mAudioBufferSizeBak;
+    int mFlags;
 
     static void AudioCallback(int event, void *user, void *info);
     void AudioCallback(int event, void *info);
@@ -107,7 +114,7 @@ private:
             void *data, size_t size, void *me);
 
     size_t fillBuffer(void *data, size_t size);
-
+    Condition mFillBufferCondition;
 
     void reset();
 

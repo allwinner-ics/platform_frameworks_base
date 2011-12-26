@@ -36,6 +36,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.Display;
 
 /**
  * An implementation of SurfaceView that uses the dedicated surface for
@@ -206,6 +207,26 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      * @see #setDebugFlags
      */
     public final static int DEBUG_LOG_GL_CALLS = 2;
+    
+    private static int RENDERPOS_ENABLE  	= 0;
+    
+    public final static int RENDERPOS_TOP		= (1<<0);
+    
+    public final static int RENDERPOS_VCENTER	= (2<<0);
+    
+    public final static int RENDERPOS_BOTTOM	= (3<<0);
+    
+    public final static int RENDERPOS_VMASK		= 0xff;
+    
+    public final static int RENDERPOS_LEFT      = (1<<8);
+    
+    public final static int RENDERPOS_HCENTER   = (2<<8);
+    
+    public final static int RENDERPOS_RIGHT     = (3<<8);
+    
+    public final static int RENDERPOS_HMASK		= 0xff00;
+    
+    public final static int RENDERPOS_FULLSCREEN = 0x10000;
 
     /**
      * Standard View constructor. In order to render something, you
@@ -254,6 +275,37 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      */
     public void setGLWrapper(GLWrapper glWrapper) {
         mGLWrapper = glWrapper;
+    }
+	
+    public static int getGLAdpaterWidth()
+    {
+    	return mAdapterWidth;
+    }
+    
+    public static int getGLAdpaterHeight()
+    {
+    	return mAdapterHeight;
+    }
+    
+    public static void setGLAdpaterSize(int adpaterWidth,int adpaterHeight)
+    {
+    	mAdapterWidth 	= adpaterWidth;
+    	mAdapterHeight 	= adpaterHeight;
+    }
+    
+    public static void setGLAdapterWinMatch(boolean match)
+    {
+    	mIsGLAdapterWindowEnable = match;
+    }
+    
+    public static boolean getGLAdapterWinMatch()
+    {
+    	if(mIsGLAdapterWindowEnable&& mIsGLRunning)
+    	{
+    		return  true;
+    	}
+    	
+    	return   false;
     }
 
     /**
@@ -1507,7 +1559,8 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                 if (LOG_THREADS) {
                     Log.i("GLThread", "surfaceCreated tid=" + getId());
                 }
-                mHasSurface = true;
+                mHasSurface = true;				
+				mIsGLRunning = true;
                 sGLThreadManager.notifyAll();
                 while((mWaitingForSurface) && (!mExited)) {
                     try {
@@ -1525,6 +1578,9 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                     Log.i("GLThread", "surfaceDestroyed tid=" + getId());
                 }
                 mHasSurface = false;
+				mIsGLRunning = false;
+				Display.setAdapterDisable();
+
                 sGLThreadManager.notifyAll();
                 while((!mWaitingForSurface) && (!mExited)) {
                     try {
@@ -1825,4 +1881,11 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     private int mDebugFlags;
     private int mEGLContextClientVersion;
     private boolean mPreserveEGLContextOnPause;
+	
+	private static int mGLRenderPos = RENDERPOS_BOTTOM;
+	private static int mAdapterWidth = 800;
+	private static int mAdapterHeight = 480;
+	private static boolean mIsGLAdapterWindowEnable = false;
+	private static boolean mIsGLRunning = false;
+
 }

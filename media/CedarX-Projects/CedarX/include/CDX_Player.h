@@ -30,6 +30,11 @@
 #include <tmessage.h>
 #include <tsemaphore.h>
 
+#include "libcedarv.h"
+
+typedef OMX_ERRORTYPE *(*ThirdpartComponentInit)(
+		OMX_HANDLETYPE hComponent);
+
 typedef struct CedarXPlayerContext{
 	CedarXDataSourceDesc data_source_desc;
 	CDX_S32 init_flags;
@@ -47,15 +52,21 @@ typedef struct CedarXPlayerContext{
 	CDX_S64 pause_position;
 	CDX_S32 is_manual_pause;
 
+	ThirdpartComponentInit thirdpart_component_init;
+	void *libHandle;
+
 	void *cdx_player;
 	OMX_PTR pAppData;
 	CedarXPlayerCallbackType callback_info;
 	CedarXMediainfo cdx_detail_mediainfo;
+    CedarXExtSubtitleStreamInfo cdx_ext_sub_stream_info;
 	CedarXMediaInformations cdx_mediainfo;
 	VideoThumbnailInfo vd_thumb_info;
 	OMX_S32 file_fmt_type;
 	OMX_S32 is_hardware_init;
 	OMX_S32 fatal_error;
+	OMX_S32	disable_xxxx_track;
+	OMX_S32	audio_mute_mode; //0: none 1: mute left 2: mute right 3: mute all
 	audio_file_info_t audio_metadata;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 
@@ -90,17 +101,18 @@ typedef struct CedarXPlayerContext{
 	OMX_HANDLETYPE hnd_clock;
 	OMX_HANDLETYPE hnd_subtitle;
 
-	cdx_3d_mode_e		original_3d_mode;
-	cdx_3d_mode_e 		source_3d_mode;
-	cdx_display_mode_e	display_mode;
-	cdx_anaglagh_e		anaglagh_type;
-	OMX_U32				anaglagh_enable;
-	OMX_U32				display_3d_enable;
+	//* for transforming 'side by side' or 'top to bottom' pictures to 'anaglath' pictures.
+	cedarv_anaglath_trans_mode_e	anaglath_trans_mode;
+	OMX_S32							anaglath_trans_on;
+
+	//* for 3d picture display control.
+	cedarv_3d_mode_e				_3d_mode;
+	cedarx_display_3d_mode_e		_3d_display_mode;
 
 	OMX_S32 	cedarv_rotation;
 	OMX_S32 	cedarv_max_width;
 	OMX_S32 	cedarv_max_height;
-	OMX_S32 	cedarv_output_yuv_mode;
+	OMX_S32 	cedarv_output_setting;
 }CedarXPlayerContext;
 
 #include "CDX_PlayerAPI.h"

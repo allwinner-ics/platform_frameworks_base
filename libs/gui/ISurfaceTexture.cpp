@@ -238,6 +238,10 @@ public:
         {
         	data.write((void *)value,sizeof(libhwclayerpara_t));
         }
+        else if(cmd == HWC_LAYER_SET3DMODE)
+        {
+        	data.write((void *)value,sizeof(video3Dinfo_t));
+        }
         else
         {
         	data.writeInt32(value);
@@ -408,6 +412,12 @@ status_t BnSurfaceTexture::onTransact(
 	        	data.read((void *)&frame_info,sizeof(libhwclayerpara_t));
 	        	
 	        	value = (uint32_t)&frame_info;
+	        }
+	        else if(cmd == HWC_LAYER_SET3DMODE)
+	        {
+	        	video3Dinfo_t _3d_info;
+	        	data.read((void *)&_3d_info, sizeof(video3Dinfo_t));
+	        	value = (uint32_t)&_3d_info;
 	        }
 	        else
 	        {

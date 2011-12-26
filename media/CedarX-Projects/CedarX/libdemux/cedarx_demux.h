@@ -101,6 +101,7 @@ typedef enum CDX_DEMUX_FLAGS{
 
 typedef struct CDX_CACHE_STATE
 {
+	int buffering_percent;
 	int filled_percent;
 	int filled_size;
 	int eof_flag;
@@ -152,17 +153,17 @@ typedef struct CedarXSubtitleStreamInfo{
     unsigned char        lang[MAX_LANG_CHAR_SIZE];
 } CedarXSubtitleStreamInfo;
 
-typedef struct ExternSubtitleInfo {
+typedef struct CedarXExtSubtitleStreamInfo {
 	char *lang[32];
-	int subtitle_count;
-}ExternSubtitleInfo;
+	int nExtSubStrmNum;
+}CedarXExtSubtitleStreamInfo;;
 
 typedef struct CedarXMediainfo
 {
     char        nHasAudio;
     char        nHasVideo;
     char        nHasSubtitle;
-    char        nUseExtSubtitle;
+    //char        nUseExtSubtitle;
     int			nFlags; //CDX_DEMUX_FLAGS .etc
 
     unsigned char nStreamNum;
@@ -173,10 +174,13 @@ typedef struct CedarXMediainfo
     unsigned int  nDuration; //unit: ms
     CDX_S64 	  nFileSize;
 
-    CedarXAudioStreamInfo       AudStrmList[MAX_AUDIO_STREAM_NUM];
+    CedarXAudioStreamInfo        AudStrmList[MAX_AUDIO_STREAM_NUM];
     OMX_VIDEO_PORTDEFINITIONTYPE VidStrmList[MAX_VIDEO_STREAM_NUM];
-    CedarXSubtitleStreamInfo    SubtitleStrmList[MAX_SUBTITLE_STREAM_NUM];
-    ExternSubtitleInfo 			ExtSubtitleStrmInfo;
+    CedarXSubtitleStreamInfo     SubtitleStrmList[MAX_SUBTITLE_STREAM_NUM];
+    int  nInitAudStrmNum;
+    int  nInitVidStrmNum;
+    int  nInitSubStrmNum;
+    //ExternSubtitleInfo 			 ExtSubtitleStrmInfo;
 
     unsigned char        Author[ID3_INFO_BUF_SIZE];
     int       nAuthorLen;

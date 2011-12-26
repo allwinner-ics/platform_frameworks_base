@@ -57,6 +57,8 @@ public class MediaFile {
     private static final int FIRST_MIDI_FILE_TYPE = FILE_TYPE_MID;
     private static final int LAST_MIDI_FILE_TYPE = FILE_TYPE_IMY;
    
+    private static final int FILE_TYPE_CEDARA = 16;
+   
     // Video file types
     public static final int FILE_TYPE_CEDARV  = 20;
     public static final int FILE_TYPE_MP4     = 21;
@@ -143,27 +145,29 @@ public class MediaFile {
     }
 
     private static boolean isWMAEnabled() {
-        List<AudioDecoder> decoders = DecoderCapabilities.getAudioDecoders();
-        int count = decoders.size();
-        for (int i = 0; i < count; i++) {
-            AudioDecoder decoder = decoders.get(i);
-            if (decoder == AudioDecoder.AUDIO_DECODER_WMA) {
-                return true;
-            }
-        }
-        return false;
+//        List<AudioDecoder> decoders = DecoderCapabilities.getAudioDecoders();
+//        int count = decoders.size();
+//        for (int i = 0; i < count; i++) {
+//            AudioDecoder decoder = decoders.get(i);
+//            if (decoder == AudioDecoder.AUDIO_DECODER_WMA) {
+//                return true;
+//            }
+//        }
+//        return false;
+		return true;
     }
 
     private static boolean isWMVEnabled() {
-        List<VideoDecoder> decoders = DecoderCapabilities.getVideoDecoders();
-        int count = decoders.size();
-        for (int i = 0; i < count; i++) {
-            VideoDecoder decoder = decoders.get(i);
-            if (decoder == VideoDecoder.VIDEO_DECODER_WMV) {
-                return true;
-            }
-        }
-        return false;
+//        List<VideoDecoder> decoders = DecoderCapabilities.getVideoDecoders();
+//        int count = decoders.size();
+//        for (int i = 0; i < count; i++) {
+//            VideoDecoder decoder = decoders.get(i);
+//            if (decoder == VideoDecoder.VIDEO_DECODER_WMV) {
+//                return true;
+//            }
+//        }
+//        return false;
+		return true;
     }
 
     static {
@@ -180,6 +184,14 @@ public class MediaFile {
         addFileType("AAC", FILE_TYPE_AAC, "audio/aac", MtpConstants.FORMAT_AAC);
         addFileType("AAC", FILE_TYPE_AAC, "audio/aac-adts", MtpConstants.FORMAT_AAC);
         addFileType("MKA", FILE_TYPE_MKA, "audio/x-matroska");
+        
+        addFileType("APE", FILE_TYPE_CEDARA, "audio/cedara");
+        //addFileType("FLAC",FILE_TYPE_CEDARA, "audio/cedara");
+        addFileType("AC3", FILE_TYPE_CEDARA, "audio/cedara");
+        addFileType("DTS", FILE_TYPE_CEDARA, "audio/cedara");
+        addFileType("OMG", FILE_TYPE_CEDARA, "audio/cedara");
+        addFileType("M4R", FILE_TYPE_CEDARA, "audio/cedara");
+        addFileType("RA",  FILE_TYPE_CEDARA, "audio/cedara");
  
         addFileType("MID", FILE_TYPE_MID, "audio/midi");
         addFileType("MIDI", FILE_TYPE_MID, "audio/midi");
@@ -256,7 +268,8 @@ public class MediaFile {
         return ((fileType >= FIRST_AUDIO_FILE_TYPE &&
                 fileType <= LAST_AUDIO_FILE_TYPE) ||
                 (fileType >= FIRST_MIDI_FILE_TYPE &&
-                fileType <= LAST_MIDI_FILE_TYPE));
+                fileType <= LAST_MIDI_FILE_TYPE) ||
+                fileType == FILE_TYPE_CEDARA);
     }
 
     public static boolean isVideoFileType(int fileType) {

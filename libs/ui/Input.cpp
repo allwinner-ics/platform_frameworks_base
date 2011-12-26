@@ -317,6 +317,16 @@ void PointerCoords::scale(float scaleFactor) {
     scaleAxisValue(*this, AMOTION_EVENT_AXIS_TOOL_MAJOR, scaleFactor);
     scaleAxisValue(*this, AMOTION_EVENT_AXIS_TOOL_MINOR, scaleFactor);
 }
+void PointerCoords::scale(float scalexFactor,float scaleyFactor) {
+    // No need to scale pressure or size since they are normalized.
+    // No need to scale orientation since it is meaningless to do so.
+    scaleAxisValue(*this, AMOTION_EVENT_AXIS_X, scalexFactor);
+    scaleAxisValue(*this, AMOTION_EVENT_AXIS_Y, scaleyFactor);
+    scaleAxisValue(*this, AMOTION_EVENT_AXIS_TOUCH_MAJOR, scalexFactor);
+    scaleAxisValue(*this, AMOTION_EVENT_AXIS_TOUCH_MINOR, scalexFactor);
+    scaleAxisValue(*this, AMOTION_EVENT_AXIS_TOOL_MAJOR, scalexFactor);
+    scaleAxisValue(*this, AMOTION_EVENT_AXIS_TOOL_MINOR, scalexFactor);
+}
 
 #ifdef HAVE_ANDROID_OS
 status_t PointerCoords::readFromParcel(Parcel* parcel) {
@@ -521,6 +531,18 @@ void MotionEvent::scale(float scaleFactor) {
     size_t numSamples = mSamplePointerCoords.size();
     for (size_t i = 0; i < numSamples; i++) {
         mSamplePointerCoords.editItemAt(i).scale(scaleFactor);
+    }
+}
+
+void MotionEvent::scale(float scalexFactor, float scaleyFactor) {
+    mXOffset *= scalexFactor;
+    mYOffset *= scaleyFactor;
+    mXPrecision *= scalexFactor;
+    mYPrecision *= scaleyFactor;
+
+    size_t numSamples = mSamplePointerCoords.size();
+    for (size_t i = 0; i < numSamples; i++) {
+        mSamplePointerCoords.editItemAt(i).scale(scalexFactor,scaleyFactor);
     }
 }
 

@@ -381,12 +381,15 @@ int SurfaceTextureClient::dispatchSetBuffersGeometry(va_list args) {
     if (err != 0) {
         return err;
     }
-    
+
+    LOGD("dispatchSetBuffersGeometry1!\n");
     err = setBuffersFormat(f);
     if (err != 0) 
     {
         return err;
     }
+
+    LOGD("dispatchSetBuffersGeometry2!\n");
     
     layer_info.w 			= w;
     layer_info.h 			= h;

@@ -112,7 +112,7 @@ public class AccountUnlockScreen extends RelativeLayout implements KeyguardScree
         mUpdateMonitor = updateMonitor;
 
         mKeyguardStatusViewManager = new KeyguardStatusViewManager(this, updateMonitor,
-                lockPatternUtils, callback, true);
+                lockPatternUtils, callback, false);
     }
 
     public void afterTextChanged(Editable s) {

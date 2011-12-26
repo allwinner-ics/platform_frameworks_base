@@ -89,6 +89,9 @@ CedarXRecorder::CedarXRecorder()
     , mRecModeFlag(0)
     , mRecord(NULL)
     , mLatencyStartUs(0)
+    , mLastTimeLapseFrameRealTimestampUs(0)
+    , mTimeBetweenTimeLapseVideoFramesUs(0)
+    , mLastTimeLapseFrameTimestampUs(0)
 {
 
     LOGV("Constructor");
@@ -319,6 +322,13 @@ status_t CedarXRecorder::setParamMaxFileSizeBytes(int64_t bytes)
     LOGV("setParamMaxFileSizeBytes: %lld bytes", bytes);
 	
 	mMaxFileSizeBytes = bytes;
+
+	if (mMaxFileSizeBytes > (int64_t)MAX_FILE_SIZE)
+	{
+		mMaxFileSizeBytes = (int64_t)MAX_FILE_SIZE;
+    	LOGD("force maxFileSizeBytes to %lld bytes", mMaxFileSizeBytes);
+	}
+	
     return OK;
 }
 
@@ -337,6 +347,20 @@ status_t CedarXRecorder::setParamVideoRotation(int32_t degrees)
 	
     mRotationDegrees = degrees % 360;
 
+    return OK;
+}
+
+status_t CedarXRecorder::setParamTimeLapseEnable(int32_t timeLapseEnable) {
+    LOGV("setParamTimeLapseEnable: %d", timeLapseEnable);
+
+	mCaptureTimeLapse = timeLapseEnable;
+    return OK;
+}
+
+status_t CedarXRecorder::setParamTimeBetweenTimeLapseFrameCapture(int64_t timeUs) {
+    LOGV("setParamTimeBetweenTimeLapseFrameCapture: %lld us", timeUs);
+
+    mTimeBetweenTimeLapseFrameCaptureUs = timeUs;
     return OK;
 }
 
@@ -501,27 +525,38 @@ status_t CedarXRecorder::prepare()
 		return ret;
 	}
 
-	// set audio parameters
-	AUDIOINFO_t aInfo;
-	memset((void*)&aInfo, 0, sizeof(AUDIOINFO_t));
-	aInfo.bitRate = mAudioBitRate;
-	aInfo.channels = mAudioChannels;
-	aInfo.sampleRate = mSampleRate;
-	aInfo.bitsPerSample = 16;
-	if (mAudioBitRate == 0
-		|| mAudioChannels == 0
-		|| mSampleRate == 0)
+	if (mRecModeFlag & RECORDER_MODE_AUDIO)
 	{
-		LOGE("error audio para");
-		return -1;
+		// set audio parameters
+		AUDIOINFO_t aInfo;
+		memset((void*)&aInfo, 0, sizeof(AUDIOINFO_t));
+		aInfo.bitRate = mAudioBitRate;
+		aInfo.channels = mAudioChannels;
+		aInfo.sampleRate = mSampleRate;
+		aInfo.bitsPerSample = 16;
+		if (mAudioBitRate == 0
+			|| mAudioChannels == 0
+			|| mSampleRate == 0)
+		{
+			LOGE("error audio para");
+			return -1;
+		}
+
+		ret = CDXRecorder_Control(CDX_CMD_SET_AUDIO_INFO, (unsigned int)&aInfo, 0);
+		if(ret != OK)
+		{
+			LOGE("CedarXRecorder::prepare, CDX_CMD_SET_AUDIO_INFO failed\n");
+			return ret;
+		}	
 	}
 
-	ret = CDXRecorder_Control(CDX_CMD_SET_AUDIO_INFO, (unsigned int)&aInfo, 0);
-	if(ret != OK)
+	// time lapse mode
+	if (mCaptureTimeLapse)
 	{
-		LOGE("CedarXRecorder::prepare, CDX_CMD_SET_AUDIO_INFO failed\n");
-		return ret;
-	}	
+		LOGD("time lapse mode*****************************");
+		mTimeBetweenTimeLapseVideoFramesUs = 1E6/mFrameRate;
+		CDXRecorder_Control(CDX_CMD_SET_TIME_LAPSE, 0, 0);
+	}
 
     return OK;
 }
@@ -745,8 +780,23 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 		CedarXReleaseFrame(buf.index);
 		return ;
 	}
+
+	// time lapse mode
+	if (mCaptureTimeLapse)
+	{
+		// LOGV("readTimeUs : %lld, lapse: %lld", readTimeUs, mLastTimeLapseFrameRealTimestampUs + mTimeBetweenTimeLapseFrameCaptureUs);
+		if (readTimeUs < mLastTimeLapseFrameRealTimestampUs + mTimeBetweenTimeLapseFrameCaptureUs)
+		{
+			CedarXReleaseFrame(buf.index);
+			return ;
+		}
+		mLastTimeLapseFrameRealTimestampUs = readTimeUs;
+
+		buf.timeStamp = mLastTimeLapseFrameTimestampUs + mTimeBetweenTimeLapseVideoFramesUs;
+		mLastTimeLapseFrameTimestampUs = buf.timeStamp;
+	}
 	
-	LOGV("CedarXRecorder::dataCallbackTimestamp: addrPhyY %x, timestamp %lld us", buf.addrPhyY, timestampUs);
+	// LOGV("CedarXRecorder::dataCallbackTimestamp: addrPhyY %x, timestamp %lld us", buf.addrPhyY, timestampUs);
 
 	ret = CDXRecorder_Control(CDX_CMD_SEND_BUF, (unsigned int)&buf, 0); 
 	if (ret != 0)
@@ -755,7 +805,7 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 	}
 
 	CDXRecorder_Control(CDX_CMD_GET_DURATION, (unsigned int)&duration, 0); 
-	LOGV("duration : %d", duration);
+	// LOGV("duration : %d", duration);
 	
 	if (mMaxFileDurationUs != 0 
 		&& duration >= mMaxFileDurationUs / 1000)
@@ -764,9 +814,9 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 	}
 
 	CDXRecorder_Control(CDX_CMD_GET_FILE_SIZE, (int64_t)&fileSizeBytes, 0); 
-	LOGV("fileSizeBytes : %lld", fileSizeBytes);
+	// LOGV("fileSizeBytes : %lld", fileSizeBytes);
 	
-	if (fileSizeBytes != 0 
+	if (mMaxFileSizeBytes > 0 
 		&& fileSizeBytes >= mMaxFileSizeBytes)
 	{
 		mListener->notify(MEDIA_RECORDER_EVENT_INFO, MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED, 0);
@@ -786,7 +836,7 @@ status_t CedarXRecorder::CedarXReadAudioBuffer(void *pbuf, int *size, int64_t *t
 {	
     int64_t readTimeUs = systemTime() / 1000;
 
-	LOGV("CedarXRecorder::CedarXReadAudioBuffer, readTimeUs: %lld", readTimeUs);
+	// LOGV("CedarXRecorder::CedarXReadAudioBuffer, readTimeUs: %lld", readTimeUs);
 
 	*timeStamp = readTimeUs;
 	
@@ -804,7 +854,7 @@ status_t CedarXRecorder::CedarXReadAudioBuffer(void *pbuf, int *size, int64_t *t
 	
 	*size = n;
 
-	LOGV("timestamp: %lld, len: %d", readTimeUs, n);
+	// LOGV("timestamp: %lld, len: %d", readTimeUs, n);
 
 	return OK;
 }

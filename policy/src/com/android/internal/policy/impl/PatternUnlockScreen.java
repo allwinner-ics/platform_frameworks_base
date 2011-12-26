@@ -171,7 +171,7 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
         }
 
         mKeyguardStatusViewManager = new KeyguardStatusViewManager(this, mUpdateMonitor,
-                mLockPatternUtils, mCallback, true);
+                mLockPatternUtils, mCallback, false);
 
         mLockPatternView = (LockPatternView) findViewById(R.id.lockPattern);
 

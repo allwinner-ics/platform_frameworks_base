@@ -1879,6 +1879,27 @@ public final class Settings {
          */
         public static final String POINTER_SPEED = "pointer_speed";
 
+		/**
+		 * To use default or special accelerometer coordinate system
+		 * @hide
+		 */
+
+		public static final String ACCELEROMETER_COORDINATE = "accelerometer_coordinate";
+
+		/**
+         * the display mode options.
+         * add by huanglong
+         * @hide 
+         */
+		public static final String DISPLAY_ADAPTION_MODE = "display_adaption_mode";
+
+		/**
+         * enable the screen adaption.
+         * add by huanglong
+         * @hide 
+         */
+		public static final String DISPLAY_ADAPTION_ENABLE = "display_adapter_enable";
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
@@ -1948,6 +1969,9 @@ public final class Settings {
             SIP_CALL_OPTIONS,
             SIP_RECEIVE_CALLS,
             POINTER_SPEED,
+            ACCELEROMETER_COORDINATE,
+            DISPLAY_ADAPTION_MODE,
+            DISPLAY_ADAPTION_ENABLE,
         };
 
         // Settings moved to Settings.Secure

@@ -4050,7 +4050,9 @@ public class WebView extends AbsoluteLayout
      *         settings.
      */
     public WebSettings getSettings() {
-        checkThread();
+        //[lys] This function may called by WebViewCoreThread WebViewCore.setupViewport 
+        //so comment checkThread temp
+        //checkThread();
         return (mWebViewCore != null) ? mWebViewCore.getSettings() : null;
     }
 

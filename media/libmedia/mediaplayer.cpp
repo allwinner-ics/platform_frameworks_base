@@ -67,7 +67,7 @@ MediaPlayer::MediaPlayer()
     /* 2011-9-28 16:28:24 */
     /* save properties before creating the real player */
     mSubGate = true;
-    mSubColor = 0xFFFFFFF;
+    mSubColor = 0xFFFFFFFF;
     mSubFrameColor = 0xFF000000;
     mSubPosition = 0;
     mSubDelay = 0;

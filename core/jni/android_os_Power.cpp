@@ -73,13 +73,17 @@ static void android_os_Power_shutdown(JNIEnv *env, jobject clazz)
     android_reboot(ANDROID_RB_POWEROFF, 0, 0);
 }
 
+extern int go_recovery(void);
+
 static void android_os_Power_reboot(JNIEnv *env, jobject clazz, jstring reason)
 {
     if (reason == NULL) {
         android_reboot(ANDROID_RB_RESTART, 0, 0);
     } else {
         const char *chars = env->GetStringUTFChars(reason, NULL);
-        android_reboot(ANDROID_RB_RESTART2, 0, (char *) chars);
+        //android_reboot(ANDROID_RB_RESTART2, 0, (char *) chars);
+        go_recovery();
+        android_reboot(ANDROID_RB_RESTART, 0, 0);
         env->ReleaseStringUTFChars(reason, chars);  // In case it fails.
     }
     jniThrowIOException(env, errno);

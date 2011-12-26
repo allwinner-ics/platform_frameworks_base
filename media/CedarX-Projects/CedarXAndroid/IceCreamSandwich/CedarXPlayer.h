@@ -43,25 +43,6 @@ struct NuCachedSource2;
 struct ISurfaceTexture;
 
 struct ALooper;
-//struct ARTSPController;
-//struct ARTPSession;
-//struct UDPPusher;
-
-//struct CedarXRenderer : public RefBase {
-//    CedarXRenderer() {}
-//
-//    //virtual void render(MediaBuffer *buffer) = 0;
-//    virtual void render(const void *data, size_t size) = 0;
-//#ifndef __CHIP_VERSION_F20
-//    virtual int control(int cmd, int para) = 0;
-//#else
-//    virtual int getframeid() = 0;
-//#endif
-//
-//private:
-//    CedarXRenderer(const CedarXRenderer &);
-//    CedarXRenderer &operator=(const CedarXRenderer &);
-//};
 
 struct CedarXRenderer : public RefBase {
     CedarXRenderer() {}
@@ -74,7 +55,32 @@ private:
     CedarXRenderer &operator=(const CedarXRenderer &);
 };
 
-struct CedarXPlayer {
+enum {
+    PLAYING             = 0x01,
+    LOOPING             = 0x02,
+    FIRST_FRAME         = 0x04,
+    PREPARING           = 0x08,
+    PREPARED            = 0x10,
+    AT_EOS              = 0x20,
+    PREPARE_CANCELLED   = 0x40,
+    CACHE_UNDERRUN      = 0x80,
+    AUDIO_AT_EOS        = 0x100,
+    VIDEO_AT_EOS        = 0x200,
+    AUTO_LOOPING        = 0x400,
+    WAIT_TO_PLAY        = 0x800,
+    WAIT_VO_EXIT        = 0x1000,
+    CEDARX_LIB_INIT     = 0x2000,
+    SUSPENDING          = 0x4000,
+    PAUSING				= 0x8000,
+    RESTORE_CONTROL_PARA= 0x10000,
+    NATIVE_SUSPENDING   = 0x20000,
+};
+
+typedef struct CedarXPlayerExtendMember_{
+	int xxxx;
+}CedarXPlayerExtendMember;
+
+struct CedarXPlayer { //don't touch this struct any more, you can extend members in CedarXPlayerExtendMember
     CedarXPlayer();
     ~CedarXPlayer();
 
@@ -163,6 +169,7 @@ struct CedarXPlayer {
     status_t setChromaSharp(int value);
     status_t setWhiteExtend(int value);
     status_t setBlackExtend(int value);
+    status_t extensionControl(int command, int para0, int para1);
 #endif
     // This is a mask of MediaExtractor::Flags.
     uint32_t flags() const;
@@ -173,27 +180,6 @@ struct CedarXPlayer {
     int CedarXPlayerCallback(int event, void *info);
 private:
     friend struct CedarXEvent;
-
-    enum {
-        PLAYING             = 0x01,
-        LOOPING             = 0x02,
-        FIRST_FRAME         = 0x04,
-        PREPARING           = 0x08,
-        PREPARED            = 0x10,
-        AT_EOS              = 0x20,
-        PREPARE_CANCELLED   = 0x40,
-        CACHE_UNDERRUN      = 0x80,
-        AUDIO_AT_EOS        = 0x100,
-        VIDEO_AT_EOS        = 0x200,
-        AUTO_LOOPING        = 0x400,
-        WAIT_TO_PLAY        = 0x800,
-        WAIT_VO_EXIT        = 0x1000,
-        CEDARX_LIB_INIT     = 0x2000,
-        SUSPENDING          = 0x4000,
-        PAUSING				= 0x8000,
-        RESTORE_CONTROL_PARA= 0x10000,
-        NATIVE_SUSPENDING   = 0x20000,
-    };
 
     mutable Mutex mLock;
     Mutex mMiscStateLock;
@@ -224,10 +210,12 @@ private:
     uint32_t mFlags;
     uint32_t mExtractorFlags;
     bool isCedarXInitialized;
+    int32_t mDisableXXXX;
 
-    int32_t input_3d_type;
-    int32_t output_3d_type;
-    int32_t anaglagh_type;
+    uint32_t	_3d_mode;
+    uint32_t	_3d_mode_new;		//* new source 3d mode set by user.
+    uint32_t	display_3d_mode;
+    uint32_t    anaglagh_type;
 
     int32_t mVideoWidth, mVideoHeight, mFirstFrame;
     int32_t mCanSeek;
@@ -240,10 +228,9 @@ private:
     bool mSeeking;
     bool mSeekNotificationSent;
     int64_t mSeekTimeUs;
+    int64_t mLastValidPosition;
 
     int64_t mBitrate;  // total bitrate of the file (in bps) or -1 if unknown.
-
-    int64_t mLastValidPosition;
 
     bool mIsAsyncPrepare;
     status_t mPrepareResult;
@@ -294,7 +281,7 @@ private:
 		int32_t mSubtitlePosition;
     }mSubtitleParameter;
 
-
+    CedarXPlayerExtendMember *mExtendMember;
 
 //    status_t setDataSource_l(
 //            const char *uri,
@@ -348,6 +335,7 @@ private:
     int StagefrightAudioRenderData(void* data, int len);
     int StagefrightAudioRenderGetSpace(void);
     int StagefrightAudioRenderGetDelay(void);
+    int StagefrightAudioRenderFlushCache(void);
 
     CedarXPlayer(const CedarXPlayer &);
     CedarXPlayer &operator=(const CedarXPlayer &);

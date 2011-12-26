@@ -186,6 +186,7 @@ public class RecentsPanelView extends RelativeLayout implements OnItemClickListe
     public void show(boolean show, boolean animate,
             ArrayList<TaskDescription> recentTaskDescriptions) {
         if (show) {
+            mRecentTasksDirty = true;
             // Need to update list of recent apps before we set visibility so this view's
             // content description is updated before it gets focus for TalkBack mode
             refreshRecentTasksList(recentTaskDescriptions);
@@ -203,6 +204,7 @@ public class RecentsPanelView extends RelativeLayout implements OnItemClickListe
             }
         } else {
             mRecentTasksLoader.cancelLoadingThumbnails();
+			if (DEBUG) Log.v(TAG, "show mRecentTasksDirty = true");
             mRecentTasksDirty = true;
         }
         if (animate) {
@@ -486,6 +488,7 @@ public class RecentsPanelView extends RelativeLayout implements OnItemClickListe
             }
             mListAdapter.notifyDataSetInvalidated();
             updateUiElements(getResources().getConfiguration());
+			if (DEBUG) Log.v(TAG, "refreshRecentTasksList mRecentTasksDirty = false");
             mRecentTasksDirty = false;
         }
     }

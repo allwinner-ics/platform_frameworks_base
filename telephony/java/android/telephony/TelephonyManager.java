@@ -192,13 +192,14 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getDeviceId() {
-        try {
-            return getSubscriberInfo().getDeviceId();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            return null;
-        }
+//        try {
+//            return getSubscriberInfo().getDeviceId();
+//        } catch (RemoteException ex) {
+ Log.e(TAG,"app need deviced id here+++++++++++++++++++++++++++++++++++++++++");
+            return "352005048247251";
+//        } catch (NullPointerException ex) {
+//            return "352005048247251";
+//        }
     }
 
     /**

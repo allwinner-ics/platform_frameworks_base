@@ -409,5 +409,9 @@ status_t CedarPlayer::setBlackExtend(int value)
 	return mPlayer->setBlackExtend(value);
 }
 
+status_t CedarPlayer::extensionControl(int command, int para0, int para1)
+{
+	return mPlayer->extensionControl(command, para0, para1);
+}
 
 }  // namespace android

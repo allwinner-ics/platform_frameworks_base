@@ -760,9 +760,10 @@ status_t StagefrightRecorder::setListener(const sp<IMediaRecorderClient> &listen
 
 status_t StagefrightRecorder::prepare() {
 	F_LOG;
+	status_t error = OK;	
 
-	if(mAudioEncoder == AUDIO_ENCODER_AAC
-		&& mVideoEncoder == VIDEO_ENCODER_H264
+	// do not care audio encoder format
+	if(mVideoEncoder == VIDEO_ENCODER_H264
 		&& mpCedarXRecorder != NULL)
 	{
 		mbHWEncoder = true;
@@ -770,23 +771,33 @@ status_t StagefrightRecorder::prepare() {
 
 	if (mbHWEncoder)
 	{
-		mpCedarXRecorder->setCamera(mCamera, mCameraProxy);
+		error = mpCedarXRecorder->setCamera(mCamera, mCameraProxy);
+		if (error != OK)
+		{
+			goto ERROR;
+		}
 		mpCedarXRecorder->setListener(mListener);
 
 		// audio
-		mpCedarXRecorder->setAudioSource(mAudioSource);
-		mpCedarXRecorder->setAudioEncoder(mAudioEncoder);
-		mpCedarXRecorder->setParamAudioEncodingBitRate(mAudioBitRate);
-		mpCedarXRecorder->setParamAudioNumberOfChannels(mAudioChannels);
-		mpCedarXRecorder->setParamAudioSamplingRate(mSampleRate);
+		if (mAudioSource != AUDIO_SOURCE_CNT)
+		{
+			mpCedarXRecorder->setAudioSource(mAudioSource);
+			mpCedarXRecorder->setAudioEncoder(mAudioEncoder);
+			mpCedarXRecorder->setParamAudioEncodingBitRate(mAudioBitRate);
+			mpCedarXRecorder->setParamAudioNumberOfChannels(mAudioChannels);
+			mpCedarXRecorder->setParamAudioSamplingRate(mSampleRate);
+		}
 
 		// video
-		mpCedarXRecorder->setVideoSource(mVideoSource);
-		mpCedarXRecorder->setVideoEncoder(mVideoEncoder);
-		mpCedarXRecorder->setVideoSize(mVideoWidth, mVideoHeight);
-		mpCedarXRecorder->setParamVideoEncodingBitRate(mVideoBitRate);
-		mpCedarXRecorder->setVideoFrameRate(mFrameRate);
-		mpCedarXRecorder->setParamVideoRotation(mRotationDegrees);
+		if (mVideoSource != VIDEO_SOURCE_LIST_END)
+		{
+			mpCedarXRecorder->setVideoSource(mVideoSource);
+			mpCedarXRecorder->setVideoEncoder(mVideoEncoder);
+			mpCedarXRecorder->setVideoSize(mVideoWidth, mVideoHeight);
+			mpCedarXRecorder->setParamVideoEncodingBitRate(mVideoBitRate);
+			mpCedarXRecorder->setVideoFrameRate(mFrameRate);
+			mpCedarXRecorder->setParamVideoRotation(mRotationDegrees);
+		}
 
 		// output
 		mpCedarXRecorder->setParamMaxFileDurationUs(mMaxFileDurationUs);
@@ -796,10 +807,19 @@ status_t StagefrightRecorder::prepare() {
 		
 		mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
 
-		return mpCedarXRecorder->prepare();
+		// lapse
+		mpCedarXRecorder->setParamTimeLapseEnable(mCaptureTimeLapse);
+		mpCedarXRecorder->setParamTimeBetweenTimeLapseFrameCapture(mTimeBetweenTimeLapseFrameCaptureUs);
+
+		error = mpCedarXRecorder->prepare();
+		if (error != OK)
+		{
+			goto ERROR;
+		}
 	}
-	
-    return OK;
+
+ERROR:
+    return error;
 }
 
 status_t StagefrightRecorder::start() {

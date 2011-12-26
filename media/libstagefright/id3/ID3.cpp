@@ -496,7 +496,11 @@ void ID3::Iterator::getString(String8 *id) const {
         // UTF-16 BE, no byte order mark.
         // API wants number of characters, not number of bytes...
         int len = n / 2;
-        const char16_t *framedata = (const char16_t *) (mFrameData + 1);
+        /* modified by Gary. start {{----------------------------------- */
+        char16_t *framedata_tmp = new char16_t[len];
+        memcpy(framedata_tmp, mFrameData + 1, len * sizeof(char16_t));
+        char16_t *framedata = framedata_tmp;
+        /* modified by Gary. end   -----------------------------------}} */
         char16_t *framedatacopy = NULL;
 #if BYTE_ORDER == LITTLE_ENDIAN
         framedatacopy = new char16_t[len];
@@ -509,11 +513,20 @@ void ID3::Iterator::getString(String8 *id) const {
         if (framedatacopy != NULL) {
             delete[] framedatacopy;
         }
+        /* modified by Gary. start {{----------------------------------- */
+    	if (framedata_tmp != NULL) {
+            delete[] framedata_tmp;
+    	}
+        /* modified by Gary. end   -----------------------------------}} */
     } else {
         // UCS-2
         // API wants number of characters, not number of bytes...
         int len = n / 2;
-        const char16_t *framedata = (const char16_t *) (mFrameData + 1);
+        /* modified by Gary. start {{----------------------------------- */
+        char16_t *framedata_tmp = new char16_t[len];
+        memcpy(framedata_tmp, mFrameData + 1, len * sizeof(char16_t));
+        char16_t *framedata = framedata_tmp;
+        /* modified by Gary. end   -----------------------------------}} */
         char16_t *framedatacopy = NULL;
         if (*framedata == 0xfffe) {
             // endianness marker doesn't match host endianness, convert
@@ -532,6 +545,11 @@ void ID3::Iterator::getString(String8 *id) const {
         if (framedatacopy != NULL) {
             delete[] framedatacopy;
         }
+        /* modified by Gary. start {{----------------------------------- */
+    	if (framedata_tmp != NULL) {
+            delete[] framedata_tmp;
+    	}
+        /* modified by Gary. end   -----------------------------------}} */
     }
 }
 

@@ -25,6 +25,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     implements MediaPlayerControl, MediaPlayer.OnPreparedListener,
     View.OnTouchListener {
 
+//	private static final String TAG = "HTML5VideoFullScreen";
     // Add this sub-class to handle the resizing when rotating screen.
     private class VideoSurfaceView extends SurfaceView {
 
@@ -167,7 +168,6 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     @Override
     public void onPrepared(MediaPlayer mp) {
         super.onPrepared(mp);
-
         mVideoSurfaceView.setOnTouchListener(this);
         // Get the capabilities of the player for this stream
         Metadata data = mp.getMetadata(MediaPlayer.METADATA_ALL,

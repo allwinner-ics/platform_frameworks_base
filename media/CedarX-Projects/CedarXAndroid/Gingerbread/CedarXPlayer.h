@@ -200,10 +200,12 @@ private:
     uint32_t mFlags;
     uint32_t mExtractorFlags;
     bool isCedarXInitialized;
+    int32_t mDisableXXXX;
 
-    int32_t input_3d_type;
-    int32_t output_3d_type;
-    int32_t anaglagh_type;
+    uint32_t	_3d_mode;
+    uint32_t	_3d_mode_new;		//* new source 3d mode set by user.
+    uint32_t	display_3d_mode;
+    uint32_t    anaglagh_type;
 
     int32_t mVideoWidth, mVideoHeight;
     int32_t mCanSeek;

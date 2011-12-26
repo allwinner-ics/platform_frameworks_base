@@ -162,29 +162,44 @@ public class Display {
      */
     @Deprecated
     public int getWidth() {
-        synchronized (mTmpPoint) {
-            long now = SystemClock.uptimeMillis();
-            if (now > (mLastGetTime+20)) {
-                getSizeInternal(mTmpPoint, true);
-                mLastGetTime = now;
-            }
-            return mTmpPoint.x;
-        }
+    	if(mAdapterEnable == false)
+    	{
+	        synchronized (mTmpPoint) {
+	            long now = SystemClock.uptimeMillis();
+	            if (now > (mLastGetTime+20)) {
+	                getSizeInternal(mTmpPoint, true);
+	                mLastGetTime = now;
+	            }
+	            return mTmpPoint.x;
+	        }
+    	}
+		else
+		{
+			return	mAdapterWidth;
+		}
     }
 
     /**
      * @deprecated Use {@link #getSize(Point)} instead.
      */
     @Deprecated
-    public int getHeight() {
-        synchronized (mTmpPoint) {
-            long now = SystemClock.uptimeMillis();
-            if (now > (mLastGetTime+20)) {
-                getSizeInternal(mTmpPoint, true);
-                mLastGetTime = now;
-            }
-            return mTmpPoint.y;
-        }
+    public int getHeight() {		
+		if(mAdapterEnable == false)
+		{		
+	        synchronized (mTmpPoint) {
+	            long now = SystemClock.uptimeMillis();
+	            if (now > (mLastGetTime+20)) {
+	                getSizeInternal(mTmpPoint, true);
+	                mLastGetTime = now;
+	            }
+	            return mTmpPoint.y;
+	        }
+		}
+		else
+		{
+			
+			return	mAdapterHeight;
+		}
     }
 
     /**
@@ -224,10 +239,17 @@ public class Display {
      * @hide
      */
     public int getRawWidth() {
-        int w = getRawWidthNative();
-        if (DEBUG_DISPLAY_SIZE) Slog.v(
-                TAG, "Returning raw display width: " + w);
-        return w;
+       	if(mAdapterEnable == false)
+		{	
+	        int w = getRawWidthNative();
+	        if (DEBUG_DISPLAY_SIZE) Slog.v(
+	                TAG, "Returning raw display width: " + w);
+	        return w;
+		}
+		else
+		{
+			return mAdapterHeight;
+		}
     }
     private native int getRawWidthNative();
 
@@ -239,10 +261,17 @@ public class Display {
      * @hide
      */
     public int getRawHeight() {
-        int h = getRawHeightNative();
-        if (DEBUG_DISPLAY_SIZE) Slog.v(
-                TAG, "Returning raw display height: " + h);
-        return h;
+    	if(mAdapterEnable == false)
+		{	
+	        int h = getRawHeightNative();
+	        if (DEBUG_DISPLAY_SIZE) Slog.v(
+	                TAG, "Returning raw display height: " + h);
+	        return h;
+    	}
+		else
+		{
+			return mAdapterHeight;
+		}
     }
     private native int getRawHeightNative();
     
@@ -373,6 +402,22 @@ public class Display {
             return sWindowManager;
         }
     }
+	public static void setAdapterSize(int height,int width)
+	{
+			mAdapterWidth	= width;
+			mAdapterHeight	= height;
+	}
+	
+	public static void setAdapterEnable()
+	{
+			mAdapterEnable = true;
+	}
+	
+	public static void setAdapterDisable()
+	{
+			mAdapterEnable = false;
+	}
+	
 
     /*
      * We use a class initializer to allow the native code to cache some
@@ -398,7 +443,9 @@ public class Display {
     private static final Object sStaticInit = new Object();
     private static boolean sInitialized = false;
     private static IWindowManager sWindowManager;
-
+	private static int 				mAdapterWidth;
+	private static int 				mAdapterHeight;
+	private static boolean 	 mAdapterEnable;
     /**
      * Returns a display object which uses the metric's width/height instead.
      * @hide

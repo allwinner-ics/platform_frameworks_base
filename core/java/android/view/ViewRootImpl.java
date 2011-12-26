@@ -93,7 +93,7 @@ import java.util.List;
  *
  * {@hide}
  */
-@SuppressWarnings({"EmptyCatchBlock", "PointlessBooleanExpression"})
+//@SuppressWarnings({"EmptyCatchBlock", "PointlessBooleanExpression"})
 public final class ViewRootImpl extends Handler implements ViewParent,
         View.AttachInfo.Callbacks, HardwareRenderer.HardwareDrawCallbacks {
     private static final String TAG = "ViewRootImpl";
@@ -2438,7 +2438,8 @@ public final class ViewRootImpl extends Handler implements ViewParent,
         case DISPATCH_KEY:
             deliverKeyEvent((KeyEvent)msg.obj, msg.arg1 != 0);
             break;
-        case DISPATCH_POINTER:
+        case DISPATCH_POINTER:			
+			SurfaceView.GLAdapterMotionEvent((MotionEvent) msg.obj);
             deliverPointerEvent((MotionEvent) msg.obj, msg.arg1 != 0);
             break;
         case DISPATCH_TRACKBALL:

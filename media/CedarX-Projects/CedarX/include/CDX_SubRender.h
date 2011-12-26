@@ -4,6 +4,7 @@
 #include "sub_total_inf.h"
 #include "CDX_Charset.h"
 
+#if 0
 enum
 {
 	SUB_RENDER_ALIGN_NONE  		= 0,
@@ -16,6 +17,7 @@ enum
 	SUB_RENDER_VALIGN_BOTTOM	= (3 << 4),
 	SUN_RENDER_VALIGN_MASK		= 0x000000f0
 };
+#endif
 
  enum
  {
@@ -30,7 +32,7 @@ int 	SubRenderCreate();
 int 	SubRenderDestory();
 int 	SubRenderDraw(sub_item_inf *sub_info);
 int 	SubRenderShow();
-int 	SubRenderHide();
+int 	SubRenderHide(unsigned    int  systemTime, int* hasSubShowFlag);
 int 	SubRenderSetTextColor(int color);
 int 	SubRenderGetTextColor();
 int 	SubRenderSetBackColor(int color);

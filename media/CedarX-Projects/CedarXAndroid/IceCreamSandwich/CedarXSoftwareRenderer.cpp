@@ -119,8 +119,31 @@ void CedarXSoftwareRenderer::render(
                 buf->handle, GRALLOC_USAGE_SW_WRITE_OFTEN, bounds, &dst));
 
     //LOGV("mColorFormat: %d", mColorFormat);
+    size_t dst_y_size = buf->stride * buf->height;
+    size_t dst_c_stride = ALIGN(buf->stride / 2, 16);
+    size_t dst_c_size = dst_c_stride * buf->height / 2;
 
-    memcpy(dst, data, buf->stride * buf->height * 3 / 2);
+    //LOGV("buf->stride:%d buf->height:%d", buf->stride, buf->height);
+    memcpy(dst, data, dst_y_size * 3 / 2); LOGV("render size error!");
+//    memcpy(dst, data, dst_y_size + dst_c_size*2);
+
+#if 0
+		{
+			static int dec_count = 0;
+			static FILE *fp;
+
+			if(dec_count == 60)
+			{
+				fp = fopen("/mnt/sdcard/t.yuv","wb");
+				LOGD("write start fp:%d addr:%p",fp,data);
+				fwrite(dst,1,buf->stride * buf->height * 3 / 2,fp);
+				fclose(fp);
+				LOGD("write finish");
+			}
+
+			dec_count++;
+		}
+#endif
 
     CHECK_EQ(0, mapper.unlock(buf->handle));
 

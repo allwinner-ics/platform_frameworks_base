@@ -14,6 +14,10 @@ namespace android {
 class Camera;
 class AudioRecord;
 
+#define AUDIO_LATENCY_TIME	700000		// US
+#define VIDEO_LATENCY_TIME	700000		// US
+#define MAX_FILE_SIZE		(2*1024*1024*1024 - 64*1024)
+
 class CedarXRecorder{
 public:
     CedarXRecorder();
@@ -58,6 +62,9 @@ public:
 	void dataCallbackTimestamp(int64_t timestampUs, int32_t msgType, const sp<IMemory> &data);
 
 	status_t CedarXReadAudioBuffer(void *pbuf, int *size, int64_t *timeStamp);
+
+	status_t setParamTimeLapseEnable(int32_t timeLapseEnable);
+    status_t setParamTimeBetweenTimeLapseFrameCapture(int64_t timeUs);
 
 	class CameraProxyListener: public BnCameraRecordingProxyListener {
 	public:
@@ -122,6 +129,16 @@ private:
     int32_t mAudioChannels;
 	int32_t mSampleRate;
 
+	bool mCaptureTimeLapse;
+	// Time between capture of two frames during time lapse recording
+    // Negative value indicates that timelapse is disabled.
+	int64_t mTimeBetweenTimeLapseFrameCaptureUs;
+	// Time between two frames in final video (1/frameRate)
+    int64_t mTimeBetweenTimeLapseVideoFramesUs;
+	// Real timestamp of the last encoded time lapse frame
+    int64_t mLastTimeLapseFrameRealTimestampUs;
+	int64_t mLastTimeLapseFrameTimestampUs;
+
     int mOutputFd;
 	int32_t mCameraFlags;
 
@@ -139,9 +156,6 @@ private:
 	uint 				mRecModeFlag;
 	AudioRecord 		* mRecord;
 
-
-#define AUDIO_LATENCY_TIME	700000		// US
-#define VIDEO_LATENCY_TIME	700000		// US
 	int64_t				mLatencyStartUs;
 
 	sp<DeathNotifier> mDeathNotifier;

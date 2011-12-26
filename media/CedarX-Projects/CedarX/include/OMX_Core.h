@@ -393,9 +393,11 @@ typedef struct OMX_BUFFERHEADERTYPE
                                      this buffer */
   OMX_U32 nInputPortIndex;      /**< The index of the input port (if any) using
                                      this buffer */
-
+                                        
 
   unsigned int video_stream_type;
+  OMX_U32   subDispEndTime;
+                                     
 } OMX_BUFFERHEADERTYPE;
 
 typedef struct OMX_BUFFERSTATE{
@@ -430,6 +432,7 @@ typedef enum OMX_EVENTTYPE
     OMX_EventBufferStart,
     OMX_EventBufferEnd,
     OMX_EventAVSyncException,
+    OMX_EventWholeBufferUpdate,
 
     OMX_EventMax = 0x7FFFFFFF
 } OMX_EVENTTYPE;

@@ -128,6 +128,29 @@ bool MediaScanner::shouldSkipDirectory(char *path) {
     return false;
 }
 
+/* add by Gary. start {{----------------------------------- */
+/* 2011-9-22 15:15:48 */
+/* ignore some specific app's cache folders */
+static const char *const customFolderList[] = {
+    "qqmusic",
+    "KUwoMusic",
+    "ttpod",
+    "com.tencent.qqlive.hd",
+    "qianxun",
+    "m.joy.cn",
+    "sohu",
+    "tudoucache",
+    "Tencent",
+    "sfreader",
+    "cache",
+    "Cache",
+    "CACHE",
+    "gameloft"
+};
+
+#define TABLE_LEN    (sizeof(customFolderList)/sizeof(customFolderList[0]))
+/* add by Gary. end   -----------------------------------}} */
+
 MediaScanResult MediaScanner::doProcessDirectory(
         char *path, int pathRemaining, MediaScannerClient &client, bool noMedia) {
     // place to copy file or directory name
@@ -186,7 +209,8 @@ MediaScanResult MediaScanner::doProcessDirectoryEntry(
         return MEDIA_SCAN_RESULT_SKIPPED;
     }
     strcpy(fileSpot, name);
-
+	
+	LOGD("to scan %s", path);
     int type = entry->d_type;
     if (type == DT_UNKNOWN) {
         // If the type is unknown, stat() the file instead.
@@ -217,6 +241,20 @@ MediaScanResult MediaScanner::doProcessDirectoryEntry(
                 return MEDIA_SCAN_RESULT_ERROR;
             }
         }
+        
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-9-22 15:15:48 */
+        /* ignore some specific app's cache folders */
+        int i;
+        for(i = 0; i < TABLE_LEN; i++){
+            if(strcmp(name, customFolderList[i]) == 0 ){
+                LOGD("skip folder \"%s\".",customFolderList[i]);
+                break;
+            }
+        }
+        if(i < TABLE_LEN)
+            return MEDIA_SCAN_RESULT_OK;
+        /* add by Gary. end   -----------------------------------}} */
 
         // and now process its contents
         strcat(fileSpot, "/");

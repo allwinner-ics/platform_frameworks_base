@@ -137,9 +137,11 @@ typedef struct OMX_VIDEO_PORTDEFINITIONTYPE {
     OMX_S8  *pCodecExtraData;
     OMX_S32 nCodecExtraDataLen;
     OMX_U32 nMicSecPerFrame;
+    OMX_S32 nThirdParaOverride;
+    OMX_S32 nDemuxType;
+    OMX_S32 nPtsCorrect;
 
-    OMX_U32 channels;
-    OMX_U32 source_3d_mode;
+    cedarv_3d_mode_e _3d_mode;
 } OMX_VIDEO_PORTDEFINITIONTYPE;
 
 

@@ -10,11 +10,13 @@ import android.webkit.HTML5VideoViewProxy;
 import android.view.Surface;
 import android.opengl.GLES20;
 import android.os.PowerManager;
+import android.util.Log;
 
 /**
  * @hide This is only used by the browser
  */
 public class HTML5VideoInline extends HTML5VideoView{
+//	private static final String TAG = "HTML5VideoInline";
 
     // Due to the fact that the decoder consume a lot of memory, we make the
     // surface texture as singleton. But the GL texture (m_textureNames)

@@ -25,6 +25,7 @@ ifneq ($(CEDARX_DEBUG_LEVEL),L2)
 	make -C ${CEDARX_TOP}/libsub/sub_inline
 	make -C ${CEDARX_TOP}/libsub/sub_external
 	make -C ${CEDARX_TOP}/libutil/playlist/m3u
+	make -C ${CEDARX_TOP}/base
 	make -C ${CEDARX_TOP}/libdemux
 	make -C ${CEDARX_TOP}/libstream
 	make -C ${CEDARX_TOP}/librender
@@ -60,6 +61,7 @@ ifneq ($(CEDARX_DEBUG_LEVEL),L2)
 	make -C ${CEDARX_TOP}/libsub/sub_inline clean
 	make -C ${CEDARX_TOP}/libsub/sub_external clean
 	make -C ${CEDARX_TOP}/libutil/playlist/m3u clean
+	make -C ${CEDARX_TOP}/base clean
 	make -C ${CEDARX_TOP}/libdemux clean
 	make -C ${CEDARX_TOP}/libstream clean
 	make -C ${CEDARX_TOP}/librender clean

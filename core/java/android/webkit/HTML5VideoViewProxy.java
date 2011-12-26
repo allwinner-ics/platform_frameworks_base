@@ -49,7 +49,7 @@ class HTML5VideoViewProxy extends Handler
                           MediaPlayer.OnInfoListener,
                           SurfaceTexture.OnFrameAvailableListener {
     // Logging tag.
-    private static final String LOGTAG = "HTML5VideoViewProxy";
+//    private static final String TAG = "HTML5VideoViewProxy";
 
     // Message Ids for WebCore thread -> UI thread communication.
     private static final int PLAY                = 100;
@@ -85,6 +85,7 @@ class HTML5VideoViewProxy extends Handler
     private int mSeekPosition;
     // A helper class to control the playback. This executes on the UI thread!
     private static final class VideoPlayer {
+//    	private static final String TAG = "VideoPlayer";
         // The proxy that is currently playing (if any).
         private static HTML5VideoViewProxy mCurrentProxy;
         // The VideoView instance. This is a singleton for now, at least until
@@ -192,10 +193,11 @@ class HTML5VideoViewProxy extends Handler
                     mHTML5VideoView.release();
                 }
                 mCurrentProxy = proxy;
-                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
-
-                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
-                mHTML5VideoView.prepareDataAndDisplayMode(proxy);
+                enterFullScreenVideo(videoLayerId, url, mCurrentProxy, mCurrentProxy.getWebView());
+//                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
+//
+//                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+//                mHTML5VideoView.prepareDataAndDisplayMode(proxy);
             } else if (mCurrentProxy == proxy) {
                 // Here, we handle the case when we keep playing with one video
                 if (!mHTML5VideoView.isPlaying()) {

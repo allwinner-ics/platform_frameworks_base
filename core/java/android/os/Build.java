@@ -30,7 +30,9 @@ public class Build {
 
     /** A build ID string meant for displaying to the user */
     public static final String DISPLAY = getString("ro.build.display.id");
-
+    /**a firmware realse */
+	
+	public static final String FIRMWARE = getString("ro.product.firmware");
     /** The name of the overall product. */
     public static final String PRODUCT = getString("ro.product.name");
 

@@ -163,6 +163,8 @@ VideoFrame *CedarXMetadataRetriever::getFrameAtTime(
 
     VideoThumbnailInfo vd_thumb_info;
 
+    memset(&vd_thumb_info, 0, sizeof(VideoThumbnailInfo));
+    vd_thumb_info.use_hardware_capture = 1;
     vd_thumb_info.format = VIDEO_THUMB_RGB565; //0: JPEG STREAM  1: YUV RAW STREAM
     vd_thumb_info.capture_time = 20*1000;
     vd_thumb_info.require_width = 96;
@@ -193,6 +195,71 @@ VideoFrame *CedarXMetadataRetriever::getFrameAtTime(
 
     return frame;
 }
+
+//VideoFrame *CedarXMetadataRetriever::getFrameAtTime(
+//        int64_t timeUs, int option) {
+//    LOGV("getFrameAtTime");
+//
+//    VideoThumbnailInfo vd_thumb_info;
+//
+//    vd_thumb_info.format = VIDEO_THUMB_YUVPLANNER; //0: JPEG STREAM  1: YUV RAW STREAM
+//    vd_thumb_info.capture_time = 20*1000;
+//    vd_thumb_info.require_width = 512;
+//    vd_thumb_info.require_height = 512;
+//    vd_thumb_info.capture_result = 0;
+//
+//    LOGV("CDX_CMD_CAPTURE_THUMBNAIL start");
+//    mRetriever->control(mRetriever, CDX_CMD_CAPTURE_THUMBNAIL, (unsigned int)(&vd_thumb_info), 0);
+//    LOGV("CDX_CMD_CAPTURE_THUMBNAIL end ret: %d", vd_thumb_info.capture_result);
+//    if(!vd_thumb_info.capture_result) {
+//    	mRetriever->control(mRetriever, CDX_CMD_CLOSE_CAPTURE, 0, 0);
+//    	return NULL;
+//    }
+//
+//    VideoFrame *frame = new VideoFrame;
+//    int width = vd_thumb_info.require_width;
+//    int height = vd_thumb_info.require_height;
+//
+//    frame->mWidth = width;
+//    frame->mHeight = height;
+//    frame->mDisplayWidth = width;
+//    frame->mDisplayHeight = height;
+//    frame->mSize = width * height * 2;
+//    frame->mData = new uint8_t[frame->mSize];
+//    frame->mRotationAngle = 0;
+//
+//    ColorConverter converter(
+//            (OMX_COLOR_FORMATTYPE)OMX_COLOR_FormatYUV420Planar, OMX_COLOR_Format16bitRGB565);
+//    CHECK(converter.isValid());
+//
+//    //    status_t ColorConverter::convert(
+//    //            const void *srcBits,
+//    //            size_t srcWidth, size_t srcHeight,
+//    //            size_t srcCropLeft, size_t srcCropTop,
+//    //            size_t srcCropRight, size_t srcCropBottom,
+//    //            void *dstBits,
+//    //            size_t dstWidth, size_t dstHeight,
+//    //            size_t dstCropLeft, size_t dstCropTop,
+//    //            size_t dstCropRight, size_t dstCropBottom)
+//
+//    converter.convert(
+//    		vd_thumb_info.thumb_stream_address,
+//            ((width + 15)>>4)<<4, ((height + 15)>>4)<<4,
+//            0, 0, frame->mWidth - 1, frame->mHeight - 1,
+//            frame->mData,
+//            frame->mWidth,
+//            frame->mHeight,
+//            0, 0, frame->mWidth - 1, frame->mHeight - 1);
+//
+//    LOGV("Thumbnail Info Size: %dX%d src addr:%p dst addr:%p size:%d",frame->mWidth,frame->mHeight,
+//    		vd_thumb_info.thumb_stream_address,frame->mData,frame->mSize);
+//
+//    mRetriever->control(mRetriever, CDX_CMD_CLOSE_CAPTURE, 0, 0);
+//
+//    return frame;
+//}
+
+
 #endif
 
 MediaAlbumArt *CedarXMetadataRetriever::extractAlbumArt() {

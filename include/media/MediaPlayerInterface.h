@@ -180,7 +180,7 @@ public:
     virtual int getSubCount()
     {
         return 0;
-    };
+    }
     
     virtual int getSubList(MediaPlayer_SubInfo *infoList, int count)
     {
@@ -190,157 +190,157 @@ public:
     virtual int getCurSub()
     {
         return -1;
-    };
+    }
     
     virtual status_t switchSub(int index)
     {
         return OK;
-    };
+    }
     
     virtual status_t setSubGate(bool showSub)
     {
         return OK;
-    };
+    }
     
     virtual bool getSubGate()
     {
         return true;
-    };
+    }
     
     virtual status_t setSubColor(int color)
     {
         return OK;
-    };
+    }
     
     virtual int getSubColor()
     {
         return 0xFFFFFFFF;
-    };
+    }
     
     virtual status_t setSubFrameColor(int color)
     {
         return OK;
-    };
+    }
     
     virtual int getSubFrameColor()
     {
         return 0xFFFFFFFF;
-    };
+    }
     
     virtual status_t setSubFontSize(int size)
     {
         return OK;
-    };
+    }
     
     virtual int getSubFontSize()
     {
         return -1;
-    };
+    }
     
     virtual status_t setSubCharset(const char *charset)
     {
         return OK;
-    };
+    }
     
     virtual status_t getSubCharset(char *charset)
     {
         return OK;
-    };
+    }
     
     virtual status_t setSubPosition(int percent)
     {
         return OK;
-    };
+    }
     
     virtual int getSubPosition()
     {
         return -1;
-    };
+    }
     
     virtual status_t setSubDelay(int time)
     {
         return OK;
-    };
+    }
     
     virtual int getSubDelay()
     {
         return -1;
-    };
+    }
     
     virtual int getTrackCount()
     {
         return 0;
-    };
+    }
     
     virtual int getTrackList(MediaPlayer_TrackInfo *infoList, int count)
     {
         return 0;
-    };
+    }
     
     virtual int getCurTrack()
     {
         return -1;
-    };
+    }
     
     virtual status_t switchTrack(int index)
     {
         return OK;
-    };
+    }
 
     virtual status_t setInputDimensionType(int type)
     {
         return -1;
-    };
+    }
 
     virtual int getInputDimensionType()
     {
         return -1;
-    };
+    }
 
     virtual status_t setOutputDimensionType(int type)
     {
         return -1;
-    };
+    }
 
     virtual int getOutputDimensionType()
     {
         return -1;
-    };
+    }
 
     virtual status_t setAnaglaghType(int type)
     {
         return -1;
-    };
+    }
 
     virtual int getAnaglaghType()
     {
         return -1;
-    };
+    }
 
     virtual status_t getVideoEncode(char *encode)
     {
         return -1;
-    };
+    }
 
     virtual int getVideoFrameRate()
     {
         return -1;
-    };
+    }
 
     virtual status_t getAudioEncode(char *encode)
     {
         return -1;
-    };
+    }
 
     virtual int getAudioBitRate()
     {
         return -1;
-    };
+    }
 
     virtual int getAudioSampleRate()
     {
         return -1;
-    };
+    }
     /* add by Gary. end   -----------------------------------}} */
 
     /* add by Gary. start {{----------------------------------- */
@@ -364,23 +364,28 @@ public:
     virtual status_t setVppGate(bool enableVpp)
     {
         return OK;
-    };
+    }
     virtual status_t setLumaSharp(int value)
     {
         return OK;
-    };
+    }
     virtual status_t setChromaSharp(int value)
     {
         return OK;
-    };
+    }
     virtual status_t setWhiteExtend(int value)
     {
         return OK;
-    };
+    }
     virtual status_t setBlackExtend(int value)
     {
         return OK;
-    };
+    }
+
+    virtual status_t extensionControl(int command, int para0, int para1)
+    {
+        return OK;
+    }
     /* add by Gary. end   -----------------------------------}} */
 
     // Invoke a generic method on the player by using opaque parcels

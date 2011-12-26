@@ -2139,11 +2139,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
                     pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
                 } else {
-                    pf.left = df.left = cf.left = mRestrictedScreenLeft;
-                    pf.top = df.top = cf.top = mRestrictedScreenTop;
-                    pf.right = df.right = cf.right = mRestrictedScreenLeft+mRestrictedScreenWidth;
-                    pf.bottom = df.bottom = cf.bottom
-                            = mRestrictedScreenTop+mRestrictedScreenHeight;
+                	pf.left = df.left = mUnrestrictedScreenLeft;
+                    pf.top = df.top = mUnrestrictedScreenTop;
+                    pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
+                    pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
+                    //pf.left = df.left = cf.left = mRestrictedScreenLeft;
+                    //pf.top = df.top = cf.top = mRestrictedScreenTop;
+                    //pf.right = df.right = cf.right = mRestrictedScreenLeft+mRestrictedScreenWidth;
+                    //pf.bottom = df.bottom = cf.bottom
+                   //         = mRestrictedScreenTop+mRestrictedScreenHeight;
                 }
                 if (adjust != SOFT_INPUT_ADJUST_NOTHING) {
                     vf.left = mCurLeft;
@@ -2330,9 +2334,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                 }
                             }});
                         }
-                    } else if (DEBUG_LAYOUT) {
-                        Log.v(TAG, "Preventing status bar from hiding by policy");
-                    }
+                    } 
+					else
+					{
+						if (DEBUG_LAYOUT) 
+						{
+                        	Log.v(TAG, "Preventing status bar from hiding by policy");
+                    	}
+
+						if (mStatusBar.hideLw(true)) 
+						{
+                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
+                        }
+					}
+						
                 } else {
                     if (DEBUG_LAYOUT) Log.v(TAG, "Showing status bar: top is not fullscreen");
                     if (mStatusBar.showLw(true)) changes |= FINISH_LAYOUT_REDO_LAYOUT;
@@ -3181,15 +3196,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
                     // Always return portrait if orientation set to portrait.
-                    return mPortraitRotation;
-
+                    //return mPortraitRotation;					
+					return mUpsideDownRotation;
                 case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
                     // Always return landscape if orientation set to landscape.
                     return mLandscapeRotation;
 
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT:
                     // Always return portrait if orientation set to portrait.
-                    return mUpsideDownRotation;
+                    //return mUpsideDownRotation;                    
+					return mPortraitRotation;
 
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
                     // Always return seascape if orientation set to reverse landscape.

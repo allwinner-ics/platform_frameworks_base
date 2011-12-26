@@ -518,6 +518,14 @@ public class AudioService extends IAudioService.Stub {
 
     /** @see AudioManager#adjustStreamVolume(int, int, int) */
     public void adjustStreamVolume(int streamType, int direction, int flags) {
+
+		// add for pad
+		if (streamType == AudioSystem.STREAM_RING)
+		{
+			// Log.v(TAG, "adjustStreamVolume STREAM_RING set STREAM_MUSIC");
+			streamType = AudioSystem.STREAM_MUSIC;
+		}
+
         ensureValidDirection(direction);
         ensureValidStreamType(streamType);
 
@@ -566,6 +574,52 @@ public class AudioService extends IAudioService.Stub {
 
     /** @see AudioManager#setStreamVolume(int, int, int) */
     public void setStreamVolume(int streamType, int index, int flags) {
+
+		// star add 2011-8-13 16:46:39
+		if (false && streamType == AudioSystem.STREAM_RING)
+		{
+			final int lastRingIndex  = mStreamStates[AudioSystem.STREAM_RING].mIndex / 10;
+			final int lastMusicIndex = mStreamStates[AudioSystem.STREAM_MUSIC].mIndex / 10;
+
+			mStreamStates[AudioSystem.STREAM_RING].mIndex = index * 10;
+
+			streamType = AudioSystem.STREAM_MUSIC;
+
+			if (lastRingIndex == index)
+			{
+				if (index == 0)
+				{
+					if (lastMusicIndex != 0)
+					{
+						index = lastMusicIndex - 1;
+					}
+				}
+				if (index == MAX_STREAM_VOLUME[AudioSystem.STREAM_RING])
+				{
+					if (lastMusicIndex == MAX_STREAM_VOLUME[AudioSystem.STREAM_MUSIC])
+					{
+						index = lastMusicIndex;
+					}
+					else
+					{
+						index = lastMusicIndex + 1;
+					}
+				}
+			}
+			else
+			{
+				if (index < lastRingIndex)	// down
+				{
+					index = lastMusicIndex - 1;
+				}
+				else						// up
+				{
+					index = lastMusicIndex + 1;
+				}
+			}
+			// Log.v(TAG, "setStreamVolume: index: " + index);
+		}
+
         ensureValidStreamType(streamType);
         VolumeStreamState streamState = mStreamStates[STREAM_VOLUME_ALIAS[streamType]];
 

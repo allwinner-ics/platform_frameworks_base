@@ -197,7 +197,7 @@ public:
 private:
     enum {
         // Camcorder profiles (high/low) and timelapse profiles (high/low)
-        kNumRequiredProfiles = 4,
+        kNumRequiredProfiles = 0,
     };
 
     MediaProfiles& operator=(const MediaProfiles&);  // Don't call me

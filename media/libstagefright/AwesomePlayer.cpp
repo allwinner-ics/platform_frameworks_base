@@ -16,7 +16,7 @@
 
 #undef DEBUG_HDCP
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "AwesomePlayer"
 #include <utils/Log.h>
 

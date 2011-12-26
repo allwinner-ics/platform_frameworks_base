@@ -64,6 +64,7 @@ typedef struct JPEG_ENC_t
 	int addrC;
 	int colorFormat;
 	int quality;
+	int rotate;
 }JPEG_ENC_t;
 
 #endif // __LIB__CAMERA__TYPE__H__

@@ -69,6 +69,7 @@ typedef enum {
 	CDX_CMD_SET_REC_MODE	 ,
 	CDX_CMD_SET_PREVIEW_INFO ,
 	CDX_CMD_GET_FILE_SIZE	 ,
+	CDX_CMD_SET_TIME_LAPSE   ,
 
     CDX_CMD_GETSUBCOUNT,
     CDX_CMD_GETSUBLIST,
@@ -93,9 +94,9 @@ typedef enum {
     CDX_CMD_GETCURTRACK,
     CDX_CMD_SWITCHTRACK,
 
-	CDX_CMD_SET_DECODER_SOURCE_3D_FORMAT,
+	CDX_CMD_SET_PICTURE_3D_MODE,
+	CDX_CMD_GET_PICTURE_3D_MODE,
 	CDX_CMD_SET_DISPLAY_MODE,
-	CDX_CMD_SET_3D_DISPLAY_FORMAT,
 	CDX_CMD_SET_ANAGLAGH_TYPE,
 	CDX_CMD_GET_ALL_DISPLAY_MODE,
 	CDX_CMD_SET_CALLBACK,
@@ -105,10 +106,15 @@ typedef enum {
 	CDX_CMD_SET_VIDEO_ROTATION,
 	CDX_CMD_SET_VIDEO_MAXWIDTH,
 	CDX_CMD_SET_VIDEO_MAXHEIGHT,
-	CDX_CMD_SET_VIDEO_OUT_YUV_MODE,
+	CDX_CMD_SET_VIDEO_OUTPUT_SETTING,
+
+	CDX_CMD_DISABLE_XXXX,
+	CDX_CMD_SET_AUDIOCHANNEL_MUTE,
 
 	CDX_CMD_REGISTER_DEMUXER = 0x800,
 	CDX_CMD_SELECT_DEMUXER   ,
+
+	CDX_CMD_NULL,
 }CEDARX_COMMAND_TYPE;
 
 typedef enum CEDARX_EVENT_TYPE{
@@ -120,6 +126,7 @@ typedef enum CEDARX_EVENT_TYPE{
     CDX_MEDIA_INFO_BUFFERING_START = 16,
     CDX_MEDIA_INFO_BUFFERING_END   = 32,
     CDX_MEDIA_BUFFERING_UPDATE     = 64,
+    CDX_MEDIA_WHOLE_BUFFERING_UPDATE = 128,
 
 
 	CDX_EVENT_VIDEORENDERINIT    = 65536,
@@ -130,7 +137,8 @@ typedef enum CEDARX_EVENT_TYPE{
 	CDX_EVENT_AUDIORENDERDATA     ,
 	CDX_EVENT_AUDIORENDERGETSPACE ,
 	CDX_EVENT_AUDIORENDERGETDELAY ,
-	CDX_EVENT_VIDEORENDEREXIT ,
+	CDX_EVENT_VIDEORENDEREXIT     ,
+	CDX_EVENT_AUDIORENDERFLUSHCACHE,
 
 	CDX_MEDIA_INFO_SRC_3D_MODE = 65536+1000,
 	CDX_EVENT_NATIVE_SUSPEND,
@@ -158,6 +166,14 @@ typedef enum CEDARX_STREAMTYPE{
 	CEDARX_STREAM_EXTERNAL_BUFFER,
 }CEDARX_STREAMTYPE;
 
+typedef enum CEDARX_DISPLAY_3D_MODE
+{
+	CEDARX_DISPLAY_3D_MODE_2D,
+	CEDARX_DISPLAY_3D_MODE_3D,
+	CEDARX_DISPLAY_3D_MODE_HALF_PICTURE,
+	CEDARX_DISPLAY_3D_MODE_ANAGLAGH,
+}cedarx_display_3d_mode_e;
+
 typedef enum CEDARX_THIRDPART_DEMUXER_TYPE{
 	CEDARX_THIRDPART_DEMUXER_0 = 0x70000001,
 	CEDARX_THIRDPART_DEMUXER_1,
@@ -184,6 +200,7 @@ typedef enum {
 
 typedef struct VideoThumbnailInfo{
 	int format; //0: JPEG STREAM  1: YUV RAW STREAM 2:RGB565
+	int use_hardware_capture;
 	int capture_time; //
 	int require_width;
 	int require_height;
@@ -193,8 +210,8 @@ typedef struct VideoThumbnailInfo{
 }VideoThumbnailInfo;
 
 typedef enum {
-	CEDARX_OUTPUT_MODE_VENDOR_MB = 0,
-	CEDARX_OUTPUT_MODE_PLANNER      ,
+	CEDARX_OUTPUT_SETTING_MODE_PLANNER      = 1<<1,
+	CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT  = 1<<2,
 }CEDARX_VIDEOOUT_MODE;
 
 typedef enum {
@@ -207,18 +224,19 @@ typedef enum CEDARX_MEDIA_TYPE{
 	CEDARX_MEDIATYPE_NORMAL = 0 ,
 	CEDARX_MEDIATYPE_RAWMUSIC   ,
 	CEDARX_MEDIATYPE_3D_VIDEO   ,
+	CEDARX_MEDIATYPE_DRM_VIDEO ,
 }CEDARX_MEDIA_TYPE;
 
 typedef struct CedarXMediaInformations
 {
-    unsigned char mVideoStreamCount;
-    unsigned char mAudioStreamCount;
-    unsigned char mSubtitleStreamCount;
-    unsigned int  mDuration;
-    unsigned int  mFlags; //CanSeek etc.
-    unsigned int  media_type;
-    unsigned int  media_subtype_3d;
-    unsigned int  source_3d_mode;
+    unsigned char 	mVideoStreamCount;
+    unsigned char 	mAudioStreamCount;
+    unsigned char 	mSubtitleStreamCount;
+    unsigned int  	mDuration;
+    unsigned int  	mFlags; //CanSeek etc.
+    unsigned int  	media_type;
+    unsigned int	media_subtype_3d;
+    unsigned int  	_3d_mode;
 
     struct CedarXAudioInfo {
     	char    cMIMEType[16];

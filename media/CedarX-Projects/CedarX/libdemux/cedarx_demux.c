@@ -27,8 +27,7 @@
 #endif 
 #include "net_demux.h"
 
-#define __CDX_ENABLE_STAGEFRIGHT_DEMUXER
-#ifdef __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+#ifndef __CDX_DISABLE_STAGEFRIGHT_DEMUXER
 #include "stagefright_demux.h"
 CedarXDemuxerAPI cdx_dmxs_stagefright = {
   .name = "sft_dmx",
@@ -60,7 +59,7 @@ CedarXDemuxerAPI* cedarx_demuxers[] =
 #ifdef __CDX_ENABLE_SUBTITLE
 	&cdx_dmxs_idxsub,
 #endif
-#ifdef __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+#ifndef __CDX_DISABLE_STAGEFRIGHT_DEMUXER
 	&cdx_dmxs_stagefright,
 #endif
 	0
@@ -76,7 +75,7 @@ enum CEDARXDEMUXERTYPES{
 #endif
 #endif
 	ID_CDX_DMXS_IDXSUB,
-#ifdef __CDX_ENABLE_STAGEFRIGHT_DEMUXER
+#ifndef __CDX_DISABLE_STAGEFRIGHT_DEMUXER
 	ID_CDX_DMXS_STAGEFRIGHT,
 #endif
 };
@@ -119,6 +118,7 @@ CedarXDemuxerAPI *cedarx_demux_create(int demux_type)
 	}
 	else if(demux_type & CDX_MEDIA_FILE_FMT_NETWORK) {
 		cedarx_demuxer_handle = cedarx_demuxers[ID_CDX_DMXS_NETWORK];
+		//cedarx_demuxer_handle = cedarx_demuxers[ID_CDX_DMXS_STAGEFRIGHT];
 	}
 #ifdef	__OS_ANDROID
 	else if(demux_type & CDX_MEDIA_FILE_FMT_NETWORK_RTSP){
@@ -137,6 +137,7 @@ CedarXDemuxerAPI *cedarx_demux_create(int demux_type)
 #endif
 	else {
 		cedarx_demuxer_handle = cedarx_demuxers[ID_CDX_DMXS_EPDK];
+		//cedarx_demuxer_handle = cedarx_demuxers[ID_CDX_DMXS_STAGEFRIGHT];
 	}
 
 	return cedarx_demuxer_handle;

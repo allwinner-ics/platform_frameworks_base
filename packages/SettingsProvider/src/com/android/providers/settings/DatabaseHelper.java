@@ -27,6 +27,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
+import android.view.WindowManager;
 import android.media.AudioManager;
 import android.media.AudioService;
 import android.net.ConnectivityManager;
@@ -1318,6 +1319,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
                     R.integer.def_pointer_speed);
+			
+			loadStringSetting(stmt, Settings.System.ACCELEROMETER_COORDINATE,
+                    R.string.def_accelerometer_coordinate);
+
+			loadStringSetting(stmt, Settings.System.DISPLAY_ADAPTION_MODE,
+                    R.string.def_screen_adaption_mode);
+
+			/* add by huanglong */
+			WindowManager wm = (WindowManager)mContext.getSystemService(mContext.WINDOW_SERVICE);
+	        android.view.Display display = wm.getDefaultDisplay();
+	        int width     = display.getWidth();
+	        int height    = display.getHeight();
+			if((width * 3 / (height * 5) != 1) &&
+	           (width * 5 / (height * 3) != 1)){
+	            loadBooleanSetting(stmt, Settings.System.DISPLAY_ADAPTION_ENABLE,
+					    R.bool.def_display_adation_enable);
+	        }
 
         } finally {
             if (stmt != null) stmt.close();
@@ -1401,7 +1419,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     R.bool.def_wifi_on);
             loadBooleanSetting(stmt, Settings.Secure.WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON,
                     R.bool.def_networks_available_notification_on);
-    
+            loadBooleanSetting(stmt, Settings.Secure.WIFI_WATCHDOG_ON,
+                    R.bool.def_wifi_watchdog_on);
+
             String wifiWatchList = SystemProperties.get("ro.com.android.wifi-watchlist");
             if (!TextUtils.isEmpty(wifiWatchList)) {
                 loadSetting(stmt, Settings.Secure.WIFI_WATCHDOG_WATCH_LIST, wifiWatchList);

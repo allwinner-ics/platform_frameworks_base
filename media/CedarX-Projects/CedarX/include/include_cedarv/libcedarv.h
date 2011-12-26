@@ -67,39 +67,37 @@ extern "C" {
     	CEDARV_CONTAINER_FORMAT_VOB,
     	CEDARV_CONTAINER_FORMAT_WEBM,
     }cedarv_container_format_e;
-      
-    typedef enum CEDARX_3D_MODE
-	{
-    	CDX_3D_MODE_NONE = 0,
-    	CDX_3D_MODE_FS,
-    	CDX_3D_MODE_ANAGLAGH,
-    	CDX_3D_MODE_TBH,
-    	CDX_3D_MODE_TBF,
-    	CDX_3D_MODE_BTH,
-    	CDX_3D_MODE_BTF,
-    	CDX_3D_MODE_LRH,
-    	CDX_3D_MODE_LRF,
-    	CDX_3D_MODE_RLH,
-    	CDX_3D_MODE_RLF,
-    	CDX_3D_MODE_LI,
-    }cdx_3d_mode_e;
 
-    typedef enum CEDARX_DISPLAY_MODE{
-    	CDX_DISP_MODE_2D = 0,
-    	CDX_DISP_MODE_3D,
-    	CDX_DISP_MODE_ANAGLAGH,
-    	CDX_DISP_MODE_ORIGINAL,
-    }cdx_display_mode_e;
-    typedef enum CEDARX_ANAGLAGH_TYPE{
-    	CDX_ANAGLAGH_RED_BLUE = 0,
-    	CDX_ANAGLAGH_RED_GREEN,
-    	CDX_ANAGLAGH_RED_CYAN,
-    	CDX_ANAGLAGH_COLOR,
-    	CDX_ANAGLAGH_HALF_COLOR,
-    	CDX_ANAGLAGH_OPTIMIZED,
-    	CDX_ANAGLAGH_YELLOW_BLUE,
-    	CDX_ANAGLAGH_NONE,
-    }cdx_anaglagh_e;
+	typedef enum CEDARV_3D_MODE
+	{
+		//* for 2D pictures.
+		CEDARV_3D_MODE_NONE 				= 0,
+
+		//* for double stream video like MVC and MJPEG.
+		CEDARV_3D_MODE_DOUBLE_STREAM,
+
+		//* for single stream video.
+		CEDARV_3D_MODE_SIDE_BY_SIDE,
+		CEDARV_3D_MODE_TOP_TO_BOTTOM,
+		CEDARV_3D_MODE_LINE_INTERLEAVE,
+		CEDARV_3D_MODE_COLUME_INTERLEAVE
+
+	}cedarv_3d_mode_e;
+
+	typedef enum CEDARV_ANAGLAGH_TRANSFORM_MODE
+	{
+		//* for transmission from 'size by size' or 'top to bottom' mode to 'anaglagh' modes.
+		//* these values are just for output, 3d mode in stream information structure should
+		//* not set to these values.
+		CEDARV_ANAGLAGH_RED_BLUE,
+		CEDARV_ANAGLAGH_RED_GREEN,
+		CEDARV_ANAGLAGH_RED_CYAN,
+		CEDARV_ANAGLAGH_COLOR,
+		CEDARV_ANAGLAGH_HALF_COLOR,
+		CEDARV_ANAGLAGH_OPTIMIZED,
+		CEDARV_ANAGLAGH_YELLOW_BLUE,
+		CEDARV_ANAGLATH_NONE
+	}cedarv_anaglath_trans_mode_e;
 
     typedef struct CEDARV_STREAM_INFORMATION
     {
@@ -114,10 +112,8 @@ extern "C" {
         u32                     	init_data_len;   //* data length of the initial data for decoder;
         u8*                     	init_data;       //* some decoders may need initial data to start up;
         u32                     	is_pts_correct;  //* used for h.264 decoder current;
-        u32							_3d_enable;
-        cdx_3d_mode_e				source_3d_mode;
-        cdx_3d_mode_e				output_3d_mode;
-        cdx_anaglagh_e				anaglagh_type;
+
+        cedarv_3d_mode_e			_3d_mode;
     }cedarv_stream_info_t;
     
     
@@ -185,10 +181,8 @@ extern "C" {
         u64                     pts;                    //* presentation time stamp, in unit of milli-second;
         u64                     pcr;                    //* program clock reference;
 
-        cdx_3d_mode_e			output_3d_mode;
-        cdx_3d_mode_e			source_3d_mode;
-        cdx_display_mode_e		display_mode;
-        u32						is_display_mode_changed;
+        cedarv_3d_mode_e		_3d_mode;
+        cedarv_anaglath_trans_mode_e anaglath_transform_mode;
 
         u32             		size_y;
         u32             		size_u;
@@ -209,6 +203,9 @@ extern "C" {
         u8 *					u2;
         u8 *					v2;
         u8 *					alpha2;
+
+        u32						display_3d_mode;		//* this value has nothing to do with decoder, it is used for video render to
+        												//* pass display mode to overlay module.
     }cedarv_picture_t;
     
     typedef enum CEDARV_RESULT
@@ -249,16 +246,26 @@ extern "C" {
         CEDARV_COMMAND_SET_TOTALMEMSIZE,
         
         //* for preview application.
-        CEDARV_COMMAND_PREVIEW_MODE,	//* aux = 0, pbuffer = NULL, 
-        								//* return value always CEDARV_RESULT_OK, should be called before the 'open' fuction.
+        CEDARV_COMMAND_PREVIEW_MODE,		//* aux = 0, pbuffer = NULL,
+        									//* return value always CEDARV_RESULT_OK, should be called before the 'open' fuction.
         //reset vdeclib
         CEDARV_COMMAND_RESET,
+
+        //* set max output size for scale mode.
         CEDARV_COMMAND_SET_MAX_OUTPUT_HEIGHT,
         CEDARV_COMMAND_SET_MAX_OUTPUT_WIDTH,
-        CEDARV_COMMAND_GET_STREAM_INFO, //param = cedarv_stream_info_t*
+
+        CEDARV_COMMAND_GET_STREAM_INFO, 	//* param = cedarv_stream_info_t*
+
+        //* for mpeg2 tag play.
         CEDARV_COMMAND_GET_SEQUENCE_INFO,
         CEDARV_COMMAND_SET_SEQUENCE_INFO,
-        CEDARV_COMMAND_SET_ANAGLAGH_TYPE,
+
+        //* for transforming 3d 'size by size' or 'top to bottom' pictures to 'anaglagh' pictures.
+        CEDARV_COMMAND_SET_STREAM_3D_MODE,			//* reset the 3d mode of input stream.
+        CEDARV_COMMAND_SET_ANAGLATH_TRANS_MODE,		//* select an output 3d mode, this will be used only to decide which analagh transform mode is used.
+        CEDARV_COMMAND_OPEN_ANAGLATH_TRANSFROM, 	//* open ve anaglath transformation
+        CEDARV_COMMAND_CLOSE_ANAGLATH_TRANSFROM,	//* close ve anaglath transformation
 
         CEDARV_COMMAND_FLUSH
     }cedarv_io_cmd_e;
@@ -292,7 +299,6 @@ extern "C" {
         s32 (*display_request)(cedarv_decoder_t* p, cedarv_picture_t* picture);
         s32 (*display_release)(cedarv_decoder_t* p, u32 frame_index);
         s32 (*set_vstream_info)(cedarv_decoder_t* p, cedarv_stream_info_t* info);
-        s32 (*set_vbv_style)(cedarv_decoder_t *p, u32 vbvNum);
         
         s32 (*query_quality)(cedarv_decoder_t* p, cedarv_quality_t* vq);
         

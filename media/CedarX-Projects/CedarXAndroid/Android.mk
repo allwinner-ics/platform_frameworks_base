@@ -7,3 +7,5 @@ include $(LOCAL_PATH)/IceCreamSandwich/Android.mk
 else
 include $(LOCAL_PATH)/Gingerbread/Android.mk
 endif
+
+$(info CEDARX_PRODUCTOR: $(CEDARX_PRODUCTOR))

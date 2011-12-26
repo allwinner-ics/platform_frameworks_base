@@ -9512,6 +9512,7 @@ package android.hardware {
 
   public class SensorEvent {
     field public int accuracy;
+    field public final float[] originalValue;
     field public android.hardware.Sensor sensor;
     field public long timestamp;
     field public final float[] values;
@@ -14331,6 +14332,9 @@ package android.opengl {
     ctor public GLSurfaceView(android.content.Context);
     ctor public GLSurfaceView(android.content.Context, android.util.AttributeSet);
     method public int getDebugFlags();
+    method public static boolean getGLAdapterWinMatch();
+    method public static int getGLAdpaterHeight();
+    method public static int getGLAdpaterWidth();
     method public boolean getPreserveEGLContextOnPause();
     method public int getRenderMode();
     method public void onPause();
@@ -14344,6 +14348,8 @@ package android.opengl {
     method public void setEGLContextClientVersion(int);
     method public void setEGLContextFactory(android.opengl.GLSurfaceView.EGLContextFactory);
     method public void setEGLWindowSurfaceFactory(android.opengl.GLSurfaceView.EGLWindowSurfaceFactory);
+    method public static void setGLAdapterWinMatch(boolean);
+    method public static void setGLAdpaterSize(int, int);
     method public void setGLWrapper(android.opengl.GLSurfaceView.GLWrapper);
     method public void setPreserveEGLContextOnPause(boolean);
     method public void setRenderMode(int);
@@ -14355,6 +14361,15 @@ package android.opengl {
     field public static final int DEBUG_LOG_GL_CALLS = 2; // 0x2
     field public static final int RENDERMODE_CONTINUOUSLY = 1; // 0x1
     field public static final int RENDERMODE_WHEN_DIRTY = 0; // 0x0
+    field public static final int RENDERPOS_BOTTOM = 3; // 0x3
+    field public static final int RENDERPOS_FULLSCREEN = 65536; // 0x10000
+    field public static final int RENDERPOS_HCENTER = 512; // 0x200
+    field public static final int RENDERPOS_HMASK = 65280; // 0xff00
+    field public static final int RENDERPOS_LEFT = 256; // 0x100
+    field public static final int RENDERPOS_RIGHT = 768; // 0x300
+    field public static final int RENDERPOS_TOP = 1; // 0x1
+    field public static final int RENDERPOS_VCENTER = 2; // 0x2
+    field public static final int RENDERPOS_VMASK = 255; // 0xff
   }
 
   public static abstract interface GLSurfaceView.EGLConfigChooser {
@@ -14530,6 +14545,7 @@ package android.os {
     field public static final java.lang.String DEVICE;
     field public static final java.lang.String DISPLAY;
     field public static final java.lang.String FINGERPRINT;
+    field public static final java.lang.String FIRMWARE;
     field public static final java.lang.String HARDWARE;
     field public static final java.lang.String HOST;
     field public static final java.lang.String ID;
@@ -21907,6 +21923,9 @@ package android.view {
     method public int getRotation();
     method public void getSize(android.graphics.Point);
     method public deprecated int getWidth();
+    method public static void setAdapterDisable();
+    method public static void setAdapterEnable();
+    method public static void setAdapterSize(int, int);
     field public static final int DEFAULT_DISPLAY = 0; // 0x0
   }
 
@@ -22755,6 +22774,7 @@ package android.view {
     method public static android.view.MotionEvent obtainNoHistory(android.view.MotionEvent);
     method public final void offsetLocation(float, float);
     method public final void recycle();
+    method public final void scale(float, float);
     method public final void setAction(int);
     method public final void setEdgeFlags(int);
     method public final void setLocation(float, float);
@@ -23004,8 +23024,11 @@ package android.view {
     ctor public SurfaceView(android.content.Context);
     ctor public SurfaceView(android.content.Context, android.util.AttributeSet);
     ctor public SurfaceView(android.content.Context, android.util.AttributeSet, int);
+    method public static void GLAdapterMotionEvent(android.view.MotionEvent);
     method public boolean gatherTransparentRegion(android.graphics.Region);
+    method public static int getGLRenderPosMode();
     method public android.view.SurfaceHolder getHolder();
+    method public void getSettingAdapter();
     method public void setZOrderMediaOverlay(boolean);
     method public void setZOrderOnTop(boolean);
   }

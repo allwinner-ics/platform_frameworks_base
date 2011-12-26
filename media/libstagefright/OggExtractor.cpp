@@ -42,6 +42,11 @@ extern "C" {
 
 namespace android {
 
+/* add by Gary. start {{----------------------------------- */
+static int _IsUTF8Stream( const char* bytes, int size );
+static int _GeneralStream2UTF8Stream( const uint8_t *src, int len, uint8_t *dst, int size );
+/* add by Gary. end   -----------------------------------}} */
+
 struct OggSource : public MediaSource {
     OggSource(const sp<OggExtractor> &extractor);
 
@@ -819,7 +824,21 @@ void parseVorbisComment(
                         fileMeta->setInt32(kKeyAutoLoop, true);
                     }
                 } else {
-                    fileMeta->setCString(kMap[j].mKey, &comment[tagLen + 1]);
+                    /* modified by Gary. start {{----------------------------------- */
+                    const char *s = &comment[tagLen + 1];
+                    
+                    if( _IsUTF8Stream( s, strlen(s) ) ){
+                        fileMeta->setCString(kMap[j].mKey, s);
+                    } else {
+                        uint8_t *buf = new uint8_t[1024];
+                        if( buf != NULL ){
+                            _GeneralStream2UTF8Stream( (const uint8_t *)s, strlen(s), 
+                                                        buf, 1024 );
+                            fileMeta->setCString(kMap[j].mKey, (const char*)buf);
+                            delete[] buf;
+                        }
+                    }
+                    /* modified by Gary. end   -----------------------------------}} */
                 }
             }
         }
@@ -1023,5 +1042,137 @@ bool SniffOgg(
 
     return true;
 }
+
+/* add by Gary. start {{----------------------------------- */
+
+/*
+****************************************************************************************************
+*Name        : _GeneralStream2UTF8Stream
+*Prototype   : int _GeneralStream2UTF8Stream( const uint8_t *src, int len, uint8_t *dst, int size )
+*Arguments   : src   input. the source byte stream in some charset.
+*              len   input. the size of the source byte stream in byte.
+*              dst   output.a buffer to store the output stream in UTF8.
+*              size  input. the size of the buffer.
+*Return      : the numbers of the source stream bytes converted to UTF8. -1 means fail.
+*Description : convert a byte stream in some charset to a stream in UTF8.
+*Other       :
+****************************************************************************************************
+*/
+static int _GeneralStream2UTF8Stream( const uint8_t *src, int len, uint8_t *dst, int size )
+{
+    uint8_t *ptr;
+    uint8_t *end;
+    int      i;
+    
+    if( src == NULL || dst == NULL)
+        return -1;
+        
+    ptr = dst;
+    end = dst+size;
+    for (i = 0; i < len; ++i) {
+        if (src[i] == '\0') {
+            break;
+        } else if (src[i] < 0x80) {
+            if( end - ptr < 2 )
+                break;
+            *ptr++ = src[i];
+        } else if (src[i] < 0xc0) {
+            if( end - ptr < 3 )
+                break;
+            *ptr++ = 0xc2;
+            *ptr++ = src[i];
+        } else {
+            if( end - ptr < 3 )
+                break;
+            *ptr++ = 0xc3;
+            *ptr++ = src[i] - 64;
+        }
+    }
+
+    *ptr = '\0';
+    return i;
+}
+
+
+/*
+****************************************************************************************************
+*Name        : _IsUTF8Stream
+*Prototype   : int _IsUTF8Stream( const char* bytes )
+*Arguments   : bytes   input. a byte stream.
+*              size    input. the size of the stream.
+*Return      : return 1 if the string is in UTF8; else return 0.
+*Description : check whether a string is in UTF8 or not.
+*Other       :
+****************************************************************************************************
+*/
+static int _IsUTF8Stream( const char* bytes, int size )
+{
+    const char* end = bytes+size;
+    char  utf8;
+    
+    if (bytes == NULL || size <= 0) {
+        return 0;
+    }
+
+    while ( bytes < end ) {
+        utf8 = *(bytes++);
+        // Switch on the high four bits.
+        switch (utf8 >> 4) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: {
+                // Bit pattern 0xxx. No need for any extra bytes.
+                break;
+            }
+            case 0x08:
+            case 0x09:
+            case 0x0a:
+            case 0x0b:
+            case 0x0f: {
+                /*
+                 * Bit pattern 10xx or 1111, which are illegal start bytes.
+                 * Note: 1111 is valid for normal UTF-8, but not the
+                 * modified UTF-8 used here.
+                 */
+                LOGV("JNI WARNING: illegal start byte 0x%x\n", utf8);
+                goto fail;
+            }
+            case 0x0e: {
+                // Bit pattern 1110, so there are two additional bytes.
+                utf8 = *(bytes++);
+                if ( bytes > end || (utf8 & 0xc0) != 0x80) {
+                    LOGV("JNI WARNING: illegal continuation byte 0x%x\n", utf8);
+                    goto fail;
+                }
+                // Fall through to take care of the final byte.
+            }
+            case 0x0c:
+            case 0x0d: {
+                // Bit pattern 110x, so there is one additional byte.
+                utf8 = *(bytes++);
+                if ( bytes > end || (utf8 & 0xc0) != 0x80) {
+                    LOGV("JNI WARNING: illegal continuation byte 0x%x\n", utf8);
+                    goto fail;
+                }
+                break;
+            }
+        }
+    }
+
+    return 1;
+
+fail:
+    return 0;
+}
+
+
+
+        
+/* add by Gary. end   -----------------------------------}} */
 
 }  // namespace android
