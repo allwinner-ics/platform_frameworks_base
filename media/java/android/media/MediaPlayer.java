@@ -651,16 +651,16 @@ public class MediaPlayer
         _setVideoSurface(surface);
 		if(mWindowManager != null)
 		{
-			//??? try 
-			//??? {
+			try 
+			{
 				//PermissionInfo info=new PermissionInfo();
         		//info.name="android.permission.SET_ORIENTATION";
       			//mPackageManager.addPermission(info);
-                //??? mWindowManager.setRotation(Surface.ROTATION_0,false,0);
-            //??? } catch (RemoteException e) {
-                // Ignore
-
-            //??? }
+                mWindowManager.updateRotation(false);
+            } 
+			catch (RemoteException e) 
+            {
+            }
 		}
         updateSurfaceScreenOn();
     }
@@ -2241,25 +2241,21 @@ public class MediaPlayer
     public static final String CHARSET_X_UTF32_PLATFORMENDIAN    = "x-UTF32_PlatformEndian";        //
     
     /*
-     * input dimension type list 
+     * input 3D picture format list.
+     * defined by ChenXiaoChuan.
      */
-    public static final int INPUT_DIMENSION_TYPE_2D                  = 0;       //2D
-    public static final int INPUT_DIMENSION_TYPE_3D_FRAME_SEQUENTIAL = 1;       //分图格式
-    public static final int INPUT_DIMENSION_TYPE_3D_TOP_BOTTOM_HALF  = 2;       //上下半幅
-    public static final int INPUT_DIMENSION_TYPE_3D_TOP_BOTTOM_FULL  = 3;       //上下全幅
-    public static final int INPUT_DIMENSION_TYPE_3D_BOTTOM_TOP_HALF  = 4;       //下上半幅
-    public static final int INPUT_DIMENSION_TYPE_3D_BOTTOM_TOP_FULL  = 5;       //下上全幅
-    public static final int INPUT_DIMENSION_TYPE_3D_LEFT_RIGHT_HALF  = 6;       //左右半幅
-    public static final int INPUT_DIMENSION_TYPE_3D_LEFT_RIGHT_FULL  = 7;       //左右全幅
-    public static final int INPUT_DIMENSION_TYPE_3D_RIGHT_LEFT_HALF  = 8;       //右左半幅
-    public static final int INPUT_DIMENSION_TYPE_3D_RIGHT_LEFT_FULL  = 9;       //右左全幅
-    public static final int INPUT_DIMENSION_TYPE_3D_LINE_INTERLEAVED = 10;      //行交错
+	public static final int PICTURE_3D_MODE_NONE					= 0;		//* 2D
+	public static final int PICTURE_3D_MODE_DOUBLE_STREAM			= 1;		//* 分图格式
+	public static final int PICTURE_3D_MODE_SIDE_BY_SIDE			= 2;		//* 左右格式
+	public static final int PICTURE_3D_MODE_TOP_TO_BOTTOM			= 3;		//* 上下格式
+	public static final int PICTURE_3D_MODE_LINE_INTERLEAVE			= 4;		//* 行交织格式
+	public static final int PICTURE_3D_MODE_COLUME_INTERLEAVE		= 5;		//* 列交织格式
 
     /**
      * set the dimension type of the source file.
      * <p>
      * 
-	 * @param type the  dimension type of the source file
+	 * @param type the  3D picture format of the source file
      * @return ==0 means successful, !=0 means failed.
      */
     public native int setInputDimensionType(int type);
@@ -2268,40 +2264,24 @@ public class MediaPlayer
      * get the dimension type of the source file.
      * <p>
      * 
-     * @return the dimension type of the source file. -1 means failed.
+     * @return the 3D picture format of the source file. -1 means failed.
      */
     public native int getInputDimensionType();
     
     /*
-     * output dimension type list 
+     * 3D picture display method, defined how to display pictures.
+     * defined by ChenXiaoChuan.
      */
-    public static final int OUTPUT_DIMENSION_TYPE_DISABLE_3D              = -1; //禁止3D显示
-    public static final int OUTPUT_DIMENSION_TYPE_2D_ORGINAL              = 0;  //2D显示原图
-    public static final int OUTPUT_DIMENSION_TYPE_2D_LEFT_HALF            = 1;  //2D显示左半图
-    public static final int OUTPUT_DIMENSION_TYPE_2D_RIGHT_HALF           = 2;  //2D显示右半图
-    public static final int OUTPUT_DIMENSION_TYPE_2D_TOP_HALF             = 3;  //2D显示上半图
-    public static final int OUTPUT_DIMENSION_TYPE_2D_BOTTOM_HALF          = 4;  //2D显示下半图
-    public static final int OUTPUT_DIMENSION_TYPE_3D_LEFT_RIGHT           = 5;  //3D左右，仅用于HDMI
-    public static final int OUTPUT_DIMENSION_TYPE_3D_TOP_BOTTOM           = 6;  //3D上下，仅用于HDMI
-    public static final int OUTPUT_DIMENSION_TYPE_3D_LINE_INTERLEAVED     = 7;  //3D行交错，仅用于HDMI
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_BLUE    = 8;  //分色红蓝
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_GREEN   = 9;  //分色红绿
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_CYAN    = 10; //分色红青
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_FULL_COLOR  = 11; //分色全色
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_HALF_COLOR  = 12; //分色半色
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_OPTIMIZED   = 13; //分色最优
-    public static final int OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_YELLOW_BLUE = 14; //分色黄蓝
-    public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_1       = 15; //仅用于LCD
-    public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_2       = 16; //仅用于LCD  
-    public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_3       = 17; //仅用于LCD  
-    public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_4       = 18; //仅用于LCD  
-    public static final int OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_5       = 19; //仅用于LCD  
+	public static final int DISPLAY_3D_MODE_2D				= 0;	//* 显示2D图像，对于分图格式，只显示一个图，对于上下或左右格式，显示两个图
+	public static final int DISPLAY_3D_MODE_3D				= 1;	//* 显示3D图像
+	public static final int DISPLAY_3D_MODE_HALF_PICTURE	= 2;	//* 显示半图，对于左右或上下格式的图像有用
+	public static final int DISPLAY_3D_MODE_ANAGLAGH		= 3;	//* 显示分色图像，可以将左右或者上下格式的图像转换成分色图像显示
     
     /**
-     * set the dimension type of the output.
+     * set display method of the 3D pictures.
      * <p>
      * 
-	 * @param type the dimension type of the output
+	 * @param type the display method of the 3D pictures
      * @return ==0 means successful, !=0 means failed.
      */ 
     public native int setOutputDimensionType(int type);
@@ -2317,14 +2297,13 @@ public class MediaPlayer
     /* 
      * anaglagh type list
      */
-    public static final int ANAGLAGH_TYPE_DISABLE     = -1;//不分色
-    public static final int ANAGLAGH_TYPE_RED_BLUE    = 0; //分色红蓝
-    public static final int ANAGLAGH_TYPE_RED_GREEN   = 1; //分色红绿
-    public static final int ANAGLAGH_TYPE_RED_CYAN    = 2; //分色红青
-    public static final int ANAGLAGH_TYPE_FULL_COLOR  = 3; //分色全色
-    public static final int ANAGLAGH_TYPE_HALF_COLOR  = 4; //分色半色
-    public static final int ANAGLAGH_TYPE_OPTIMIZED   = 5; //分色最优
-    public static final int ANAGLAGH_TYPE_YELLOW_BLUE = 6; //分色黄蓝
+	public static final int ANAGLAGH_RED_BLUE		= 0;
+	public static final int ANAGLAGH_RED_GREEN		= 1;
+	public static final int ANAGLAGH_RED_CYAN		= 2;
+	public static final int ANAGLAGH_COLOR			= 3;
+	public static final int ANAGLAGH_HALF_COLOR		= 4;
+	public static final int ANAGLAGH_OPTIMIZED		= 5;
+	public static final int ANAGLAGH_YELLOW_BLUE	= 6;
 
     /**
      * set the anaglagh type of the output.

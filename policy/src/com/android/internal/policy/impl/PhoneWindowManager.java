@@ -55,7 +55,7 @@ import android.os.SystemProperties;
 import android.os.UEventObserver;
 import android.os.Vibrator;
 import android.provider.Settings;
-
+import android.media.MediaPlayer;
 import com.android.internal.R;
 import com.android.internal.app.ShutdownThread;
 import com.android.internal.policy.PolicyManager;
@@ -156,6 +156,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     static final boolean DEBUG_FALLBACK = false;
     static final boolean SHOW_STARTING_ANIMATIONS = true;
     static final boolean SHOW_PROCESSES_ON_ALT_MENU = false;
+	static final boolean FULLSCREEN_HIDESTATUSBAR = true;
 
     static final int LONG_PRESS_POWER_NOTHING = 0;
     static final int LONG_PRESS_POWER_GLOBAL_ACTIONS = 1;
@@ -2139,15 +2140,21 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
                     pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
                 } else {
-                	pf.left = df.left = mUnrestrictedScreenLeft;
-                    pf.top = df.top = mUnrestrictedScreenTop;
-                    pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
-                    pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
-                    //pf.left = df.left = cf.left = mRestrictedScreenLeft;
-                    //pf.top = df.top = cf.top = mRestrictedScreenTop;
-                    //pf.right = df.right = cf.right = mRestrictedScreenLeft+mRestrictedScreenWidth;
-                    //pf.bottom = df.bottom = cf.bottom
-                   //         = mRestrictedScreenTop+mRestrictedScreenHeight;
+                	if(FULLSCREEN_HIDESTATUSBAR)
+                	{
+	                	pf.left = df.left = mUnrestrictedScreenLeft;
+	                    pf.top = df.top = mUnrestrictedScreenTop;
+	                    pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
+	                    pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
+                	}
+					else
+					{
+	                    pf.left = df.left = cf.left = mRestrictedScreenLeft;
+	                    pf.top = df.top = cf.top = mRestrictedScreenTop;
+	                    pf.right = df.right = cf.right = mRestrictedScreenLeft+mRestrictedScreenWidth;
+	                    pf.bottom = df.bottom = cf.bottom
+	                            = mRestrictedScreenTop+mRestrictedScreenHeight;
+					}
                 }
                 if (adjust != SOFT_INPUT_ADJUST_NOTHING) {
                     vf.left = mCurLeft;
@@ -2342,10 +2349,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         	Log.v(TAG, "Preventing status bar from hiding by policy");
                     	}
 
-						if (mStatusBar.hideLw(true)) 
+						if(FULLSCREEN_HIDESTATUSBAR)
 						{
-                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
-                        }
+							if (mStatusBar.hideLw(true)) 
+							{
+	                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
+	                        }
+						}
 					}
 						
                 } else {
@@ -3134,7 +3144,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
 
         synchronized (mLock) {
-            int sensorRotation = mOrientationListener.getProposedRotation(); // may be -1
+			int sensorRotation;
+			
+			if(MediaPlayer.isPlayingVideo())
+			{
+				Log.i(TAG, "MediaPlayer.isPlayingVideo");
+				sensorRotation = Surface.ROTATION_0;
+			}
+			else
+			{
+				Log.i(TAG, "MediaPlayer.is not PlayingVideo");
+				sensorRotation = mOrientationListener.getProposedRotation(); // may be -1
+			}
+            
             if (sensorRotation < 0) {
                 sensorRotation = lastRotation;
             }
@@ -3196,17 +3218,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
                     // Always return portrait if orientation set to portrait.
-                    //return mPortraitRotation;					
-					return mUpsideDownRotation;
+                    return mPortraitRotation;					
                 case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
                     // Always return landscape if orientation set to landscape.
                     return mLandscapeRotation;
 
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT:
                     // Always return portrait if orientation set to portrait.
-                    //return mUpsideDownRotation;                    
-					return mPortraitRotation;
-
+                    return mUpsideDownRotation;                    
+					
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
                     // Always return seascape if orientation set to reverse landscape.
                     return mSeascapeRotation;

@@ -75,6 +75,8 @@
     <!-- Notifications use ringer volume -->
     <bool name="def_notifications_use_ring_volume">true</bool>
 
+	<bool name="def_is_scan_tf_card">false</bool>
+
     <!-- Default for Settings.System.VIBRATE_IN_SILENT -->
     <bool name="def_vibrate_in_silent">true</bool>
 

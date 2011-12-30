@@ -89,7 +89,7 @@ import android.view.Display;
  */
 public class SurfaceView extends View {
     static private final String TAG = "SurfaceView";
-    static private final boolean DEBUG = true;
+    static private final boolean DEBUG = false;
     static private final boolean localLOGV = DEBUG ? true : false;
 
     final ArrayList<SurfaceHolder.Callback> mCallbacks
@@ -328,6 +328,14 @@ public class SurfaceView extends View {
 	        	mAdapterMode = GLSurfaceView.RENDERPOS_HCENTER|GLSurfaceView.RENDERPOS_VCENTER;
 	        }
 		}
+		if(mSupportXLarge == false && mAdapterMode != 0)
+		{
+		 	GLSurfaceView.setGLAdapterWinMatch(true);
+		}
+		else
+		{
+		 	GLSurfaceView.setGLAdapterWinMatch(false);
+		}
     }
     
     public static int getGLRenderPosMode()
@@ -407,8 +415,8 @@ public class SurfaceView extends View {
     
     private void updateGLSmartScaleSurfaceSize()
     {
-    	GLSurfaceView.setGLAdapterWinMatch(false);
-  Log.d(TAG,"mWidth"+mWidth+"mHight =" + mHeight);   	
+//    	GLSurfaceView.setGLAdapterWinMatch(false);
+//  Log.d(TAG,"mWidth"+mWidth+"mHight =" + mHeight);   	
     	if(this instanceof GLSurfaceView)
 		{
 			int  adpaterMode	= getGLRenderPosMode();
@@ -668,13 +676,12 @@ public class SurfaceView extends View {
 			    	//Log.d("updateGLSmartScaleLayout","RENDERPOS_BOTTOM mLayout.width = " + mLayout.width);
 			    	//Log.d("updateGLSmartScaleLayout","RENDERPOS_BOTTOM mLayout.height = " + mLayout.height);
 			    	
-			    	GLSurfaceView.setGLAdapterWinMatch(true);
+			    	
 			    	
 			    	return ;
 			    }
 			}
 		}
-		
 		GLSurfaceView.setGLAdapterWinMatch(false);
     }
     
@@ -999,7 +1006,7 @@ public class SurfaceView extends View {
         if (viewRoot != null) {
             mTranslator = viewRoot.mTranslator;
         }
-
+         getSettingAdapter();
         if (mTranslator != null) {
             mSurface.setCompatibilityTranslator(mTranslator);
         }

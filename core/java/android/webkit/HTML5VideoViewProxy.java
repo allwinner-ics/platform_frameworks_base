@@ -97,6 +97,9 @@ class HTML5VideoViewProxy extends Handler
         // identify the exact layer on the UI thread to use the SurfaceTexture.
         private static int mBaseLayer = 0;
 
+		//add by Bevis, to make fullScreenVideo auto play;
+		private static boolean autoPlay = false;
+		
         private static void setPlayerBuffering(boolean playerBuffering) {
             mHTML5VideoView.setPlayerBuffering(playerBuffering);
         }
@@ -156,6 +159,10 @@ class HTML5VideoViewProxy extends Handler
                     mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     mHTML5VideoView.release();
                 }
+                
+                //add by Bevis
+                savedIsPlaying = autoPlay;
+                
                 mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
                         layerId, savePosition, savedIsPlaying);
                 mCurrentProxy = proxy;
@@ -176,7 +183,7 @@ class HTML5VideoViewProxy extends Handler
                 currentVideoLayerId = mHTML5VideoView.getVideoLayerId();
                 backFromFullScreenMode = mHTML5VideoView.fullScreenExited();
             }
-
+			
             if (backFromFullScreenMode
                 || currentVideoLayerId != videoLayerId
                 || mHTML5VideoView.surfaceTextureDeleted()) {
@@ -193,6 +200,9 @@ class HTML5VideoViewProxy extends Handler
                     mHTML5VideoView.release();
                 }
                 mCurrentProxy = proxy;
+                
+                //add by Bevis
+                autoPlay = true;
                 enterFullScreenVideo(videoLayerId, url, mCurrentProxy, mCurrentProxy.getWebView());
 //                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
 //
@@ -209,6 +219,8 @@ class HTML5VideoViewProxy extends Handler
                 // its playback ended.
                 proxy.dispatchOnEnded();
             }
+            //add by Bevis
+            autoPlay = false;
         }
 
         public static boolean isPlaying(HTML5VideoViewProxy proxy) {

@@ -163,13 +163,15 @@ status_t MediaPlayer::setDataSource(
             /* add by Gary. start {{----------------------------------- */
             /* 2011-9-28 16:28:24 */
             /* save properties before creating the real player */
-            player->setSubGate(mSubGate);
-            player->setSubColor(mSubColor);
-            player->setSubFrameColor(mSubFrameColor);
-            player->setSubPosition(mSubPosition);
-            player->setSubDelay(mSubDelay);
-            player->setSubFontSize(mSubFontSize);
-            player->setSubCharset(mSubCharset);
+            if(player != 0) {
+	    	player->setSubGate(mSubGate);
+            	player->setSubColor(mSubColor);
+            	player->setSubFrameColor(mSubFrameColor);
+            	player->setSubPosition(mSubPosition);
+            	player->setSubDelay(mSubDelay);
+            	player->setSubFontSize(mSubFontSize);
+            	player->setSubCharset(mSubCharset);
+	    }
             /* add by Gary. end   -----------------------------------}} */
             err = attachNewPlayer(player);
         }

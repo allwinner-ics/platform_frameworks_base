@@ -1879,6 +1879,13 @@ public final class Settings {
          */
         public static final String POINTER_SPEED = "pointer_speed";
 
+        /**
+         * To set weather scan the tf card.
+         * add by huanglong
+         * @hide
+         */
+        public static final String IS_SCAN_TF_CARD = "is_scan_tf_card";
+
 		/**
 		 * To use default or special accelerometer coordinate system
 		 * @hide

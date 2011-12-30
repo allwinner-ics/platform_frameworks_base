@@ -165,6 +165,29 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         }
     }
 
+    MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
+        new MediaPlayer.OnVideoSizeChangedListener() {
+            public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                mVideoWidth = mp.getVideoWidth();
+                mVideoHeight = mp.getVideoHeight();
+                if (mVideoWidth != 0 && mVideoHeight != 0) {
+                    int videodWidth = mVideoSurfaceView.getMeasuredWidth();
+                    int videoHeight = mVideoSurfaceView.getMeasuredHeight();
+            	    Log.i("HTML5VideoFullScreen", "*********************** mVideoWidth:"+mVideoWidth+
+            	        ", mVideoHeight:"+mVideoHeight+", videodWidth:"+videodWidth+", videoHeight:"+videoHeight);
+                    if (mVideoWidth > 0 && mVideoHeight > 0) {
+                        if ( mVideoWidth * videoHeight  > videodWidth * mVideoHeight ) {
+                            videoHeight = videodWidth * mVideoHeight / mVideoWidth;
+                        } else if ( mVideoWidth * videoHeight  < videodWidth * mVideoHeight ) {
+                            videodWidth = videoHeight * mVideoWidth / mVideoHeight;
+                        }
+                    }
+                    
+                	mVideoSurfaceView.getHolder().setFixedSize(mVideoWidth, videoHeight);
+                }
+            }
+    };
+
     @Override
     public void onPrepared(MediaPlayer mp) {
         super.onPrepared(mp);
@@ -239,6 +262,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
             HTML5VideoViewProxy proxy, WebView webView) {
         mFullScreenMode = FULLSCREEN_SURFACECREATING;
         mCurrentBufferPercentage = 0;
+        mPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
         mPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
         mProxy = proxy;
 

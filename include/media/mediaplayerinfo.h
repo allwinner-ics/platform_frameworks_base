@@ -116,58 +116,46 @@ typedef struct _MediaPlayer_TrackInfo{
 #define CHARSET_X_UTF32_OPPOSITEENDIAN         "x-UTF32_OppositeEndian"         //                            
 #define CHARSET_X_UTF32_PLATFORMENDIAN         "x-UTF32_PlatformEndian"         //                            
 
-/*
- * input dimension type list 
- */
-#define INPUT_DIMENSION_TYPE_2D                             0   //2D
-#define INPUT_DIMENSION_TYPE_3D_FRAME_SEQUENTIAL            1   //分图格式
-#define INPUT_DIMENSION_TYPE_3D_TOP_BOTTOM_HALF             2   //上下半幅
-#define INPUT_DIMENSION_TYPE_3D_TOP_BOTTOM_FULL             3   //上下全幅
-#define INPUT_DIMENSION_TYPE_3D_BOTTOM_TOP_HALF             4   //下上半幅
-#define INPUT_DIMENSION_TYPE_3D_BOTTOM_TOP_FULL             5   //下上全幅
-#define INPUT_DIMENSION_TYPE_3D_LEFT_RIGHT_HALF             6   //左右半幅
-#define INPUT_DIMENSION_TYPE_3D_LEFT_RIGHT_FULL             7   //左右全幅
-#define INPUT_DIMENSION_TYPE_3D_RIGHT_LEFT_HALF             8   //右左半幅
-#define INPUT_DIMENSION_TYPE_3D_RIGHT_LEFT_FULL             9   //右左全幅
-#define INPUT_DIMENSION_TYPE_3D_LINE_INTERLEAVED            10  //行交错
-
-/*
- * output dimension type list 
- */
-#define OUTPUT_DIMENSION_TYPE_DISABLE_3D                    -1  //禁止3D显示
-#define OUTPUT_DIMENSION_TYPE_2D_ORGINAL                    0   //2D显示原图
-#define OUTPUT_DIMENSION_TYPE_2D_LEFT_HALF                  1   //2D显示左半图
-#define OUTPUT_DIMENSION_TYPE_2D_RIGHT_HALF                 2   //2D显示右半图
-#define OUTPUT_DIMENSION_TYPE_2D_TOP_HALF                   3   //2D显示上半图
-#define OUTPUT_DIMENSION_TYPE_2D_BOTTOM_HALF                4   //2D显示下半图
-#define OUTPUT_DIMENSION_TYPE_3D_LEFT_RIGHT                 5   //3D左右，仅用于HDMI
-#define OUTPUT_DIMENSION_TYPE_3D_TOP_BOTTOM                 6   //3D上下，仅用于HDMI              
-#define OUTPUT_DIMENSION_TYPE_3D_LINE_INTERLEAVED           7   //3D行交错，仅用于HDMI
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_BLUE          8   //分色红蓝
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_GREEN         9   //分色红绿
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_RED_CYAN          10  //分色红青
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_FULL_COLOR        11  //分色全色
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_HALF_COLOR        12  //分色半色
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_OPTIMIZED         13  //分色最优
-#define OUTPUT_DIMENSION_TYPE_3D_ANAGLAGH_YELLOW_BLUE       14  //分色黄蓝
-#define OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_1             15  //仅用于LCD
-#define OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_2             16  //仅用于LCD  
-#define OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_3             17  //仅用于LCD  
-#define OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_4             18  //仅用于LCD  
-#define OUTPUT_DIMENSION_TYPE_NAKED_3D_FORMAT_5             19  //仅用于LCD  
-
-/* 
- * anaglagh type list
- */
-#define ANAGLAGH_TYPE_DISABLE                               -1  //不分色
-#define ANAGLAGH_TYPE_RED_BLUE                              0   //分色红蓝
-#define ANAGLAGH_TYPE_RED_GREEN                             1   //分色红绿
-#define ANAGLAGH_TYPE_RED_CYAN                              2   //分色红青
-#define ANAGLAGH_TYPE_FULL_COLOR                            3   //分色全色
-#define ANAGLAGH_TYPE_HALF_COLOR                            4   //分色半色
-#define ANAGLAGH_TYPE_OPTIMIZED                             5   //分色最优
-#define ANAGLAGH_TYPE_YELLOW_BLUE                           6   //分色黄蓝
-
 /* add by Gary. end   -----------------------------------}} */
+
+
+/* input 3d mode
+ * defined by ChenXiaoChuan.
+ */
+typedef enum
+{
+	PICTURE_3D_MODE_NONE				= 0,
+	PICTURE_3D_MODE_DOUBLE_STREAM		= 1,
+	PICTURE_3D_MODE_SIDE_BY_SIDE		= 2,
+	PICTURE_3D_MODE_TOP_TO_BOTTOM		= 3,
+	PICTURE_3D_MODE_LINE_INTERLEAVE		= 4,
+	PICTURE_3D_MODE_COLUME_INTERLEAVE	= 5,
+}PICTURE_3D_MODE_E;
+
+/* output 3d mode.
+ * defined by ChenXiaoChuan.
+ */
+typedef enum
+{
+	DISPLAY_3D_MODE_2D				= 0,
+	DISPLAY_3D_MODE_3D				= 1,
+	DISPLAY_3D_MODE_HALF_PICTURE	= 2,
+	DISPLAY_3D_MODE_ANAGLAGH		= 3,
+}DISPLAY_3D_MODE_E;
+
+/* anaglagh transform mode.
+ * defined by ChenXiaoChuan.
+ */
+typedef enum
+{
+	//* for transmission from 'side by side' or 'top to bottom' mode to 'anaglagh' modes.
+	ANAGLAGH_RED_BLUE		= 0,
+	ANAGLAGH_RED_GREEN		= 1,
+	ANAGLAGH_RED_CYAN		= 2,
+	ANAGLAGH_COLOR			= 3,
+	ANAGLAGH_HALF_COLOR		= 4,
+	ANAGLAGH_OPTIMIZED		= 5,
+	ANAGLAGH_YELLOW_BLUE	= 6,
+}ANAGLATH_TRANSFORM_MODE_E;
 
 #endif // ANDROID_MEDIAPLAYER_H

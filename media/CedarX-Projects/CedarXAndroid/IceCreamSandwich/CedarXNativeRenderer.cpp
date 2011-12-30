@@ -107,6 +107,7 @@ int CedarXNativeRenderer::control(int cmd, int para) {
 	case VIDEORENDER_CMD_QUERYVBI        :
 	case VIDEORENDER_CMD_SETSCREEN       :
 	case VIDEORENDER_CMD_SHOW            :
+    case VIDEORENDER_CMD_RELEASE         :
 	case VIDEORENDER_CMD_SET3DMODE       :
 	case VIDEORENDER_CMD_SETFORMAT       :
 	case VIDEORENDER_CMD_VPPON           :

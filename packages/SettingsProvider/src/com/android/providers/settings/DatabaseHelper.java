@@ -1322,6 +1322,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			
 			loadStringSetting(stmt, Settings.System.ACCELEROMETER_COORDINATE,
                     R.string.def_accelerometer_coordinate);
+            loadBooleanSetting(stmt, Settings.System.IS_SCAN_TF_CARD,
+                    R.bool.def_is_scan_tf_card);
 
 			loadStringSetting(stmt, Settings.System.DISPLAY_ADAPTION_MODE,
                     R.string.def_screen_adaption_mode);

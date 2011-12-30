@@ -1344,7 +1344,7 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
 void CedarXPlayer::StagefrightVideoRenderExit() {
 	if(mVideoRenderer != NULL){
 		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
-			mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 0);
+			mVideoRenderer->control(VIDEORENDER_CMD_RELEASE, 0);
 		}
 	}
 }

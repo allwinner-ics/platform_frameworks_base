@@ -422,6 +422,9 @@ private:
                     sp<IBinder>                 mConnectedWindowBinder;
                     /* add by Gary. start {{----------------------------------- */
                     int                         mHasSurface;
+                    /* add by Gary. end   -----------------------------------}} */
+
+                    /* add by Gary. start {{----------------------------------- */
                     /* 2011-9-28 16:28:24 */
                     /* save properties before creating the real player */
                     bool                        mSubGate;

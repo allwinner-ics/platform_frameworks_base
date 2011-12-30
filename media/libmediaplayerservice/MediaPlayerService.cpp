@@ -606,6 +606,9 @@ MediaPlayerService::Client::Client(
     mUID = uid;
 
     /* add by Gary. start {{----------------------------------- */
+    mHasSurface = 0;
+    /* add by Gary. end   -----------------------------------}} */
+    /* add by Gary. start {{----------------------------------- */
     /* 2011-9-28 16:28:24 */
     /* save properties before creating the real player */
     mSubGate = true;
@@ -1018,6 +1021,9 @@ status_t MediaPlayerService::Client::setVideoSurface(const sp<Surface>& surface)
     LOGV("[%d] setVideoSurface(%p)", mConnId, surface.get());
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) return UNKNOWN_ERROR;
+    /* add by Gary. start {{----------------------------------- */
+    mHasSurface = 1;
+    /* add by Gary. end   -----------------------------------}} */
     return p->setVideoSurface(surface);
 }
 
