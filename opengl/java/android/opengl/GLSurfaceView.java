@@ -207,7 +207,6 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      * @see #setDebugFlags
      */
     public final static int DEBUG_LOG_GL_CALLS = 2;
-    
     private static int RENDERPOS_ENABLE  	= 0;
     
     public final static int RENDERPOS_TOP		= (1<<0);
@@ -833,6 +832,9 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      * {@link GLSurfaceView#setEGLWindowSurfaceFactory(EGLWindowSurfaceFactory)}
      */
     public interface EGLWindowSurfaceFactory {
+        /**
+         *  @return null if the surface cannot be constructed.
+         */
         EGLSurface createWindowSurface(EGL10 egl, EGLDisplay display, EGLConfig config,
                 Object nativeWindow);
         void destroySurface(EGL10 egl, EGLDisplay display, EGLSurface surface);
@@ -842,7 +844,19 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 
         public EGLSurface createWindowSurface(EGL10 egl, EGLDisplay display,
                 EGLConfig config, Object nativeWindow) {
-            return egl.eglCreateWindowSurface(display, config, nativeWindow, null);
+            EGLSurface result = null;
+            try {
+                result = egl.eglCreateWindowSurface(display, config, nativeWindow, null);
+            } catch (IllegalArgumentException e) {
+                // This exception indicates that the surface flinger surface
+                // is not valid. This can happen if the surface flinger surface has
+                // been torn down, but the application has not yet been
+                // notified via SurfaceHolder.Callback.surfaceDestroyed.
+                // In theory the application should be notified first,
+                // but in practice sometimes it is not. See b/4588890
+                Log.e(TAG, "eglCreateWindowSurface", e);
+            }
+            return result;
         }
 
         public void destroySurface(EGL10 egl, EGLDisplay display,
@@ -1106,9 +1120,8 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                 int error = mEgl.eglGetError();
                 if (error == EGL10.EGL_BAD_NATIVE_WINDOW) {
                     Log.e("EglHelper", "createWindowSurface returned EGL_BAD_NATIVE_WINDOW.");
-                    return null;
                 }
-                throwEglException("createWindowSurface", error);
+                return null;
             }
 
             /*
@@ -1559,7 +1572,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                 if (LOG_THREADS) {
                     Log.i("GLThread", "surfaceCreated tid=" + getId());
                 }
-                mHasSurface = true;				
+                mHasSurface = true;
 				mIsGLRunning = true;
                 sGLThreadManager.notifyAll();
                 while((mWaitingForSurface) && (!mExited)) {

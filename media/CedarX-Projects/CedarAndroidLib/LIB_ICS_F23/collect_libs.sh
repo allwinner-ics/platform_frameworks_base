@@ -26,24 +26,23 @@ cp $SRCDIR0/libjpgenc_intermediates/libjpgenc.a             ./
 cp $SRCDIR0/libdemux_cedarm_intermediates/libdemux_cedarm.a             ./
 cp $SRCDIR0/libsub_intermediates/libsub.a             ./
 cp $SRCDIR0/libsub_inline_intermediates/libsub_inline.a             ./
-cp $SRCDIR0/libiconv_intermediates/libiconv.a ./
 cp $SRCDIR0/libh264enc_intermediates/libh264enc.a ./
 cp $SRCDIR0/libmp4_muxer_intermediates/libmp4_muxer.a ./
 cp $SRCDIR0/libm3u_intermediates/libm3u.a ./
 cp $SRCDIR0/libcedara_decoder_intermediates/libcedara_decoder.a ./
-cp $SRCDIR0/libcedarx_rtsp_intermediates/libcedarx_rtsp.a ./
 
 #cp $SRCDIR0/../../system/lib/libstagefright_soft_cedar_h264dec.so ./
 
 cp $SRCDIR0/../../system/lib/libcedarxosal.so ./
 cp $SRCDIR0/../../system/lib/libcedarxbase.so ./
+cp $SRCDIR0/../../system/lib/libcedarxsftdemux.so ./
 cp $SRCDIR0/../../system/lib/libcedarv.so ./
 cp $SRCDIR0/../../system/lib/libswa.so ./
 cp $SRCDIR0/../../system/lib/libswdrm.so ./
 
 arm-linux-androideabi-strip -g *.a
 
-cp ~/workspace/android2.3.4/out/target/product/crane-evb/symbols/system/lib/libCedarX.so ./
+cp ${OUT}/symbols/system/lib/libCedarX.so ~/tmp
 current_time=`date +%Y%m%d%H%M`
-mv libCedarX.so libCedarX-symbols-$current_time.so
+mv ~/tmp/libCedarX.so ~/tmp/libCedarX-symbols-$current_time.so
 

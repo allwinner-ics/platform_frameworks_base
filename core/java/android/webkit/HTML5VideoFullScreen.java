@@ -4,18 +4,23 @@ package android.webkit;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.Metadata;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.HTML5VideoView;
-import android.webkit.HTML5VideoViewProxy;
+import android.view.IWindowManager;
+import android.view.KeyEvent;
+import android.os.ServiceManager;
+import android.os.RemoteException;
+import android.os.SystemClock;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
+import android.widget.MyMediaController;
 import android.widget.MediaController.MediaPlayerControl;
+import android.view.ViewParent;
+import android.util.Log;
 
 
 /**
@@ -25,7 +30,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     implements MediaPlayerControl, MediaPlayer.OnPreparedListener,
     View.OnTouchListener {
 
-//	private static final String TAG = "HTML5VideoFullScreen";
+	private static final String TAG = "HTML5VideoFullScreen";
     // Add this sub-class to handle the resizing when rotating screen.
     private class VideoSurfaceView extends SurfaceView {
 
@@ -74,7 +79,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     private static View mProgressView;
     // The container for the progress view and video view
     private static FrameLayout mLayout;
-
+    
     // The video size will be ready when prepared. Used to make sure the aspect
     // ratio is correct.
     private int mVideoWidth;
@@ -151,11 +156,61 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     private void prepareForFullScreen() {
         // So in full screen, we reset the MediaPlayer
         mPlayer.reset();
-        setMediaController(new MediaController(mProxy.getContext()));
+        MediaController mc = new FullScreenMediaController(mProxy.getContext(), mLayout);
+        mc.setSystemUiVisibility(mLayout.getSystemUiVisibility());
+        ((MyMediaController)mc).setVolumeIncListeners(new View.OnClickListener() {
+    			public void onClick(View arg0) {
+    				// TODO Auto-generated method stub
+        			sendKeyIntent(KeyEvent.KEYCODE_VOLUME_UP);
+    			}
+        	});
+            ((MyMediaController)mc).setVolumeDecListeners(new View.OnClickListener() {
+    			public void onClick(View arg0) {
+    				// TODO Auto-generated method stub
+        			sendKeyIntent(KeyEvent.KEYCODE_VOLUME_DOWN);
+    			}
+        	});
+            ((MyMediaController)mc).setBackListeners(new View.OnClickListener() {
+    			public void onClick(View arg0) {
+    				// TODO Auto-generated method stub
+        			sendKeyIntent(KeyEvent.KEYCODE_BACK);
+    			}
+            });
+        setMediaController(mc);
         mPlayer.setScreenOnWhilePlaying(true);
         prepareDataAndDisplayMode(mProxy);
     }
 
+
+    	private static void sendKeyIntent(int keycode){
+    		final int keyCode = keycode;
+    		// to avoid deadlock, start a thread to perform operations
+            Thread sendKeyDelay = new Thread(){   
+                public void run() {
+                    try {
+                        int count = 1;
+                        if(keyCode == KeyEvent.KEYCODE_BACK)
+                            count = 2;
+                        
+                        IWindowManager wm = IWindowManager.Stub.asInterface(ServiceManager.getService("window"));
+                        for(int i = 0; i < count; i++){
+                            Thread.sleep(100);
+                            long now = SystemClock.uptimeMillis();
+                            KeyEvent keyDown = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0);   
+                            wm.injectKeyEvent(keyDown, false);   
+                
+                            KeyEvent keyUp = new KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0);   
+                            wm.injectKeyEvent(keyUp, false);
+                        }  
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();   
+                    } catch (RemoteException e) {   
+                        e.printStackTrace();   
+                    }   
+                }   
+            };
+            sendKeyDelay.start();
+        }
 
     private void toggleMediaControlsVisiblity() {
         if (mMediaController.isShowing()) {
@@ -165,32 +220,10 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         }
     }
 
-    MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
-        new MediaPlayer.OnVideoSizeChangedListener() {
-            public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-                mVideoWidth = mp.getVideoWidth();
-                mVideoHeight = mp.getVideoHeight();
-                if (mVideoWidth != 0 && mVideoHeight != 0) {
-                    int videodWidth = mVideoSurfaceView.getMeasuredWidth();
-                    int videoHeight = mVideoSurfaceView.getMeasuredHeight();
-            	    Log.i("HTML5VideoFullScreen", "*********************** mVideoWidth:"+mVideoWidth+
-            	        ", mVideoHeight:"+mVideoHeight+", videodWidth:"+videodWidth+", videoHeight:"+videoHeight);
-                    if (mVideoWidth > 0 && mVideoHeight > 0) {
-                        if ( mVideoWidth * videoHeight  > videodWidth * mVideoHeight ) {
-                            videoHeight = videodWidth * mVideoHeight / mVideoWidth;
-                        } else if ( mVideoWidth * videoHeight  < videodWidth * mVideoHeight ) {
-                            videodWidth = videoHeight * mVideoWidth / mVideoHeight;
-                        }
-                    }
-                    
-                	mVideoSurfaceView.getHolder().setFixedSize(mVideoWidth, videoHeight);
-                }
-            }
-    };
-
     @Override
     public void onPrepared(MediaPlayer mp) {
         super.onPrepared(mp);
+
         mVideoSurfaceView.setOnTouchListener(this);
         // Get the capabilities of the player for this stream
         Metadata data = mp.getMetadata(MediaPlayer.METADATA_ALL,
@@ -230,7 +263,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     public boolean fullScreenExited() {
         return (mLayout == null);
     }
-
+    
     private final WebChromeClient.CustomViewCallback mCallback =
         new WebChromeClient.CustomViewCallback() {
             public void onCustomViewHidden() {
@@ -262,7 +295,6 @@ public class HTML5VideoFullScreen extends HTML5VideoView
             HTML5VideoViewProxy proxy, WebView webView) {
         mFullScreenMode = FULLSCREEN_SURFACECREATING;
         mCurrentBufferPercentage = 0;
-        mPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
         mPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
         mProxy = proxy;
 
@@ -273,7 +305,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         mVideoSurfaceView.requestFocus();
 
         // Create a FrameLayout that will contain the VideoView and the
-        // progress view (if any).
+        // progress view (if any).        
         mLayout = new FrameLayout(mProxy.getContext());
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -283,7 +315,6 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         mLayout.addView(getSurfaceView(), layoutParams);
 
         mLayout.setVisibility(View.VISIBLE);
-
         WebChromeClient client = webView.getWebChromeClient();
         if (client != null) {
             client.onShowCustomView(mLayout, mCallback);
@@ -360,4 +391,33 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         }
         return;
     }
+
+    static class FullScreenMediaController extends MyMediaController {
+
+        View mVideoView;
+
+        public FullScreenMediaController(Context context, View video) {
+            super(context);
+            mVideoView = video;
+        }
+
+        @Override
+        public void show() {
+            super.show();
+            if (mVideoView != null) {
+                mVideoView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            }
+        }
+
+        @Override
+        public void hide() {
+            if (mVideoView != null) {
+                mVideoView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+            }
+            super.hide();
+        }
+
+    }
+
 }

@@ -235,6 +235,7 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorSetVolume,
     OMX_IndexVendorSetVideoPortDef,
 
+    OMX_IndexVendorDisable3D,
     OMX_IndexVendorSet3DSourceFormat,
     OMX_IndexVendorGet3DSourceFormat,
     OMX_IndexVendorSetAnaglaghType,
@@ -258,6 +259,8 @@ typedef enum OMX_INDEXTYPE {
 
     OMX_IndexVendorDisableProprityTrack,
     OMX_IndexVendorSetAudioChannelMute,
+
+    OMX_IndexVendorSetSoftChipVersion,
 
     OMX_IndexVendorSwitchSubtilte = 0xFF001000,
     OMX_IndexVendorDisableSubtilte,

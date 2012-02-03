@@ -81,17 +81,18 @@ typedef struct CedarXPlayerContext{
 	pthread_mutex_t cdx_player_mutex;
 	pthread_t thread_id;
 	message_quene_t  msg_queue;
-	tsem_t tsem_wait_message;
+	cdx_sem_t cdx_sem_wait_message;
+	pthread_mutex_t msg_sync_mutex;
 	int msg_id_processed;
 	int msg_id_index;
 
-	tsem_t tsem_demux_cmd;
-	tsem_t tsem_video_decoder_cmd;
-	tsem_t tsem_audio_decoder_cmd;
-	tsem_t tsem_video_render_cmd;
-	tsem_t tsem_audio_render_cmd;
-	tsem_t tsem_clock_cmd;
-	tsem_t tsem_subtitle_cmd;
+	cdx_sem_t cdx_sem_demux_cmd;
+	cdx_sem_t cdx_sem_video_decoder_cmd;
+	cdx_sem_t cdx_sem_audio_decoder_cmd;
+	cdx_sem_t cdx_sem_video_render_cmd;
+	cdx_sem_t cdx_sem_audio_render_cmd;
+	cdx_sem_t cdx_sem_clock_cmd;
+	cdx_sem_t cdx_sem_subtitle_cmd;
 
 	OMX_HANDLETYPE hnd_demuxer;
 	OMX_HANDLETYPE hnd_video_decoder;
@@ -113,6 +114,9 @@ typedef struct CedarXPlayerContext{
 	OMX_S32 	cedarv_max_width;
 	OMX_S32 	cedarv_max_height;
 	OMX_S32 	cedarv_output_setting;
+
+	OMX_S32     soft_chip_version;
+	OMX_S32		network_engine;
 }CedarXPlayerContext;
 
 #include "CDX_PlayerAPI.h"
@@ -124,19 +128,4 @@ typedef struct CedarXMediaRetriverContext{
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 }CedarXMediaRetriverContext;
 
-//enum CedarXPlayerMessage
-//{
-//	CDX_MESSAGE_NOP = 0,
-//	CDX_MESSAGE_RESET,
-//	CDX_MESSAGE_STOP,
-//	CDX_MESSAGE_QUIT,
-//	CDX_MESSAGE_PREPARE,
-//	CDX_MESSAGE_SEEK,
-//	CDX_MESSAGE_PAUSE,
-//	CDX_MESSAGE_CONTROL_PAUSE,
-//	CDX_MESSAGE_CONTROL_START,
-//	CDX_MESSAGE_STREAM_EOF,
-//};
-
 #endif
-/* File EOF */

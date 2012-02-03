@@ -48,7 +48,7 @@ import android.os.UEventObserver;
 import android.provider.Settings;
 import android.util.Slog;
 import android.os.PowerManager;
-
+import android.os.DynamicPManager;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -64,7 +64,7 @@ import java.util.List;
 public class UsbDeviceManager {
 
     private static final String TAG = UsbDeviceManager.class.getSimpleName();
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static final String USB_STATE_MATCH =
             "DEVPATH=/devices/virtual/android_usb/android0";
@@ -100,10 +100,11 @@ public class UsbDeviceManager {
     private final boolean mHasUsbAccessory;
     private boolean mUseUsbNotification;
     private boolean mAdbEnabled;
-	
+
 	private PowerManager.WakeLock wl;   
     private int wlref = 0;
-	
+    private DynamicPManager mDPM;
+    
     private class AdbSettingsObserver extends ContentObserver {
         public AdbSettingsObserver() {
             super(null);
@@ -145,7 +146,6 @@ public class UsbDeviceManager {
 		
 		PowerManager power = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);        
         wl = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-		
         // create a thread for our Handler
         HandlerThread thread = new HandlerThread("UsbDeviceManager",
                 Process.THREAD_PRIORITY_BACKGROUND);
@@ -180,7 +180,7 @@ public class UsbDeviceManager {
 
         mHandler.sendEmptyMessage(MSG_SYSTEM_READY);
     }
-	
+
 	/* In usb device connected to pc host, we should create a partial wakelock to prevent go to standby*/
     private void enableWakeLock(boolean enable){
         if(enable){
@@ -197,6 +197,22 @@ public class UsbDeviceManager {
             }
         }
     }
+    
+     /* In usb device connected to pc host, we should also keep cpu run in highest freq, so keep usb transfer in highn 
+      * speed 
+      */
+	private void enableDPMLock(boolean enable){
+		if(enable){
+			if(mDPM==null)
+		         mDPM = new DynamicPManager();  
+		    mDPM.acquireCpuFreqLock(DynamicPManager.CPU_MODE_PERFORMENCE);                
+		}else{
+		     if(mDPM!=null){
+		         mDPM.releaseCpuFreqLock();
+		         mDPM = null;
+		    }
+	    }     
+	 }    
     
     private static void initRndisAddress() {
         // configure RNDIS ethernet address based on our serial number using the same algorithm
@@ -286,9 +302,7 @@ public class UsbDeviceManager {
                 mDefaultFunctions = SystemProperties.get("persist.sys.usb.config", "adb");
                 // sanity check the sys.usb.config system property
                 // this may be necessary if we crashed while switching USB configurations
-                
                 Slog.e(TAG,"mDefaultFunctions="+mDefaultFunctions);
-                
                 String config = SystemProperties.get("sys.usb.config", "none");
                 if (!config.equals(mDefaultFunctions)) {
                     Slog.w(TAG, "resetting config to persistent property: " + mDefaultFunctions);
@@ -514,12 +528,12 @@ public class UsbDeviceManager {
                 case MSG_UPDATE_STATE:
                     mConnected = (msg.arg1 == 1);
                     mConfigured = (msg.arg2 == 1);
-
+					
 					enableWakeLock(mConnected);
-
-					updateUsbNotification();
+					enableDPMLock(mConnected);
+					
+                    updateUsbNotification();
                     updateAdbNotification();
-										
                     if (containsFunction(mCurrentFunctions,
                             UsbManager.USB_FUNCTION_ACCESSORY)) {
                         updateCurrentAccessory();

@@ -35,15 +35,17 @@ typedef struct CedarXRecorderContext{
 	CDX_S32 flags;
 	CEDARX_STATES states;
 
-	void * cookie;
+//	void * cookie;
+	CedarXRecorderCallbackType callback_info;
+
 	OMX_PTR pAppData;
 	RECORDER_MODE mode;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 
-	tsem_t tsem_recorder_source_cmd;
-	tsem_t tsem_video_encoder_cmd;
-	tsem_t tsem_audio_encoder_cmd;
-	tsem_t tsem_recorder_render_cmd;
+	cdx_sem_t cdx_sem_recorder_source_cmd;
+	cdx_sem_t cdx_sem_video_encoder_cmd;
+	cdx_sem_t cdx_sem_audio_encoder_cmd;
+	cdx_sem_t cdx_sem_recorder_render_cmd;
 
 	OMX_HANDLETYPE hnd_recorder_source;
 	OMX_HANDLETYPE hnd_video_encoder;

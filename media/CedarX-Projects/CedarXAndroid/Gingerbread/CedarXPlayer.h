@@ -101,7 +101,7 @@ struct CedarXPlayer {
     status_t resume();
 #ifndef __CHIP_VERSION_F20
     status_t setScreen(int screen);
-    status_t set3DMode(int mode);
+    status_t set3DMode(int source3dMode, int displayMode);
     int    	 getMeidaPlayerState();
     int      getSubCount();
     int      getSubList(MediaPlayer_SubInfo *infoList, int count);
@@ -203,9 +203,12 @@ private:
     int32_t mDisableXXXX;
 
     uint32_t	_3d_mode;
-    uint32_t	_3d_mode_new;		//* new source 3d mode set by user.
+    uint32_t	pre_3d_mode;		//* for source 3d mode changing when displaying at anaglagh mode.
     uint32_t	display_3d_mode;
+    uint32_t	display_type_tmp_save;
     uint32_t    anaglagh_type;
+    uint32_t	anaglagh_en;
+    uint32_t	wait_anaglagh_display_change;
 
     int32_t mVideoWidth, mVideoHeight;
     int32_t mCanSeek;

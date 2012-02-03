@@ -17,7 +17,13 @@
 package android.net;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.NetworkInfo.DetailedState;
+import android.net.InterfaceConfiguration;
+import android.net.LinkAddress;
+import android.net.ethernet.IEthernetManager;
+import android.net.ethernet.EthernetManager;
+import android.net.ethernet.EthernetDevInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.INetworkManagementService;
@@ -25,9 +31,14 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.util.Log;
+import android.text.TextUtils;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This class tracks the data connection associated with Ethernet
@@ -49,7 +60,8 @@ public class EthernetDataTracker implements NetworkStateTracker {
     private LinkCapabilities mLinkCapabilities;
     private NetworkInfo mNetworkInfo;
     private InterfaceObserver mInterfaceObserver;
-
+	private EthernetManager mEthManage;
+	private INetworkManagementService mNMService;
     /* For sending events to connectivity service handler */
     private Handler mCsHandler;
     private Context mContext;
@@ -67,22 +79,26 @@ public class EthernetDataTracker implements NetworkStateTracker {
         }
 
         public void interfaceStatusChanged(String iface, boolean up) {
-            Log.d(TAG, "Interface status changed: " + iface + (up ? "up" : "down"));
+            //Log.d(TAG, "Interface status changed: " + iface + (up ? "up" : "down"));
         }
 
         public void interfaceLinkStateChanged(String iface, boolean up) {
             if (mIface.equals(iface) && mLinkUp != up) {
-                Log.d(TAG, "Interface " + iface + " link " + (up ? "up" : "down"));
+                //Log.d(TAG, "Interface " + iface + " link " + (up ? "up" : "down"));
                 mLinkUp = up;
 
-                // use DHCP
+				//mTracker.ConnectNetwork(mLinkUp);
                 if (up) {
                     mTracker.reconnect();
                 } else {
                     NetworkUtils.stopDhcp(mIface);
                     mTracker.mNetworkInfo.setIsAvailable(false);
                     mTracker.mNetworkInfo.setDetailedState(DetailedState.DISCONNECTED,
-                                                           null, null);
+                                                        null, null);
+					Message msg = mTracker.mCsHandler.obtainMessage(EVENT_STATE_CHANGED,
+														mTracker.mNetworkInfo);
+					msg.sendToTarget();
+					mTracker.sendStateBroadcast(EthernetManager.EVENT_DISCONNECTED);
                 }
             }
         }
@@ -111,10 +127,10 @@ public class EthernetDataTracker implements NetworkStateTracker {
     }
 
     private void interfaceAdded(String iface) {
+
+		mEthManage.addInterfaceToService(iface);
         if (!iface.matches(sIfaceMatch))
             return;
-
-        Log.d(TAG, "Adding " + iface);
 
         synchronized(mIface) {
             if(!mIface.isEmpty())
@@ -126,14 +142,15 @@ public class EthernetDataTracker implements NetworkStateTracker {
         Message msg = mCsHandler.obtainMessage(EVENT_CONFIGURATION_CHANGED, mNetworkInfo);
         msg.sendToTarget();
 
-        runDhcp();
+        //runDhcp();
+		reconnect();
     }
 
     private void interfaceRemoved(String iface) {
+
+		mEthManage.removeInterfaceFormService(iface);
         if (!iface.equals(mIface))
             return;
-
-        Log.d(TAG, "Removing " + iface);
 
         NetworkUtils.stopDhcp(mIface);
 
@@ -156,6 +173,7 @@ public class EthernetDataTracker implements NetworkStateTracker {
                 DhcpInfoInternal dhcpInfoInternal = new DhcpInfoInternal();
                 if (!NetworkUtils.runDhcp(mIface, dhcpInfoInternal)) {
                     Log.e(TAG, "DHCP request error:" + NetworkUtils.getDhcpError());
+					sendStateBroadcast(EthernetManager.EVENT_CONFIGURATION_FAILED);
                     return;
                 }
                 mLinkProperties = dhcpInfoInternal.makeLinkProperties();
@@ -164,9 +182,94 @@ public class EthernetDataTracker implements NetworkStateTracker {
                 mNetworkInfo.setDetailedState(DetailedState.CONNECTED, null, null);
                 Message msg = mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mNetworkInfo);
                 msg.sendToTarget();
+				sendStateBroadcast(EthernetManager.EVENT_CONFIGURATION_SUCCEEDED);
             }
-        });
+        }, "ETH_DHCP");
         dhcpThread.start();
+    }
+
+	public DhcpInfoInternal getIpConfigure(EthernetDevInfo info){
+
+		InetAddress netmask = null;
+		InetAddress gw = null;
+		RouteInfo routeAddress = null;
+		int prefixLength = 0;
+		DhcpInfoInternal infoInternal = new DhcpInfoInternal();
+
+		if(info == null)
+			return null;
+
+		netmask = NetworkUtils.numericToInetAddress(info.getNetMask());
+		prefixLength = NetworkUtils.netmaskIntToPrefixLength(NetworkUtils.inetAddressToInt(netmask));
+		gw = NetworkUtils.numericToInetAddress(info.getGateWay());
+		
+		infoInternal.ipAddress = info.getIpAddress();
+		infoInternal.dns1 = info.getDnsAddr();
+		infoInternal.prefixLength = prefixLength;
+		routeAddress = new RouteInfo(null, gw);
+		infoInternal.addRoute(routeAddress);
+
+		return infoInternal;
+	}
+
+	public void ConnectNetwork(boolean up){
+		Log.d(TAG, "Up is " + up + " mLinkUp is " + mLinkUp + " On is " + mEthManage.isOn());
+		if(up && mEthManage.isOn()){
+			EthernetDevInfo ifaceInfo = mEthManage.getSavedConfig();
+			if(mEthManage.isDhcp()){
+				try{
+					mNMService.clearInterfaceAddresses(mIface);
+				} catch (RemoteException e) {
+					Log.e(TAG, "ERROR: " + e);
+				}
+				runDhcp();
+			}else{
+				NetworkUtils.stopDhcp(mIface);
+
+				InterfaceConfiguration ifcg = new InterfaceConfiguration();
+				DhcpInfoInternal dhcpInfoInternal = getIpConfigure(ifaceInfo);
+                mLinkProperties = dhcpInfoInternal.makeLinkProperties();
+                mLinkProperties.setInterfaceName(mIface);
+
+				ifcg.addr = dhcpInfoInternal.makeLinkAddress();
+				ifcg.interfaceFlags = "[up]";
+				try{
+					mNMService.setInterfaceConfig(mIface, ifcg);
+				} catch (Exception e) {
+					Log.e(TAG, "ERROR: " + e);
+					sendStateBroadcast(EthernetManager.EVENT_CONFIGURATION_FAILED);
+					return;
+				}
+
+                mNetworkInfo.setDetailedState(DetailedState.CONNECTED, null, null);
+                Message msg = mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mNetworkInfo);
+                msg.sendToTarget();
+				sendStateBroadcast(EthernetManager.EVENT_CONFIGURATION_SUCCEEDED);
+			}
+		}else if(mLinkUp){
+			NetworkUtils.stopDhcp(mIface);
+			mLinkProperties.clear();
+			try{
+				mNMService.setInterfaceDown(mIface);
+			} catch (Exception e) {
+				Log.d(TAG, "Close error " + e);
+			}
+			mNetworkInfo.setIsAvailable(false);
+			mNetworkInfo.setDetailedState(DetailedState.DISCONNECTED, null, null);
+			Message msg = mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mNetworkInfo);
+			msg.sendToTarget();
+			sendStateBroadcast(EthernetManager.EVENT_DISCONNECTED);
+		}
+	}
+
+    private void sendStateBroadcast(int event) {
+        Intent intent = new Intent(EthernetManager.NETWORK_STATE_CHANGED_ACTION);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                | Intent.FLAG_RECEIVER_REPLACE_PENDING);
+        intent.putExtra(EthernetManager.EXTRA_NETWORK_INFO, mNetworkInfo);
+        intent.putExtra(EthernetManager.EXTRA_LINK_PROPERTIES, new LinkProperties (mLinkProperties));
+		intent.putExtra(EthernetManager.EXTRA_ETHERNET_STATE, event);
+        mContext.sendStickyBroadcast(intent);
     }
 
     public static synchronized EthernetDataTracker getInstance() {
@@ -189,41 +292,59 @@ public class EthernetDataTracker implements NetworkStateTracker {
     /**
      * Begin monitoring connectivity
      */
-    public void startMonitoring(Context context, Handler target) {
-        mContext = context;
-        mCsHandler = target;
+	public void startMonitoring(Context context, Handler target) {
+		mContext = context;
+		mCsHandler = target;
 
-        // register for notifications from NetworkManagement Service
-        IBinder b = ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE);
-        INetworkManagementService service = INetworkManagementService.Stub.asInterface(b);
+		// register for notifications from NetworkManagement Service
+		IBinder b = ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE);
+		mNMService = INetworkManagementService.Stub.asInterface(b);
+		mEthManage = (EthernetManager) mContext.getSystemService(Context.ETHERNET_SERVICE);
+		mInterfaceObserver = new InterfaceObserver(this);
 
-        mInterfaceObserver = new InterfaceObserver(this);
+		// enable and try to connect to an ethernet interface that
+		// already exists
+		sIfaceMatch = context.getResources().getString(
+				com.android.internal.R.string.config_ethernet_iface_regex);
+		mEthManage.addInterfaceToService(sIfaceMatch);
 
-        // enable and try to connect to an ethernet interface that
-        // already exists
-        sIfaceMatch = context.getResources().getString(
-            com.android.internal.R.string.config_ethernet_iface_regex);
-        try {
-            final String[] ifaces = service.listInterfaces();
-            for (String iface : ifaces) {
-                if (iface.matches(sIfaceMatch)) {
-                    mIface = iface;
-                    InterfaceConfiguration config = service.getInterfaceConfig(iface);
-                    mLinkUp = config.isActive();
-                    reconnect();
-                    break;
-                }
-            }
-        } catch (RemoteException e) {
-            Log.e(TAG, "Could not get list of interfaces " + e);
-        }
+		try {
 
-        try {
-            service.registerObserver(mInterfaceObserver);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Could not register InterfaceObserver " + e);
-        }
-    }
+			List<EthernetDevInfo> ethInfos = mEthManage.getDeviceNameList();
+			EthernetDevInfo saveInfo = mEthManage.getSavedConfig();
+
+			if(saveInfo != null && ethInfos != null){
+				for (EthernetDevInfo info : ethInfos) {
+					if (saveInfo.getBootName().equals(info.getBootName())){
+						saveInfo.setIfName(info.getIfName());
+						saveInfo.setHwaddr(info.getHwaddr());
+						mEthManage.updateDevInfo(saveInfo);
+					}
+				}
+			}
+
+			final String[] ifaces = mNMService.listInterfaces();
+			for (String iface : ifaces) {
+				if (iface.matches(sIfaceMatch)) {
+					mIface = iface;
+					//InterfaceConfiguration config = mNMService.getInterfaceConfig(iface);
+					//mLinkUp = config.isActive();
+					Log.d(TAG, "isOn: " + mEthManage.isOn());
+					mEthManage.setEnabled(mEthManage.isOn());
+					//reconnect();
+					break;
+				}
+			}
+		} catch (RemoteException e) {
+			Log.e(TAG, "Could not get list of interfaces " + e);
+		}
+
+		try {
+			mNMService.registerObserver(mInterfaceObserver);
+		} catch (RemoteException e) {
+			Log.e(TAG, "Could not register InterfaceObserver " + e);
+		}
+	}
 
     /**
      * Disable connectivity to a network
@@ -231,7 +352,8 @@ public class EthernetDataTracker implements NetworkStateTracker {
      */
     public boolean teardown() {
         mTeardownRequested.set(true);
-        NetworkUtils.stopDhcp(mIface);
+		NetworkUtils.stopDhcp(mIface);
+		ConnectNetwork(false);
         return true;
     }
 
@@ -240,7 +362,7 @@ public class EthernetDataTracker implements NetworkStateTracker {
      */
     public boolean reconnect() {
         mTeardownRequested.set(false);
-        runDhcp();
+		ConnectNetwork(true);
         return true;
     }
 

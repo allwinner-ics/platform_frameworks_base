@@ -18,7 +18,7 @@ import java.util.TimerTask;
  */
 public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
 
-//    protected static final String LOGTAG = "HTML5VideoView";
+    protected static final String LOGTAG = "HTML5VideoView";
 
     protected static final String COOKIE = "Cookie";
     protected static final String HIDE_URL_LOGS = "x-hide-urls-from-log";

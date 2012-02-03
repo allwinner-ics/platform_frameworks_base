@@ -49,7 +49,7 @@ class HTML5VideoViewProxy extends Handler
                           MediaPlayer.OnInfoListener,
                           SurfaceTexture.OnFrameAvailableListener {
     // Logging tag.
-//    private static final String TAG = "HTML5VideoViewProxy";
+    private static final String LOGTAG = "HTML5VideoViewProxy";
 
     // Message Ids for WebCore thread -> UI thread communication.
     private static final int PLAY                = 100;
@@ -85,7 +85,6 @@ class HTML5VideoViewProxy extends Handler
     private int mSeekPosition;
     // A helper class to control the playback. This executes on the UI thread!
     private static final class VideoPlayer {
-//    	private static final String TAG = "VideoPlayer";
         // The proxy that is currently playing (if any).
         private static HTML5VideoViewProxy mCurrentProxy;
         // The VideoView instance. This is a singleton for now, at least until
@@ -96,9 +95,6 @@ class HTML5VideoViewProxy extends Handler
         // By using the baseLayer and the current video Layer ID, we can
         // identify the exact layer on the UI thread to use the SurfaceTexture.
         private static int mBaseLayer = 0;
-
-		//add by Bevis, to make fullScreenVideo auto play;
-		private static boolean autoPlay = false;
 		
         private static void setPlayerBuffering(boolean playerBuffering) {
             mHTML5VideoView.setPlayerBuffering(playerBuffering);
@@ -159,10 +155,7 @@ class HTML5VideoViewProxy extends Handler
                     mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     mHTML5VideoView.release();
                 }
-                
-                //add by Bevis
-                savedIsPlaying = autoPlay;
-                
+                                
                 mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
                         layerId, savePosition, savedIsPlaying);
                 mCurrentProxy = proxy;
@@ -171,7 +164,7 @@ class HTML5VideoViewProxy extends Handler
 
                 mHTML5VideoView.enterFullScreenVideoState(layerId, proxy, webView);
         }
-
+        
         // This is on the UI thread.
         // When native tell Java to play, we need to check whether or not it is
         // still the same video by using videoLayerId and treat it differently.
@@ -183,7 +176,7 @@ class HTML5VideoViewProxy extends Handler
                 currentVideoLayerId = mHTML5VideoView.getVideoLayerId();
                 backFromFullScreenMode = mHTML5VideoView.fullScreenExited();
             }
-			
+
             if (backFromFullScreenMode
                 || currentVideoLayerId != videoLayerId
                 || mHTML5VideoView.surfaceTextureDeleted()) {
@@ -198,14 +191,16 @@ class HTML5VideoViewProxy extends Handler
                     }
                     // release the media player to avoid finalize error
                     mHTML5VideoView.release();
+                    if(mHTML5VideoView instanceof HTML5VideoFullScreen){
+                    	client.onHideCustomView();
+                    }
                 }
                 mCurrentProxy = proxy;
-                
-                //add by Bevis
-                autoPlay = true;
-                enterFullScreenVideo(videoLayerId, url, mCurrentProxy, mCurrentProxy.getWebView());
+                mHTML5VideoView = new HTML5VideoFullScreen(mCurrentProxy.getContext(), videoLayerId, time, true);
+                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+                mHTML5VideoView.enterFullScreenVideoState(videoLayerId, mCurrentProxy, mCurrentProxy.getWebView());
+
 //                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
-//
 //                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
 //                mHTML5VideoView.prepareDataAndDisplayMode(proxy);
             } else if (mCurrentProxy == proxy) {
@@ -219,8 +214,6 @@ class HTML5VideoViewProxy extends Handler
                 // its playback ended.
                 proxy.dispatchOnEnded();
             }
-            //add by Bevis
-            autoPlay = false;
         }
 
         public static boolean isPlaying(HTML5VideoViewProxy proxy) {

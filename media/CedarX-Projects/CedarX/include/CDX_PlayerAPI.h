@@ -70,8 +70,9 @@ typedef enum {
 	CDX_CMD_SET_PREVIEW_INFO ,
 	CDX_CMD_GET_FILE_SIZE	 ,
 	CDX_CMD_SET_TIME_LAPSE   ,
+	CDX_CMD_SET_SOFT_CHIP_VERSION,
 
-    CDX_CMD_GETSUBCOUNT,
+    CDX_CMD_GETSUBCOUNT  = 200,
     CDX_CMD_GETSUBLIST,
     CDX_CMD_GETCURSUB,
     CDX_CMD_SWITCHSUB,
@@ -94,7 +95,9 @@ typedef enum {
     CDX_CMD_GETCURTRACK,
     CDX_CMD_SWITCHTRACK,
 
-	CDX_CMD_SET_PICTURE_3D_MODE,
+    CDX_CMD_SET_NETWORK_ENGINE = 300,
+
+	CDX_CMD_SET_PICTURE_3D_MODE = 400,
 	CDX_CMD_GET_PICTURE_3D_MODE,
 	CDX_CMD_SET_DISPLAY_MODE,
 	CDX_CMD_SET_ANAGLAGH_TYPE,
@@ -110,6 +113,7 @@ typedef enum {
 
 	CDX_CMD_DISABLE_XXXX,
 	CDX_CMD_SET_AUDIOCHANNEL_MUTE,
+
 
 	CDX_CMD_REGISTER_DEMUXER = 0x800,
 	CDX_CMD_SELECT_DEMUXER   ,
@@ -142,6 +146,9 @@ typedef enum CEDARX_EVENT_TYPE{
 
 	CDX_MEDIA_INFO_SRC_3D_MODE = 65536+1000,
 	CDX_EVENT_NATIVE_SUSPEND,
+
+	CDX_EVENT_READ_AUDIO_BUFFER		= 65535+2000,
+	CDX_EVENT_RELEASE_VIDEO_BUFFER,
 }CEDARX_EVENT_TYPE;
 
 typedef enum CEDARX_STATES{
@@ -215,6 +222,11 @@ typedef enum {
 }CEDARX_VIDEOOUT_MODE;
 
 typedef enum {
+	CEDARX_NETWORK_ENGINE_DEFAULT      = 0,
+	CEDARX_NETWORK_ENGINE_SFT          = 1,
+}CEDARX_NETWORK_ENGINE;
+
+typedef enum {
 	RECORDER_MODE_AUDIO		= 1	,		// only audio recorder
 	RECORDER_MODE_VIDEO		= 2	,		// only video recorder
 	RECORDER_MODE_CAMERA	= 3 ,		// audio and video recorder
@@ -280,7 +292,7 @@ typedef int (*CedarXCallbackType)(void *cookie, CEDARX_EVENT_TYPE event, void *p
 typedef struct CedarXPlayerCallbackType{
 	void *cookie;
 	CedarXCallbackType callback;
-}CedarXPlayerCallbackType;
+}CedarXPlayerCallbackType, CedarXRecorderCallbackType;
 
 // recorder
 #ifdef __OS_ANDROID

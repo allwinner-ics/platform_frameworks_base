@@ -53,6 +53,13 @@ interface INetworkManagementService
      */
     InterfaceConfiguration getInterfaceConfig(String iface);
 
+	/*  Begin (add by shuge@allwinnertech.com)  */
+    /**
+     * Sets the configuration of the specified interface
+     */
+    void renameInterface(String iface, String newname);
+	/*  End (add by shuge@allwinnertech.com)  */
+
     /**
      * Sets the configuration of the specified interface
      */
@@ -103,6 +110,18 @@ interface INetworkManagementService
      * Remove the specified route from the interface.
      */
     void removeRoute(String iface, in RouteInfo route);
+
+    /**
+     * Add the specified route to a secondary interface
+     * This will go into a special route table to be accessed
+     * via ip rules
+     */
+    void addSecondaryRoute(String iface, in RouteInfo route);
+
+    /**
+     * Remove the specified secondary route.
+     */
+    void removeSecondaryRoute(String iface, in RouteInfo route);
 
     /**
      * Shuts down the service

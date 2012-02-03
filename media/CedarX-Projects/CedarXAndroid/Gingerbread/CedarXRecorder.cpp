@@ -38,6 +38,8 @@
 #include <type_camera.h>
 #include <CDX_PlayerAPI.h>
 
+extern "C" int CedarXRecorderCallbackWrapper(void *cookie, int event, void *info);
+
 namespace android {
 
 // WP or SP will cause unexpected exception, C++ pointer is ok!
@@ -286,7 +288,11 @@ status_t CedarXRecorder::setCamera(const sp<ICamera> &camera)
     }
 
 	// star 
-	mCamera->lock();
+	if (mCamera->lock() != OK)
+	{
+		LOGE("Unable to lock camera");
+		return -EBUSY;
+	}
 
 	// send command to hal for hw encoder
 	mCamera->sendCommand(CAMERA_CMD_HW_ENCODER, 0, 0);
@@ -584,11 +590,15 @@ status_t CedarXRecorder::prepare()
 	VIDEOINFO_t vInfo;
 	AUDIOINFO_t aInfo;
 
-	ret = CreateAudioRecorder();
-	if (ret != OK)
+	// Create audio recorder
+	if (mRecModeFlag & RECORDER_MODE_AUDIO)
 	{
-		LOGE("CreateAudioRecorder failed");
-		return ret;
+		ret = CreateAudioRecorder();
+		if (ret != OK)
+		{
+			LOGE("CreateAudioRecorder failed");
+			return ret;
+		}
 	}
 	
 	// set recorder mode to CDX_Recorder
@@ -601,6 +611,9 @@ status_t CedarXRecorder::prepare()
 		printf("CEDARX REPARE ERROR!\n");
 		return UNKNOWN_ERROR;
 	}
+
+	// register callback
+	CDXRecorder_Control(CDX_CMD_REGISTER_CALLBACK, (unsigned int)&CedarXRecorderCallbackWrapper, (unsigned int)this);
 	
 	// set file handle to CDX_Recorder render component
 	ret = CDXRecorder_Control(CDX_CMD_SET_SAVE_FILE, (unsigned int)mOutputFd, 0);
@@ -673,74 +686,31 @@ status_t CedarXRecorder::prepare()
 		return ret;
 	}
 
-	// set audio parameters
-	memset((void*)&aInfo, 0, sizeof(AUDIOINFO_t));
-	aInfo.bitRate = mAudioBitRate;
-	aInfo.channels = mAudioChannels;
-	aInfo.sampleRate = mSampleRate;
-	aInfo.bitsPerSample = 16;
-	if (mAudioBitRate == 0
-		|| mAudioChannels == 0
-		|| mSampleRate == 0)
+	if (mRecModeFlag & RECORDER_MODE_AUDIO)
 	{
-		LOGE("error audio para");
-		return -1;
+		// set audio parameters
+		memset((void*)&aInfo, 0, sizeof(AUDIOINFO_t));
+		aInfo.bitRate = mAudioBitRate;
+		aInfo.channels = mAudioChannels;
+		aInfo.sampleRate = mSampleRate;
+		aInfo.bitsPerSample = 16;
+		if (mAudioBitRate == 0
+			|| mAudioChannels == 0
+			|| mSampleRate == 0)
+		{
+			LOGE("error audio para");
+			return -1;
+		}
+		
+		ret = CDXRecorder_Control(CDX_CMD_SET_AUDIO_INFO, (unsigned int)&aInfo, 0);
+		if(ret != OK)
+		{
+			LOGE("CedarXRecorder::prepare, CDX_CMD_SET_AUDIO_INFO failed\n");
+			return ret;
+		}	
 	}
-	
-	ret = CDXRecorder_Control(CDX_CMD_SET_AUDIO_INFO, (unsigned int)&aInfo, 0);
-	if(ret != OK)
-	{
-		LOGE("CedarXRecorder::prepare, CDX_CMD_SET_AUDIO_INFO failed\n");
-		return ret;
-	}	
 
-#if 0 // to do
-	// set Camera parameters
-	int64_t token = IPCThreadState::self()->clearCallingIdentity();
-    if (mCamera == 0) 
-	{
-    	LOGE("error mCamera is NULL\n");
-		return __LINE__;
-    }
-
-    // Set the actual video recording frame size
-    CameraParameters params(mCamera->getParameters());
-    params.setPreviewSize(mVideoWidth, mVideoHeight);
-    params.setPreviewFrameRate(mFrameRate);
-    String8 s = params.flatten();
-    if (OK != mCamera->setParameters(s)) {
-        LOGE("Could not change settings."
-             " Someone else is using camera %d?", mCameraId);
-        return -EBUSY;
-    }
-	
-    CameraParameters newCameraParams(mCamera->getParameters());
-    // Check on video frame size
-    int frameWidth = 0, frameHeight = 0;
-    newCameraParams.getPreviewSize(&frameWidth, &frameHeight);
-    if (frameWidth  < 0 || frameWidth  != mVideoWidth ||
-        frameHeight < 0 || frameHeight != mVideoHeight) {
-        LOGE("Failed to set the video frame size to %dx%d",
-                mVideoWidth, mVideoHeight);
-        IPCThreadState::self()->restoreCallingIdentity(token);
-        return UNKNOWN_ERROR;
-    }
-
-    // Check on video frame rate
-    int frameRate = newCameraParams.getPreviewFrameRate();
-    if (frameRate < 0 || (frameRate - mFrameRate) != 0) {
-        LOGE("Failed to set frame rate to %d fps. The actual "
-             "frame rate is %d", mFrameRate, frameRate);
-    }
-/*
-    // This CHECK is good, since we just passed the lock/unlock
-    // check earlier by calling mCamera->setParameters().
-    CHECK_EQ(OK, mCamera->setPreviewDisplay(mPreviewSurface));
-    IPCThreadState::self()->restoreCallingIdentity(token);
-*/
-#endif
     return OK;
-
 }
 
 status_t CedarXRecorder::start() 
@@ -1072,6 +1042,9 @@ status_t CedarXRecorder::CedarXReadAudioBuffer(void *pbuf, int *size, int64_t *t
 	return OK;
 }
 
+
+#if 0
+
 extern "C" int CedarXRecReadAudioBuffer(void *p, void *pbuf, int *size, int64_t *timeStamp)
 {
 	return ((android::CedarXRecorder*)p)->CedarXReadAudioBuffer(pbuf, size, timeStamp);
@@ -1079,10 +1052,38 @@ extern "C" int CedarXRecReadAudioBuffer(void *p, void *pbuf, int *size, int64_t 
 
 extern "C" void CedarXRecReleaseOneFrame(void *p, int index) 
 {
-	// LOGV("CedarXRecReleaseOneFrame intdex: %d\n", index);
-
 	((android::CedarXRecorder*)p)->CedarXReleaseFrame(index);
 }
+
+#else
+
+int CedarXRecorder::CedarXRecorderCallback(int event, void *info)
+{
+	int ret = 0;
+	int *para = (int*)info;
+
+	//LOGV("----------CedarXRecorderCallback event:%d info:%p\n", event, info);
+
+	switch (event) {
+	case CDX_EVENT_READ_AUDIO_BUFFER:
+		CedarXReadAudioBuffer((void *)para[0], (int*)para[1], (int64_t*)para[2]);
+		break;
+	case CDX_EVENT_RELEASE_VIDEO_BUFFER:
+		CedarXReleaseFrame(*para);
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+extern "C" int CedarXRecorderCallbackWrapper(void *cookie, int event, void *info)
+{
+	return ((android::CedarXRecorder *)cookie)->CedarXRecorderCallback(event, info);
+}
+
+#endif
 
 }  // namespace android
 

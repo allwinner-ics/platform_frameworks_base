@@ -29,6 +29,9 @@ import android.os.storage.StorageEventListener;
 import android.os.storage.StorageManager;
 import android.provider.Settings;
 import android.util.Slog;
+import com.android.systemui.R;
+import android.util.Log;
+
 
 public class StorageNotification extends StorageEventListener {
     private static final String TAG = "StorageNotification";
@@ -145,17 +148,42 @@ public class StorageNotification extends StorageEventListener {
              * Storage is now checking. Update media notification and disable
              * UMS notification.
              */
+            
+			/*
             setMediaStorageNotification(
                     com.android.internal.R.string.ext_media_checking_notification_title,
                     com.android.internal.R.string.ext_media_checking_notification_message,
                     com.android.internal.R.drawable.stat_notify_sdcard_prepare, true, false, null);
+            */
             updateUsbMassStorageNotification(false);
+           
         } else if (newState.equals(Environment.MEDIA_MOUNTED)) {
             /*
-             * Storage is now mounted. Dismiss any media notifications,
-             * and enable UMS notification if connected.
+             * add by chenjd,chenjd@allwinnertech.com,2012-01-12;
+             * notify user when devices mounted
              */
-            setMediaStorageNotification(0, 0, 0, false, false, null);
+            StorageManager stmg = (StorageManager) mContext.getSystemService(mContext.STORAGE_SERVICE);
+			String[] list = stmg.getVolumePaths();
+			for(int i = 0; i < list.length; i++)
+			{
+				if(path.equals(list[i]))
+				{
+					if(path.contains("usb"))
+					{
+						setMediaStorageNotification(R.string.usb_mounted_title,
+							R.string.usb_mounted_message,
+							com.android.internal.R.drawable.stat_notify_sdcard_prepare, true, true, null);
+					}
+					else if(path.contains("sd"))
+					{
+						setMediaStorageNotification(R.string.sd_mounted_title,
+							R.string.sd_mounted_message,
+							com.android.internal.R.drawable.stat_notify_sdcard_prepare, true, true, null);
+					}
+					break;
+				}
+			}
+            //setMediaStorageNotification(0, 0, 0, false, false, null);
             updateUsbMassStorageNotification(mUmsAvailable);
         } else if (newState.equals(Environment.MEDIA_UNMOUNTED)) {
             /*
@@ -379,9 +407,17 @@ public class StorageNotification extends StorageEventListener {
         
         if (visible) {
             Resources r = Resources.getSystem();
-            CharSequence title = r.getText(titleId);
-            CharSequence message = r.getText(messageId);
-
+			CharSequence title = null;
+			CharSequence message = null;
+			try
+			{
+            	title = r.getText(titleId);
+            	message = r.getText(messageId);
+			}catch(Exception e)
+			{
+				title = mContext.getResources().getString(titleId);
+				message = mContext.getResources().getString(messageId);
+			}
             if (mMediaStorageNotification == null) {
                 mMediaStorageNotification = new Notification();
                 mMediaStorageNotification.when = 0;

@@ -209,7 +209,7 @@ MediaScanResult MediaScanner::doProcessDirectoryEntry(
         return MEDIA_SCAN_RESULT_SKIPPED;
     }
     strcpy(fileSpot, name);
-	
+
 	LOGD("to scan %s", path);
     int type = entry->d_type;
     if (type == DT_UNKNOWN) {

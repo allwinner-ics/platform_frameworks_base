@@ -33,6 +33,13 @@ import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.TelephonyProperties;
 
 import java.util.List;
+import java.util.Properties;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringBufferInputStream;
 
 /**
  * Provides access to information about the telephony services on
@@ -60,16 +67,16 @@ public class TelephonyManager {
 
     /** @hide */
     public TelephonyManager(Context context) {
-        context = context.getApplicationContext();
         if (sContext == null) {
-            sContext = context;
+            Context appContext = context.getApplicationContext();
+            if (appContext != null) {
+                sContext = appContext;
+            } else {
+                sContext = context;
+            }
 
             sRegistry = ITelephonyRegistry.Stub.asInterface(ServiceManager.getService(
                     "telephony.registry"));
-        } else if (sContext != context) {
-            Log.e(TAG, "Hidden constructor called more than once per process!");
-            Log.e(TAG, "Original: " + sContext.getPackageName() + ", new: " +
-                    context.getPackageName());
         }
     }
 
@@ -192,14 +199,84 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getDeviceId() {
-//        try {
-//            return getSubscriberInfo().getDeviceId();
-//        } catch (RemoteException ex) {
- Log.e(TAG,"app need deviced id here+++++++++++++++++++++++++++++++++++++++++");
-            return "352005048247251";
-//        } catch (NullPointerException ex) {
-//            return "352005048247251";
-//        }
+	        String device_id = "xxx";
+	        String IMEI_FILE = "/data/misc/radio/imei.conf";
+			try {
+				device_id = getSubscriberInfo().getDeviceId();
+				if(device_id != null){
+					if(SystemProperties.get(TelephonyProperties.PROPERTY_OPERATOR_ISO_COUNTRY).equals("")) {
+ 				        Properties tProperties = new Properties();
+				        try {
+					        FileInputStream infile = new FileInputStream(IMEI_FILE);
+					        tProperties.load(infile);
+					        infile.close();
+					        device_id = tProperties.getProperty("IMEI", null);
+					        return device_id;
+					    } catch (IOException ex1) {
+					    	//do nothing
+					    	device_id = "352005048247251";
+					    }
+            		}
+            		return device_id;
+            	}else if(device_id.equals("")){
+					//do nothing
+					device_id = "352005048247251";
+            	}
+				return device_id;
+			} catch (RemoteException ex) {
+				//do nothing
+				return "352005048247251";
+			} catch (NullPointerException ex) {
+				Properties tProperties = new Properties();
+				try {
+			        FileInputStream infile = new FileInputStream(IMEI_FILE);
+			        tProperties.load(infile);
+			        infile.close();
+			        device_id = tProperties.getProperty("IMEI", null);
+			    } catch (IOException ex2) {
+					try {
+						File tfile = new File(IMEI_FILE);
+					    FileOutputStream outfile = new FileOutputStream(tfile);
+			        	/* generate 1 million imei */
+						String[] tac = {
+							 "35793200", "35795200", "35881700", "35936500", "35227201",
+							 "35707000", "35973200","35227301", "35227401", "35200504",
+						};
+						/* 100000-999999,random 6 bits*/
+						String rand = String.valueOf( (int)(Math.random()*899999+100000) ); 
+						int index = (int)(Math.random()*10); /* 0-9	*/
+						String cd = null, num = null, str = null;
+
+						if(index >= 10 || index < 0)
+							index = 0;
+						/* generate check digital, cd is 1 bit	*/
+						num = tac[index] + rand;
+				        final int[][] sumTable = {{0,2,4,6,8,1,3,5,7,9}, {0,1,2,3,4,5,6,7,8,9}};
+				        int sum = 0, flip = 0;
+				        for (int i = num.length() - 1; i >= 0; i--) {
+				            sum += sumTable[flip++ & 0x1][Character.digit(num.charAt(i), 10)];
+				        }				        int modulusResult = (sum % 10);
+				        int checkDigit = ((modulusResult==0)? modulusResult: (10-modulusResult));
+						cd = String.valueOf(checkDigit);
+						device_id = tac[index] + rand + cd; // total 15 bit
+		                tProperties.setProperty("IMEI", device_id);
+		                tProperties.store(outfile, "");
+		                outfile.close();
+		                /* chomd 666 IMEI_FILE	*/
+		                try {
+						    String command = "chmod 666 " + IMEI_FILE;
+						    Runtime runtime = Runtime.getRuntime();
+						    Process proc = runtime.exec(command);
+					    } catch (IOException exx) {
+					    	//do nothing
+					    	device_id = "352005048247251";
+					    }
+					} catch (IOException ex3) {
+		                device_id = "352005048247251";
+					}
+			    }
+		        return device_id;
+		    }
     }
 
     /**

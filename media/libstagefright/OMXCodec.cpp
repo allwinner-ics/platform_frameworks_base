@@ -109,6 +109,7 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_IMAGE_JPEG, "OMX.TI.JPEG.decode" },
 //    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.TI.MP3.decode" },
     { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.google.mp3.decoder" },
+    { MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II, "OMX.Nvidia.mp2.decoder" },
 //    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.TI.AMR.decode" },
 //    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.Nvidia.amr.decoder" },
     { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.google.amrnb.decoder" },
@@ -519,6 +520,85 @@ sp<MediaSource> OMXCodec::Create(
     return NULL;
 }
 
+status_t OMXCodec::parseAVCCodecSpecificData(
+        const void *data, size_t size,
+        unsigned *profile, unsigned *level) {
+    const uint8_t *ptr = (const uint8_t *)data;
+
+    // verify minimum size and configurationVersion == 1.
+    if (size < 7 || ptr[0] != 1) {
+        return ERROR_MALFORMED;
+    }
+
+    *profile = ptr[1];
+    *level = ptr[3];
+
+    // There is decodable content out there that fails the following
+    // assertion, let's be lenient for now...
+    // CHECK((ptr[4] >> 2) == 0x3f);  // reserved
+
+    size_t lengthSize = 1 + (ptr[4] & 3);
+
+    // commented out check below as H264_QVGA_500_NO_AUDIO.3gp
+    // violates it...
+    // CHECK((ptr[5] >> 5) == 7);  // reserved
+
+    size_t numSeqParameterSets = ptr[5] & 31;
+
+    ptr += 6;
+    size -= 6;
+
+    for (size_t i = 0; i < numSeqParameterSets; ++i) {
+        if (size < 2) {
+            return ERROR_MALFORMED;
+        }
+
+        size_t length = U16_AT(ptr);
+
+        ptr += 2;
+        size -= 2;
+
+        if (size < length) {
+            return ERROR_MALFORMED;
+        }
+
+        addCodecSpecificData(ptr, length);
+
+        ptr += length;
+        size -= length;
+    }
+
+    if (size < 1) {
+        return ERROR_MALFORMED;
+    }
+
+    size_t numPictureParameterSets = *ptr;
+    ++ptr;
+    --size;
+
+    for (size_t i = 0; i < numPictureParameterSets; ++i) {
+        if (size < 2) {
+            return ERROR_MALFORMED;
+        }
+
+        size_t length = U16_AT(ptr);
+
+        ptr += 2;
+        size -= 2;
+
+        if (size < length) {
+            return ERROR_MALFORMED;
+        }
+
+        addCodecSpecificData(ptr, length);
+
+        ptr += length;
+        size -= length;
+    }
+
+    return OK;
+}
+
 status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
     LOGV("configureCodec protected=%d",
          (mFlags & kEnableGrallocUsageProtected) ? 1 : 0);
@@ -541,66 +621,17 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
         } else if (meta->findData(kKeyAVCC, &type, &data, &size)) {
             // Parse the AVCDecoderConfigurationRecord
 
-            const uint8_t *ptr = (const uint8_t *)data;
-
-            CHECK(size >= 7);
-            CHECK_EQ((unsigned)ptr[0], 1u);  // configurationVersion == 1
-            uint8_t profile = ptr[1];
-            uint8_t level = ptr[3];
-
-            // There is decodable content out there that fails the following
-            // assertion, let's be lenient for now...
-            // CHECK((ptr[4] >> 2) == 0x3f);  // reserved
-
-            size_t lengthSize = 1 + (ptr[4] & 3);
-
-            // commented out check below as H264_QVGA_500_NO_AUDIO.3gp
-            // violates it...
-            // CHECK((ptr[5] >> 5) == 7);  // reserved
-
-            size_t numSeqParameterSets = ptr[5] & 31;
-
-            ptr += 6;
-            size -= 6;
-
-            for (size_t i = 0; i < numSeqParameterSets; ++i) {
-                CHECK(size >= 2);
-                size_t length = U16_AT(ptr);
-
-                ptr += 2;
-                size -= 2;
-
-                CHECK(size >= length);
-
-                addCodecSpecificData(ptr, length);
-
-                ptr += length;
-                size -= length;
-            }
-
-            CHECK(size >= 1);
-            size_t numPictureParameterSets = *ptr;
-            ++ptr;
-            --size;
-
-            for (size_t i = 0; i < numPictureParameterSets; ++i) {
-                CHECK(size >= 2);
-                size_t length = U16_AT(ptr);
-
-                ptr += 2;
-                size -= 2;
-
-                CHECK(size >= length);
-
-                addCodecSpecificData(ptr, length);
-
-                ptr += length;
-                size -= length;
+            unsigned profile, level;
+            status_t err;
+            if ((err = parseAVCCodecSpecificData(
+                            data, size, &profile, &level)) != OK) {
+                LOGE("Malformed AVC codec specific data.");
+                return err;
             }
 
             CODEC_LOGI(
-                    "AVC profile = %d (%s), level = %d",
-                    (int)profile, AVCProfileToString(profile), level);
+                    "AVC profile = %u (%s), level = %u",
+                    profile, AVCProfileToString(profile), level);
 
             if (!strcmp(mComponentName, "OMX.TI.Video.Decoder")
                 && (profile != kAVCProfileBaseline || level > 30)) {
@@ -849,8 +880,6 @@ static size_t getFrameSize(
     switch (colorFormat) {
         case OMX_COLOR_FormatYCbYCr:
         case OMX_COLOR_FormatCbYCrY:
-        case OMX_CEDAR_COLOR_FormatYVU422MB:
-        case OMX_CEDAR_COLOR_FormatYVU422Planar:
             return width * height * 2;
 
         case OMX_COLOR_FormatYUV420Planar:
@@ -865,12 +894,7 @@ static size_t getFrameSize(
         * this part in the future
         */
         case OMX_COLOR_FormatAndroidOpaque:
-        case OMX_CEDAR_COLOR_FormatYVU420Planar:
-        case OMX_CEDAR_COLOR_FormatYVU420MB:
             return (width * height * 3) / 2;
-
-        case OMX_COLOR_Format24bitRGB888:
-        	return width * height * 3;
 
         default:
             CHECK(!"Should not be here. Unsupported color format.");
@@ -1379,12 +1403,7 @@ status_t OMXCodec::setVideoOutputFormat(
                || format.eColorFormat == OMX_COLOR_FormatYUV420SemiPlanar
                || format.eColorFormat == OMX_COLOR_FormatCbYCrY
                || format.eColorFormat == OMX_TI_COLOR_FormatYUV420PackedSemiPlanar
-               || format.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar
-               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU420Planar
-               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU422Planar
-               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU420MB
-               || format.eColorFormat == OMX_CEDAR_COLOR_FormatYVU422MB
-               || format.eColorFormat == OMX_COLOR_Format24bitRGB888);
+               || format.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar);
 
         err = mOMX->setParameter(
                 mNode, OMX_IndexParamVideoPortFormat,
@@ -1483,7 +1502,9 @@ OMXCodec::OMXCodec(
       mOutputPortSettingsChangedPending(false),
       mLeftOverBuffer(NULL),
       mPaused(false),
-      mNativeWindow(!strncmp(componentName, "OMX.google.", 11)
+      mNativeWindow(
+              (!strncmp(componentName, "OMX.google.", 11)
+              || !strcmp(componentName, "OMX.Nvidia.mpeg2v.decode"))
                         ? NULL : nativeWindow) {
     mPortStatus[kPortIndexInput] = ENABLED;
     mPortStatus[kPortIndexOutput] = ENABLED;
@@ -1502,6 +1523,12 @@ void OMXCodec::setComponentRole(
     };
 
     static const MimeToRole kMimeToRole[] = {
+        { MEDIA_MIMETYPE_AUDIO_MPEG,
+            "audio_decoder.mp3", "audio_encoder.mp3" },
+        { MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_I,
+            "audio_decoder.mp1", "audio_encoder.mp1" },
+        { MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II,
+            "audio_decoder.mp2", "audio_encoder.mp2" },
         { MEDIA_MIMETYPE_AUDIO_MPEG,
             "audio_decoder.mp3", "audio_encoder.mp3" },
         { MEDIA_MIMETYPE_AUDIO_AMR_NB,
@@ -2323,9 +2350,7 @@ void OMXCodec::on_message(const omx_message &msg) {
                     CODEC_LOGE(
                             "Codec lied about its buffer size requirements, "
                             "sending a buffer larger than the originally "
-                            "advertised size in FILL_BUFFER_DONE!"
-                    		"msg.u.extended_buffer_data.range_offset:%d, msg.u.extended_buffer_data.range_length:%d, buffer->size():%d",
-                    		msg.u.extended_buffer_data.range_offset,msg.u.extended_buffer_data.range_length,buffer->size());
+                            "advertised size in FILL_BUFFER_DONE!");
                 }
                 buffer->set_range(
                         msg.u.extended_buffer_data.range_offset,
@@ -3061,8 +3086,6 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
         return false;
     }
 
-    OMX_U32 flags = 0;
-
     if (mCodecSpecificDataIndex < mCodecSpecificData.size()) {
         CHECK(!(mFlags & kUseSecureInputBuffers));
 
@@ -3129,7 +3152,6 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
             options.setSeekTo(mSeekTimeUs, mSeekMode);
 
             mSeekTimeUs = -1;
-            flags |= OMX_BUFFERFLAG_VENDOR_SEEK_SYNC;
             mSeekMode = ReadOptions::SEEK_CLOSEST_SYNC;
             mBufferFilled.signal();
 
@@ -3277,7 +3299,7 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
         LOGV("coalesced %d frames into one input buffer", n);
     }
 
-    flags |= OMX_BUFFERFLAG_ENDOFFRAME;
+    OMX_U32 flags = OMX_BUFFERFLAG_ENDOFFRAME;
 
     if (signalEOS) {
         flags |= OMX_BUFFERFLAG_EOS;

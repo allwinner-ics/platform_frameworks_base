@@ -70,6 +70,9 @@ static int getCallingUid() {
 // should be ok for now.
 static CameraService *gCameraService;
 
+// define and initialize static class member
+int CameraService::mOverlayScreen = MASTER_SCREEN;
+
 CameraService::CameraService()
 :mSoundRef(0), mModule(0)
 {
@@ -107,6 +110,17 @@ void CameraService::onFirstRef()
     } else {
         mAudioStreamType = AUDIO_STREAM_MUSIC;
     }
+	
+	char prop_value[PROPERTY_VALUE_MAX];
+    if (property_get(PROP_CAMERA_KEY, prop_value, PROP_SCREEN_DEFAULT_VALUE) > 0)
+    {
+	    LOGV("camera prop_value = %s", prop_value);
+	    String8 value_screen( prop_value );
+	    if(value_screen == PROP_MASTER_SCREEN)
+	        mOverlayScreen = MASTER_SCREEN;
+	    else
+	        mOverlayScreen = SLAVE_SCREEN;
+    }
 }
 
 CameraService::~CameraService() {
@@ -117,6 +131,34 @@ CameraService::~CameraService() {
     }
 
     gCameraService = NULL;
+}
+
+// add for switch camera overlay surface
+int CameraService::setCameraScreen(int32_t screen)
+{
+	LOGD("CameraService::setCameraScreen: %d", screen);
+	sp<Client> client;
+	
+	mOverlayScreen = screen;
+	
+	if(mOverlayScreen == MASTER_SCREEN)
+        property_set(PROP_CAMERA_KEY, PROP_MASTER_SCREEN);
+    else
+        property_set(PROP_CAMERA_KEY, PROP_SLAVE_SCREEN);
+	
+	for(int i = 0; i < MAX_CAMERAS; i++)
+	{
+		if(mClient[i] != 0)
+		{
+			client = mClient[i].promote();
+	        if (client != 0) 
+	        {
+	            client->sendCommand(CAMERA_CMD_SET_SCREEN_ID, screen, 0);
+	        }
+		}
+	}
+		
+	return OK;
 }
 
 int32_t CameraService::getNumberOfCameras() {
@@ -542,6 +584,9 @@ status_t CameraService::Client::setPreviewWindow(const sp<IBinder>& binder,
         }
     }
 
+	// 
+	mHardware->sendCommand(CAMERA_CMD_SET_SCREEN_ID, mOverlayScreen, 0);
+
     // If preview has been already started, register preview buffers now.
     if (mHardware->previewEnabled()) {
         if (window != 0) {
@@ -854,6 +899,12 @@ status_t CameraService::Client::sendCommand(int32_t cmd, int32_t arg1, int32_t a
     LOG1("sendCommand (pid %d)", getCallingPid());
     int orientation;
     Mutex::Autolock lock(mLock);
+
+	if (cmd == CAMERA_CMD_SET_SCREEN_ID)
+	{
+		return mHardware->sendCommand(cmd, arg1, arg2);
+	}
+	
     status_t result = checkPidAndHardware();
     if (result != NO_ERROR) return result;
 

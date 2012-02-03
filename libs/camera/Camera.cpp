@@ -101,6 +101,16 @@ Camera::~Camera()
     // deadlock if we call any method of ICamera here.
 }
 
+// add for set overlay screen
+int Camera::setCameraScreen(int screen)
+{
+	LOGD("setCameraScreen: %d", screen);		
+	const sp<ICameraService>& cs = getCameraService();
+    if (cs == 0) return UNKNOWN_ERROR;
+
+    return cs->setCameraScreen(screen);
+}
+
 int32_t Camera::getNumberOfCameras()
 {
     const sp<ICameraService>& cs = getCameraService();

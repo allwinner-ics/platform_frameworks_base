@@ -57,10 +57,7 @@ public class MediaFile {
     private static final int FIRST_MIDI_FILE_TYPE = FILE_TYPE_MID;
     private static final int LAST_MIDI_FILE_TYPE = FILE_TYPE_IMY;
    
-    private static final int FILE_TYPE_CEDARA = 16;
-   
     // Video file types
-    public static final int FILE_TYPE_CEDARV  = 20;
     public static final int FILE_TYPE_MP4     = 21;
     public static final int FILE_TYPE_M4V     = 22;
     public static final int FILE_TYPE_3GPP    = 23;
@@ -71,9 +68,18 @@ public class MediaFile {
     public static final int FILE_TYPE_MP2TS   = 28;
     public static final int FILE_TYPE_AVI     = 29;
     public static final int FILE_TYPE_WEBM    = 30;
-    private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_CEDARV;
+    private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
     private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_WEBM;
     
+    // More video file types
+    public static final int FILE_TYPE_MP2PS   = 200;
+    public static final int FILE_TYPE_CEDARV  = 201;
+    private static final int FIRST_VIDEO_FILE_TYPE2 = FILE_TYPE_MP2PS;
+    private static final int LAST_VIDEO_FILE_TYPE2 = FILE_TYPE_CEDARV;
+    
+    // More audio file types
+    private static final int FILE_TYPE_CEDARA = 300;
+
     // Image file types
     public static final int FILE_TYPE_JPEG    = 31;
     public static final int FILE_TYPE_GIF     = 32;
@@ -145,29 +151,27 @@ public class MediaFile {
     }
 
     private static boolean isWMAEnabled() {
-//        List<AudioDecoder> decoders = DecoderCapabilities.getAudioDecoders();
-//        int count = decoders.size();
-//        for (int i = 0; i < count; i++) {
-//            AudioDecoder decoder = decoders.get(i);
-//            if (decoder == AudioDecoder.AUDIO_DECODER_WMA) {
-//                return true;
-//            }
-//        }
-//        return false;
-		return true;
+        List<AudioDecoder> decoders = DecoderCapabilities.getAudioDecoders();
+        int count = decoders.size();
+        for (int i = 0; i < count; i++) {
+            AudioDecoder decoder = decoders.get(i);
+            if (decoder == AudioDecoder.AUDIO_DECODER_WMA) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isWMVEnabled() {
-//        List<VideoDecoder> decoders = DecoderCapabilities.getVideoDecoders();
-//        int count = decoders.size();
-//        for (int i = 0; i < count; i++) {
-//            VideoDecoder decoder = decoders.get(i);
-//            if (decoder == VideoDecoder.VIDEO_DECODER_WMV) {
-//                return true;
-//            }
-//        }
-//        return false;
-		return true;
+        List<VideoDecoder> decoders = DecoderCapabilities.getVideoDecoders();
+        int count = decoders.size();
+        for (int i = 0; i < count; i++) {
+            VideoDecoder decoder = decoders.get(i);
+            if (decoder == VideoDecoder.VIDEO_DECODER_WMV) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static {
@@ -176,9 +180,9 @@ public class MediaFile {
         addFileType("WAV", FILE_TYPE_WAV, "audio/x-wav", MtpConstants.FORMAT_WAV);
         addFileType("AMR", FILE_TYPE_AMR, "audio/amr");
         addFileType("AWB", FILE_TYPE_AWB, "audio/amr-wb");
-        if (isWMAEnabled()) {
+        //if (isWMAEnabled()) {
             addFileType("WMA", FILE_TYPE_WMA, "audio/x-ms-wma", MtpConstants.FORMAT_WMA);
-        }
+        //}
         addFileType("OGG", FILE_TYPE_OGG, "application/ogg", MtpConstants.FORMAT_OGG);
         addFileType("OGA", FILE_TYPE_OGG, "application/ogg", MtpConstants.FORMAT_OGG);
         addFileType("AAC", FILE_TYPE_AAC, "audio/aac", MtpConstants.FORMAT_AAC);
@@ -192,6 +196,8 @@ public class MediaFile {
         addFileType("OMG", FILE_TYPE_CEDARA, "audio/cedara");
         addFileType("M4R", FILE_TYPE_CEDARA, "audio/cedara");
         addFileType("RA",  FILE_TYPE_CEDARA, "audio/cedara");
+        //addFileType("MP1", FILE_TYPE_CEDARA, "audio/cedara");
+        //addFileType("MP2", FILE_TYPE_CEDARA, "audio/cedara");
  
         addFileType("MID", FILE_TYPE_MID, "audio/midi");
         addFileType("MIDI", FILE_TYPE_MID, "audio/midi");
@@ -225,15 +231,14 @@ public class MediaFile {
 		addFileType("FLV", FILE_TYPE_CEDARV, "video/cedarx");
 		addFileType("F4V", FILE_TYPE_CEDARV, "video/cedarx");
 		addFileType("VOB", FILE_TYPE_CEDARV, "video/cedarx");
-		addFileType("MPG", FILE_TYPE_CEDARV, "video/cedarx");
 		addFileType("PMP", FILE_TYPE_CEDARV, "video/cedarx");
 		addFileType("3DM", FILE_TYPE_CEDARV, "video/cedarx");
 		addFileType("3DV", FILE_TYPE_CEDARV, "video/cedarx");
 
-        if (isWMVEnabled()) {
+        //if (isWMVEnabled()) {
             addFileType("WMV", FILE_TYPE_WMV, "video/x-ms-wmv", MtpConstants.FORMAT_WMV);
             addFileType("ASF", FILE_TYPE_ASF, "video/x-ms-asf");
-        }
+        //}
 
         addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg", MtpConstants.FORMAT_EXIF_JPEG);
         addFileType("JPEG", FILE_TYPE_JPEG, "image/jpeg", MtpConstants.FORMAT_EXIF_JPEG);
@@ -262,6 +267,8 @@ public class MediaFile {
         addFileType("PPT", FILE_TYPE_MS_POWERPOINT, "application/mspowerpoint", MtpConstants.FORMAT_MS_POWERPOINT_PRESENTATION);
         addFileType("FLAC", FILE_TYPE_FLAC, "audio/flac", MtpConstants.FORMAT_FLAC);
         addFileType("ZIP", FILE_TYPE_ZIP, "application/zip");
+        addFileType("MPG", FILE_TYPE_MP2PS, "video/mp2p");
+        addFileType("MPEG", FILE_TYPE_MP2PS, "video/mp2p");
     }
 
     public static boolean isAudioFileType(int fileType) {
@@ -274,7 +281,9 @@ public class MediaFile {
 
     public static boolean isVideoFileType(int fileType) {
         return (fileType >= FIRST_VIDEO_FILE_TYPE &&
-                fileType <= LAST_VIDEO_FILE_TYPE);
+                fileType <= LAST_VIDEO_FILE_TYPE)
+            || (fileType >= FIRST_VIDEO_FILE_TYPE2 &&
+                fileType <= LAST_VIDEO_FILE_TYPE2);
     }
 
     public static boolean isImageFileType(int fileType) {

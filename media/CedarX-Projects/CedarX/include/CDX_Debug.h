@@ -5,11 +5,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-//#define _FILE_OFFSET_BITS 64
-//#define __USE_FILE_OFFSET64
-//#define __USE_LARGEFILE64
-//#define _LARGEFILE64_SOURCE
-
+#define CEDARX_VERSION 0x00010604
 
 #include<CDX_MemWatch.h>
 

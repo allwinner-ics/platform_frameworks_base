@@ -183,7 +183,7 @@ static int ff_mpegaudio_decode_header(MPADecodeHeader *s, uint32_t header)
 
 /* useful helper to get mpeg audio stream infos. Return -1 if error in
    header, otherwise the coded frame size in bytes */
-static int ff_mpa_decode_header(uint32_t head, int *sample_rate, int *channels, int *frame_size, int *bit_rate)
+static int ff_mpa_decode_header(uint32_t head, int *sample_rate, int *channels, int *frame_size, int *bit_rate,int *layer)
 {
     MPADecodeHeader s1, *s = &s1;
 
@@ -216,6 +216,7 @@ static int ff_mpa_decode_header(uint32_t head, int *sample_rate, int *channels, 
     *sample_rate = s->sample_rate;
     *channels = s->nb_channels;
     *bit_rate = s->bit_rate;
+    *layer = s->layer;
     //avctx->sub_id = s->layer;
     return s->frame_size;
 }
@@ -226,6 +227,7 @@ static int mp3_probe(media_probe_data_t *p)
     int fsize, frames, sample_rate;
     uint32_t header;
     uint8_t *buf, *buf0, *buf2, *end;
+    int layer = 0;
 
     buf0 = p->buf;
     if(ff_id3v2_match(buf0)) {
@@ -243,9 +245,9 @@ static int mp3_probe(media_probe_data_t *p)
 
         for(frames = 0; buf2 < end; frames++) {
             header = AV_RB32(buf2);
-            fsize = ff_mpa_decode_header(header, &sample_rate, &sample_rate, &sample_rate, &sample_rate);
+            fsize = ff_mpa_decode_header(header, &sample_rate, &sample_rate, &sample_rate, &sample_rate,&layer);
             if(fsize < 0)
-                break;
+                return 0;//break;//for error check aac->mp3;
             buf2 += fsize;
         }
         max_frames = FFMAX(max_frames, frames);
@@ -257,6 +259,8 @@ static int mp3_probe(media_probe_data_t *p)
 
     // keep this in sync with ac3 probe, both need to avoid
     // issues with MPEG-files!
+    if((layer==1)||(layer==2))
+        return AVPROBE_SCORE_MAX -3;
     if   (first_frames>=4) return AVPROBE_SCORE_MAX/2+1;
     else if(max_frames>500)return AVPROBE_SCORE_MAX/2;
     else if(max_frames>=2) return AVPROBE_SCORE_MAX/4;
@@ -321,6 +325,22 @@ static int wav_probe(media_probe_data_t *p)
         			return AVPROBE_SCORE_MAX - 2; //DTS
         		}
         	}
+            //add for adpcm call  CedarA
+            for(i=12; i<(buflen > 512 ? 512 : buflen); i++)
+        	{
+        	    if((ptr[i] == 0x66)&&(ptr[i+1] == 0x6D)&&(ptr[i+2] == 0x74)&&(ptr[i+3] == 0x20))//fmt
+        			break;
+        	}
+            if(i<buflen-10)
+            {
+                unsigned int tempWavTag = ptr[i+8]|((unsigned int)(ptr[i+9])<<8);
+                LOGV("WAV FOR tag =%d\n",tempWavTag);
+                if((tempWavTag != 1)&&(tempWavTag != 6)&&(tempWavTag != 7))
+                {
+                    return AVPROBE_SCORE_MAX -3;
+                }
+            }
+            
 
             return AVPROBE_SCORE_MAX - 1;
         }
@@ -450,9 +470,15 @@ int audio_format_detect(unsigned char *buf, int buf_size)
 	if(amr_probe(&prob) > 0){
 		return MEDIA_FORMAT_AMR;
 	}
-
-	if(mp3_probe(&prob) >= AVPROBE_SCORE_MAX/4-1){
-		return MEDIA_FORMAT_MP3;
+    
+	if((ret = mp3_probe(&prob)) >= AVPROBE_SCORE_MAX/4-1){
+        if(ret == (AVPROBE_SCORE_MAX - 3)) {
+			return MEDIA_FORMAT_CEDARA;//mp1,mp2
+		}
+        else
+        {
+		    return MEDIA_FORMAT_MP3;
+        }
 	}
 
 	if(ff_id3v2_match(buf)) {
@@ -464,6 +490,10 @@ int audio_format_detect(unsigned char *buf, int buf_size)
 	if( (ret = wav_probe(&prob)) > 0){
 		if(ret == (AVPROBE_SCORE_MAX - 2)) {
 			return MEDIA_FORMAT_DTS;
+		}
+        else if(ret == (AVPROBE_SCORE_MAX - 3)) {
+        	LOGD("adpcm probe!");
+			return MEDIA_FORMAT_CEDARA;//adpcm
 		}
 		else {
 			return MEDIA_FORMAT_WAV;

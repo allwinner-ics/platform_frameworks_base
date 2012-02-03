@@ -59,6 +59,8 @@ import android.net.IThrottleManager;
 import android.net.Uri;
 import android.net.wifi.IWifiManager;
 import android.net.wifi.WifiManager;
+import android.net.ethernet.IEthernetManager;
+import android.net.ethernet.EthernetManager;
 import android.net.wifi.p2p.IWifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.nfc.NfcManager;
@@ -448,6 +450,15 @@ class ContextImpl extends Context {
                     IWifiP2pManager service = IWifiP2pManager.Stub.asInterface(b);
                     return new WifiP2pManager(service);
                 }});
+
+		/*  Begin ethernet_service (add by shuge@allwinnertech.com)  */
+        registerService(ETHERNET_SERVICE, new ServiceFetcher() {
+                public Object createService(ContextImpl ctx) {
+                    IBinder b = ServiceManager.getService(ETHERNET_SERVICE);
+                    IEthernetManager service = IEthernetManager.Stub.asInterface(b);
+                    return new EthernetManager(service, ctx.mMainThread.getHandler());
+                }});
+		/*  End ethernet_service (add by shuge@allwinnertech.com)  */
 
 		registerService(DISPLAY_SERVICE, new ServiceFetcher() {
                 public Object createService(ContextImpl ctx) {

@@ -1,4 +1,4 @@
-// #define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "CedarXRecorder"
 #include <utils/Log.h>
 
@@ -16,6 +16,8 @@
 #include <CDX_PlayerAPI.h>
 
 #define F_LOG 	LOGV("%s, line: %d", __FUNCTION__, __LINE__);
+
+extern "C" int CedarXRecorderCallbackWrapper(void *cookie, int event, void *info);
 
 namespace android {
 
@@ -452,6 +454,9 @@ status_t CedarXRecorder::prepare()
 		printf("CEDARX REPARE ERROR!\n");
 		return UNKNOWN_ERROR;
 	}
+
+	// register callback
+	CDXRecorder_Control(CDX_CMD_REGISTER_CALLBACK, (unsigned int)&CedarXRecorderCallbackWrapper, (unsigned int)this);
 	
 	// set file handle to CDX_Recorder render component
 	ret = CDXRecorder_Control(CDX_CMD_SET_SAVE_FILE, (unsigned int)mOutputFd, 0);
@@ -868,6 +873,8 @@ void CedarXRecorder::CameraProxyListener::dataCallbackTimestamp(
     mRecorder->dataCallbackTimestamp(timestamp / 1000, msgType, dataPtr);
 }
 
+#if 0
+
 extern "C" int CedarXRecReadAudioBuffer(void *p, void *pbuf, int *size, int64_t *timeStamp)
 {
 	return ((android::CedarXRecorder*)p)->CedarXReadAudioBuffer(pbuf, size, timeStamp);
@@ -877,6 +884,36 @@ extern "C" void CedarXRecReleaseOneFrame(void *p, int index)
 {
 	((android::CedarXRecorder*)p)->CedarXReleaseFrame(index);
 }
+
+#else
+
+int CedarXRecorder::CedarXRecorderCallback(int event, void *info)
+{
+	int ret = 0;
+	int *para = (int*)info;
+
+	//LOGV("----------CedarXRecorderCallback event:%d info:%p\n", event, info);
+
+	switch (event) {
+	case CDX_EVENT_READ_AUDIO_BUFFER:
+		CedarXReadAudioBuffer((void *)para[0], (int*)para[1], (int64_t*)para[2]);
+		break;
+	case CDX_EVENT_RELEASE_VIDEO_BUFFER:
+		CedarXReleaseFrame(*para);
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+extern "C" int CedarXRecorderCallbackWrapper(void *cookie, int event, void *info)
+{
+	return ((android::CedarXRecorder *)cookie)->CedarXRecorderCallback(event, info);
+}
+
+#endif
 
 }  // namespace android
 

@@ -25,12 +25,17 @@ enum IOCTL_CMD {
 	IOCTL_FLUSH_CACHE,
 };
 
-
 typedef struct CEDARV_ENV_INFOMATION{
 	unsigned int phymem_start;
 	int  phymem_total_size;
 	unsigned int  address_macc;
 }cedarv_env_info_t;
+
+enum CEDARX_CACHE_OP {
+	CEDARX_DCACHE_FLUSH = 0,
+	CEDARX_DCACHE_CLEAN_FLUSH,
+	CEDARX_DCACHE_FLUSH_ALL,
+};
 
 typedef struct cedarv_cache_range_{
 	long start;

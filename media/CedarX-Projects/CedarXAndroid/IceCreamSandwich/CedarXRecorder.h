@@ -66,6 +66,8 @@ public:
 	status_t setParamTimeLapseEnable(int32_t timeLapseEnable);
     status_t setParamTimeBetweenTimeLapseFrameCapture(int64_t timeUs);
 
+	int CedarXRecorderCallback(int event, void *info);
+
 	class CameraProxyListener: public BnCameraRecordingProxyListener {
 	public:
 		CameraProxyListener(CedarXRecorder* recorder);

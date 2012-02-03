@@ -249,6 +249,8 @@ extmap FILE_EXTS [] =  {
         {".dts", CEDARA_PLAYER},
         {".wma", CEDARA_PLAYER},
         {".aac", CEDARA_PLAYER},
+        {".mp2", CEDARA_PLAYER},
+        {".mp1", CEDARA_PLAYER},
 };
 
 // TODO: Find real cause of Audio/Video delay in PV framework and remove this workaround
@@ -721,7 +723,7 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
     	return CEDARA_PLAYER;
     }
 
-    return getDefaultPlayerType();
+    return STAGEFRIGHT_PLAYER; //getDefaultPlayerType();
 }
 
 player_type getPlayerType(const char* url)
@@ -740,6 +742,10 @@ player_type getPlayerType(const char* url)
         if (strstr(url,"m3u8")) {
             return NU_PLAYER;
         }
+    }
+
+    if (!strncasecmp("rtsp://", url, 7)) {
+        return NU_PLAYER;
     }
 #endif
     // use MidiFile for MIDI extensions
@@ -1016,17 +1022,6 @@ status_t MediaPlayerService::Client::setDataSource(
     return mStatus;
 }
 
-status_t MediaPlayerService::Client::setVideoSurface(const sp<Surface>& surface)
-{
-    LOGV("[%d] setVideoSurface(%p)", mConnId, surface.get());
-    sp<MediaPlayerBase> p = getPlayer();
-    if (p == 0) return UNKNOWN_ERROR;
-    /* add by Gary. start {{----------------------------------- */
-    mHasSurface = 1;
-    /* add by Gary. end   -----------------------------------}} */
-    return p->setVideoSurface(surface);
-}
-
 void MediaPlayerService::Client::disconnectNativeWindow() {
     if (mConnectedWindow != NULL) {
         status_t err = native_window_api_disconnect(mConnectedWindow.get(),
@@ -1076,6 +1071,10 @@ status_t MediaPlayerService::Client::setVideoSurfaceTexture(
     // disconnecting the old one.  Otherwise queue/dequeue calls could be made
     // on the disconnected ANW, which may result in errors.
     status_t err = p->setVideoSurfaceTexture(surfaceTexture);
+
+    /* add by Gary. start {{----------------------------------- */
+    mHasSurface = 1;
+    /* add by Gary. end   -----------------------------------}} */
 
     disconnectNativeWindow();
 
@@ -1925,7 +1924,6 @@ status_t MediaPlayerService::Client::setBlackExtend(int value)
 }
 
 /* add by Gary. end   -----------------------------------}} */
-
 void MediaPlayerService::Client::notify(
         void* cookie, int msg, int ext1, int ext2, const Parcel *obj)
 {

@@ -119,43 +119,43 @@ typedef struct _MediaPlayer_TrackInfo{
 /* add by Gary. end   -----------------------------------}} */
 
 
-/* input 3d mode
- * defined by ChenXiaoChuan.
- */
-typedef enum
-{
-	PICTURE_3D_MODE_NONE				= 0,
-	PICTURE_3D_MODE_DOUBLE_STREAM		= 1,
-	PICTURE_3D_MODE_SIDE_BY_SIDE		= 2,
-	PICTURE_3D_MODE_TOP_TO_BOTTOM		= 3,
-	PICTURE_3D_MODE_LINE_INTERLEAVE		= 4,
-	PICTURE_3D_MODE_COLUME_INTERLEAVE	= 5,
-}PICTURE_3D_MODE_E;
-
-/* output 3d mode.
- * defined by ChenXiaoChuan.
- */
-typedef enum
-{
-	DISPLAY_3D_MODE_2D				= 0,
-	DISPLAY_3D_MODE_3D				= 1,
-	DISPLAY_3D_MODE_HALF_PICTURE	= 2,
-	DISPLAY_3D_MODE_ANAGLAGH		= 3,
-}DISPLAY_3D_MODE_E;
-
-/* anaglagh transform mode.
- * defined by ChenXiaoChuan.
- */
-typedef enum
-{
-	//* for transmission from 'side by side' or 'top to bottom' mode to 'anaglagh' modes.
-	ANAGLAGH_RED_BLUE		= 0,
-	ANAGLAGH_RED_GREEN		= 1,
-	ANAGLAGH_RED_CYAN		= 2,
-	ANAGLAGH_COLOR			= 3,
-	ANAGLAGH_HALF_COLOR		= 4,
-	ANAGLAGH_OPTIMIZED		= 5,
-	ANAGLAGH_YELLOW_BLUE	= 6,
-}ANAGLATH_TRANSFORM_MODE_E;
+///* input 3d mode
+// * defined by ChenXiaoChuan.
+// */
+//typedef enum
+//{
+//	PICTURE_3D_MODE_NONE				= 0,
+//	PICTURE_3D_MODE_DOUBLE_STREAM		= 1,
+//	PICTURE_3D_MODE_SIDE_BY_SIDE		= 2,
+//	PICTURE_3D_MODE_TOP_TO_BOTTOM		= 3,
+//	PICTURE_3D_MODE_LINE_INTERLEAVE		= 4,
+//	PICTURE_3D_MODE_COLUME_INTERLEAVE	= 5,
+//}PICTURE_3D_MODE_E;
+//
+///* output 3d mode.
+// * defined by ChenXiaoChuan.
+// */
+//typedef enum
+//{
+//	DISPLAY_3D_MODE_2D				= 0,
+//	DISPLAY_3D_MODE_3D				= 1,
+//	DISPLAY_3D_MODE_HALF_PICTURE	= 2,
+//	DISPLAY_3D_MODE_ANAGLAGH		= 3,
+//}DISPLAY_3D_MODE_E;
+//
+///* anaglagh transform mode.
+// * defined by ChenXiaoChuan.
+// */
+//typedef enum
+//{
+//	//* for transmission from 'side by side' or 'top to bottom' mode to 'anaglagh' modes.
+//	ANAGLAGH_RED_BLUE		= 0,
+//	ANAGLAGH_RED_GREEN		= 1,
+//	ANAGLAGH_RED_CYAN		= 2,
+//	ANAGLAGH_COLOR			= 3,
+//	ANAGLAGH_HALF_COLOR		= 4,
+//	ANAGLAGH_OPTIMIZED		= 5,
+//	ANAGLAGH_YELLOW_BLUE	= 6,
+//}ANAGLATH_TRANSFORM_MODE_E;
 
 #endif // ANDROID_MEDIAPLAYER_H

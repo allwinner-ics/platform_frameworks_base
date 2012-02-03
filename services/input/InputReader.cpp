@@ -16,7 +16,7 @@
 
 #define LOG_TAG "InputReader"
 
-#define LOG_NDEBUG 1
+//#define LOG_NDEBUG 0
 
 // Log debug messages for each raw event received from the EventHub.
 #define DEBUG_RAW_EVENTS 0
@@ -39,7 +39,6 @@
 #include "InputReader.h"
 
 #include <cutils/log.h>
-#include <cutils/properties.h>
 #include <ui/Keyboard.h>
 #include <ui/VirtualKeyMap.h>
 
@@ -118,13 +117,7 @@ static const int32_t keyCodeRotationMap[][4] = {
         { AKEYCODE_DPAD_UP,     AKEYCODE_DPAD_LEFT,   AKEYCODE_DPAD_DOWN,   AKEYCODE_DPAD_RIGHT },
         { AKEYCODE_DPAD_LEFT,   AKEYCODE_DPAD_DOWN,   AKEYCODE_DPAD_RIGHT,  AKEYCODE_DPAD_UP },
 };
-
-//static const int32_t tp_para[7]={-69671,2328 ,53353268,329,-72405,32656364,65536};
-
-
 static bool resetTouch = false;
-
-
 static const size_t keyCodeRotationMapSize =
         sizeof(keyCodeRotationMap) / sizeof(keyCodeRotationMap[0]);
 
@@ -712,7 +705,6 @@ void InputReader::resetTouchCalibration()
 {    
      resetTouch = true;
 }
-
 void InputReader::dump(String8& dump) {
     AutoMutex _l(mLock);
 
@@ -1788,6 +1780,7 @@ void KeyboardInputMapper::populateDeviceInfo(InputDeviceInfo* info) {
     InputMapper::populateDeviceInfo(info);
 
     info->setKeyboardType(mKeyboardType);
+    info->setKeyCharacterMapFile(getEventHub()->getKeyCharacterMapFile(getDeviceId()));
 }
 
 void KeyboardInputMapper::dump(String8& dump) {
@@ -2341,20 +2334,7 @@ TouchInputMapper::TouchInputMapper(InputDevice* device) :
         InputMapper(device),
         mSource(0), mDeviceMode(DEVICE_MODE_DISABLED),
         mSurfaceOrientation(-1), mSurfaceWidth(-1), mSurfaceHeight(-1) {
-
-	char product[32];
-/*	
-	property_get("ro.build.product", product, NULL);
-
-	if( strcmp(product, "crane-evb") )
-		mNeedCorrect = false;	
-	else
-		mNeedCorrect = true;*/
-
 	mNeedCorrect = false;
-
-
-	LOGD("TouchInputMapper : product = %s, mNeedCorrect=%d", product, mNeedCorrect);
 }
 
 TouchInputMapper::~TouchInputMapper() {
@@ -2777,7 +2757,6 @@ _err_out:
 
     return 0;
 }
-
 
 void TouchInputMapper::configure(nsecs_t when,
         const InputReaderConfiguration* config, uint32_t changes) {
@@ -4227,7 +4206,8 @@ void TouchInputMapper::cookPointerData() {
             x = adjust_x;
             y = adjust_y;
             break;
-        }	
+        }
+
         // Write output coords.
         PointerCoords& out = mCurrentCookedPointerData.pointerCoords[i];
         out.clear();
@@ -5877,8 +5857,6 @@ void SingleTouchInputMapper::syncTouch(nsecs_t when, bool* outHavePointerIds) {
         if (outPointer.toolType == AMOTION_EVENT_TOOL_TYPE_UNKNOWN) {
             outPointer.toolType = AMOTION_EVENT_TOOL_TYPE_FINGER;
         }
-		
-		//mNeedCorrect = true;
         outPointer.isHovering = isHovering;
     }
 }
@@ -6004,8 +5982,7 @@ void MultiTouchInputMapper::syncTouch(nsecs_t when, bool* outHavePointerIds) {
 
         outCount += 1;
     }
-	
-    //mNeedCorrect = false;
+
     mCurrentRawPointerData.pointerCount = outCount;
     mPointerIdBits = newPointerIdBits;
 

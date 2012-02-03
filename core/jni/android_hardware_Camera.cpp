@@ -795,6 +795,14 @@ static void android_hardware_Camera_stopFaceDetection(JNIEnv *env, jobject thiz)
     }
 }
 
+// add for setting video screen
+static jint android_hardware_Camera_setCameraScreen(JNIEnv *env, jobject thiz,
+        jint screen)
+{
+    LOGV("JNI setCameraScreen"); 
+    return Camera::setCameraScreen(screen); 
+}
+
 //-------------------------------------------------
 
 static JNINativeMethod camMethods[] = {
@@ -870,6 +878,9 @@ static JNINativeMethod camMethods[] = {
   { "_stopFaceDetection",
     "()V",
     (void *)android_hardware_Camera_stopFaceDetection},
+  { "setCameraScreen",
+	"(I)I",
+	(void *)android_hardware_Camera_setCameraScreen },
 };
 
 struct field {

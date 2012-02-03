@@ -95,7 +95,7 @@ void LiveSession::disconnect() {
     (new AMessage(kWhatDisconnect, id()))->post();
 }
 
-void LiveSession::seekTo(int64_t timeUs) {
+int64_t LiveSession::seekTo(int64_t timeUs) {
     Mutex::Autolock autoLock(mLock);
     mSeekDone = false;
 
@@ -106,6 +106,7 @@ void LiveSession::seekTo(int64_t timeUs) {
     while (!mSeekDone) {
         mCondition.wait(mLock);
     }
+    return mSeekTargetStartUs;
 }
 
 void LiveSession::onMessageReceived(const sp<AMessage> &msg) {
@@ -549,6 +550,7 @@ rinse_repeat:
     bool bandwidthChanged = false;
 
     if (mSeekTimeUs >= 0) {
+    	mSeekTargetStartUs = 0;
         if (mPlaylist->isComplete()) {
             size_t index = 0;
             int64_t segmentStartUs = 0;
@@ -565,6 +567,7 @@ rinse_repeat:
                 }
 
                 segmentStartUs += itemDurationUs;
+                mSeekTargetStartUs += itemDurationUs;
                 ++index;
             }
 

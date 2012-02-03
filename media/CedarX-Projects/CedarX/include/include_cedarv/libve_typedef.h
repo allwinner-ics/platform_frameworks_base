@@ -140,102 +140,109 @@ extern "C" {
 
 	typedef enum LIBVE_3D_MODE
 	{
-		_3D_MODE_NONE = 0,
-		_3D_MODE_FS,
-		_3D_MODE_ANAGLAGH,
-		_3D_MODE_TBH,
-		_3D_MODE_TBF,
-		_3D_MODE_BTH,
-		_3D_MODE_BTF,
-		_3D_MODE_LRH,
-		_3D_MODE_LRF,
-		_3D_MODE_RLH,
-		_3D_MODE_RLF,
-		_3D_MODE_LI,
+		//* for 2D pictures.
+		_3D_MODE_NONE 				= 0,
+
+		//* for double stream video like MVC and MJPEG.
+		_3D_MODE_DOUBLE_STREAM,
+
+		//* for single stream video.
+		_3D_MODE_SIDE_BY_SIDE,
+		_3D_MODE_TOP_TO_BOTTOM,
+		_3D_MODE_LINE_INTERLEAVE,
+		_3D_MODE_COLUME_INTERLEAVE,
+
+		_3D_MODE_MAX
+
 	}_3d_mode_e;
-	typedef enum LIBVE_ANAGLAGH_TYPE{
-		_ANAGLAGH_RED_BLUE = 0,
-		_ANAGLAGH_RED_GREEN,
-		_ANAGLAGH_RED_CYAN,
-		_ANAGLAGH_COLOR,
-		_ANAGLAGH_HALF_COLOR,
-		_ANAGLAGH_OPTIMIZED,
-		_ANAGLAGH_YELLOW_BLUE,
-		_ANAGLAGH_NONE ,
-	}_anaglagh_e;
+
+	typedef enum LIBVE_ANAGLAGH_TRANSFORM_MODE
+	{
+		ANAGLAGH_RED_BLUE		= 0,
+		ANAGLAGH_RED_GREEN,
+		ANAGLAGH_RED_CYAN,
+		ANAGLAGH_COLOR,
+		ANAGLAGH_HALF_COLOR,
+		ANAGLAGH_OPTIMIZED,
+		ANAGLAGH_YELLOW_BLUE,
+		ANAGLAGH_NONE,
+	}anaglath_trans_mode_e;
 
 	//*******************************************************//
 	//************ Define Video Frame Structure. ************//
 	//*******************************************************//
 	typedef struct VIDEO_PICTURE
 	{
-		u32             id;                     //* picture id assigned by outside, decoder do not use this field;
+		u32             		id;                     //* picture id assigned by outside, decoder do not use this field;
 
-		u32				width;					//* width of picture content;
-		u32				height;					//* height of picture content;
-        u32             store_width;            //* stored picture width;
-        u32             store_height;           //* stored picture height;
-        u32             top_offset;				//* display region top offset;
-        u32             left_offset;			//* display region left offset;
-        u32             display_width;			//* display region width;
-        u32             display_height;			//* display region height;
+		u32						width;					//* width of picture content;
+		u32						height;					//* height of picture content;
+        u32             		store_width;            //* stored picture width;
+        u32             		store_height;           //* stored picture height;
+        u32             		top_offset;				//* display region top offset;
+        u32             		left_offset;			//* display region left offset;
+        u32             		display_width;			//* display region width;
+        u32             		display_height;			//* display region height;
         
-        u8              rotate_angle;           //* how this picture has been rotated, 0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
-        u8              horizontal_scale_ratio; //* what ratio this picture has been scaled down at horizon size, 0: 1/1, 1: 1/2, 2: 1/4, 3: 1/8;
-        u8              vertical_scale_ratio;   //* what ratio this picture has been scaled down at vetical size, 0: 1/1, 1: 1/2, 2: 1/4, 3: 1/8;
+        u8              		rotate_angle;           //* how this picture has been rotated, 0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
+        u8              		horizontal_scale_ratio; //* what ratio this picture has been scaled down at horizon size, 0: 1/1, 1: 1/2, 2: 1/4, 3: 1/8;
+        u8              		vertical_scale_ratio;   //* what ratio this picture has been scaled down at vetical size, 0: 1/1, 1: 1/2, 2: 1/4, 3: 1/8;
         
-        u32             frame_rate;             //* frame_rate, multiplied by 1000;
-        u32             aspect_ratio;           //* pixel width to pixel height ratio, multiplied by 1000;
-        u8              is_progressive;         //* progressive or interlace picture;
-        u8              top_field_first;        //* display top field first;
-        u8              repeat_top_field;       //* if interlace picture, whether repeat the top field when display;
-        u8              repeat_bottom_field;    //* if interlace picture, whether repeat the bottom field when display;
-        pixel_format_e  pixel_format;
-        u64             pts;                    //* presentation time stamp, in unit of milli-second;
-        u64             pcr;                    //* program clock reference;
+        u32             		frame_rate;             //* frame_rate, multiplied by 1000;
+        u32             		aspect_ratio;           //* pixel width to pixel height ratio, multiplied by 1000;
+        u8              		is_progressive;         //* progressive or interlace picture;
+        u8              		top_field_first;        //* display top field first;
+        u8              		repeat_top_field;       //* if interlace picture, whether repeat the top field when display;
+        u8              		repeat_bottom_field;    //* if interlace picture, whether repeat the bottom field when display;
+        pixel_format_e  		pixel_format;
+        u64             		pts;                    //* presentation time stamp, in unit of milli-second;
+        u64             		pcr;                    //* program clock reference;
 
-		_3d_mode_e   	output_3d_mode;
-		_3d_mode_e		source_3d_mode;
+		_3d_mode_e   			_3d_mode;
+		anaglath_trans_mode_e	anaglath_transform_mode;
 
-		u32             size_y;
-		u32             size_u;
-		u32             size_v;
-		u32             size_alpha;
+		u32             		size_y;
+		u32             		size_u;
+		u32             		size_v;
+		u32             		size_alpha;
 
-		u8*             y;                      //* pixel data, it is interpreted based on pixel_format;
-		u8*             u;                      //* pixel data, it is interpreted based on pixel_format;
-		u8*             v;                      //* pixel data, it is interpreted based on pixel_format;
-		u8*             alpha;                  //* pixel data, it is interpreted based on pixel_format;
+		u8*             		y;                      //* pixel data, it is interpreted based on pixel_format;
+		u8*             		u;                      //* pixel data, it is interpreted based on pixel_format;
+		u8*             		v;                      //* pixel data, it is interpreted based on pixel_format;
+		u8*             		alpha;                  //* pixel data, it is interpreted based on pixel_format;
 
-		u32             size_y2;
-		u32             size_u2;
-		u32             size_v2;
-		u32             size_alpha2;
+		u32             		size_y2;
+		u32             		size_u2;
+		u32             		size_v2;
+		u32             		size_alpha2;
 
-		u8*             y2;                      //* pixel data, it is interpreted based on pixel_format;
-		u8*             u2;                      //* pixel data, it is interpreted based on pixel_format;
-		u8*             v2;                      //* pixel data, it is interpreted based on pixel_format;
-		u8*             alpha2;                  //* pixel data, it is interpreted based on pixel_format;
-
-
+		u8*             		y2;                      //* pixel data, it is interpreted based on pixel_format;
+		u8*             		u2;                      //* pixel data, it is interpreted based on pixel_format;
+		u8*             		v2;                      //* pixel data, it is interpreted based on pixel_format;
+		u8*             		alpha2;                  //* pixel data, it is interpreted based on pixel_format;
 	}vpicture_t;
 
-	typedef enum CEDARV_STREAM_TYPE{
-		CEDARV_STREAM_TYPE_MAJOR,
-		CEDARV_STREAM_TYPE_MINOR,
-	}cedarv_stream_type_e;
 	//*******************************************************//
 	//********** Define Bitstream Frame Structure. **********//
 	//*******************************************************//
+
+	//* define stream type for double stream video, such as MVC.
+	//* in that case two video streams is send into libve.
+	typedef enum CEDARV_STREAM_TYPE
+	{
+		CEDARV_STREAM_TYPE_MAJOR,
+		CEDARV_STREAM_TYPE_MINOR,
+	}cedarv_stream_type_e;
+
 	typedef struct VIDEO_STREAM_DATA
 	{
-		u8* data;       //* stream data start address;
-		u32 length;     //* stream length in unit of byte;
-		u64 pts;        //* presentation time stamp, in unit of milli-second;
-		u64 pcr;        //* program clock reference;
-		u8  valid;      //* whether this stream frame is valid;
-		u32	id;	//
-		cedarv_stream_type_e stream_type;
+		u8* 					data;       	//* stream data start address;
+		u32 					length;     	//* stream length in unit of byte;
+		u64 					pts;        	//* presentation time stamp, in unit of milli-second;
+		u64 					pcr;        	//* program clock reference;
+		u8  					valid;      	//* whether this stream frame is valid;
+		u32						id;				//* stream frame identification.
+		cedarv_stream_type_e 	stream_type;	//* major or minor stream in MVC.
 	}vstream_data_t;
 
 #ifdef __cplusplus

@@ -28,7 +28,7 @@ namespace android {
 
 
 SurfaceTextureLayer::SurfaceTextureLayer(GLuint tex, const sp<Layer>& layer)
-    : SurfaceTexture(tex), mLayer(layer) {
+    : SurfaceTexture(tex, true, GL_TEXTURE_EXTERNAL_OES, false), mLayer(layer) {
     usehwcomposer = false;
     usehwinit     = false;
 }
@@ -39,7 +39,7 @@ SurfaceTextureLayer::~SurfaceTextureLayer() {
 
 status_t SurfaceTextureLayer::setDefaultBufferSize(uint32_t w, uint32_t h)
 {
-    //LOGV("%s, w=%u, h=%u", __PRETTY_FUNCTION__, w, h);
+    //LOGD("%s, w=%u, h=%u", __PRETTY_FUNCTION__, w, h);
     return SurfaceTexture::setDefaultBufferSize(w, h);
 }
 
@@ -75,7 +75,7 @@ status_t SurfaceTextureLayer::dequeueBuffer(int *buf,
         if (format == 0)
             format = mDefaultFormat;
         uint32_t effectiveUsage = layer->getEffectiveUsage(usage);
-        //LOGV("%s, w=%u, h=%u, format=%u, usage=%08x, effectiveUsage=%08x",
+        //LOGD("%s, w=%u, h=%u, format=%u, usage=%08x, effectiveUsage=%08x",
         //        __PRETTY_FUNCTION__, w, h, format, usage, effectiveUsage);
         res = SurfaceTexture::dequeueBuffer(buf, w, h, format, effectiveUsage);
     }

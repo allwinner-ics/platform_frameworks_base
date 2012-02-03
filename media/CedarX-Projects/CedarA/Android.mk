@@ -4,10 +4,10 @@ include $(CLEAR_VARS)
 include frameworks/base/media/libstagefright/codecs/common/Config.mk
 include frameworks/base/media/CedarX-Projects/Config.mk
 
-ifeq ($(PLATFORM_VERSION),4.0.1)
-CEDARA_VERSION_TAG = _ICS_
-else
+ifeq ($(CEDARX_ANDROID_VERSION),4)
 CEDARA_VERSION_TAG = _
+else
+CEDARA_VERSION_TAG = _ICS_
 endif
 
 LOCAL_SRC_FILES:=                         \
@@ -29,29 +29,29 @@ LOCAL_SHARED_LIBRARIES := \
         libcutils         \
         libui
 
-ifeq ($(CEDARX_DEBUG_LEVEL),L2)
+ifneq ($(CEDARX_DEBUG_ENABLE),Y)
 LOCAL_LDFLAGS += \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libcedara_decoder.a
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libcedara_decoder.a
 endif
 
 LOCAL_LDFLAGS += \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libac3.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libdts.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libwma.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libaac.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libmp3.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libatrc.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libcook.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libsipr.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libamr.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libape.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libogg.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libflac.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libwav.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libGetAudio_format.a \
-	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDARX_CHIP_VERSION)/libaacenc.a
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libac3.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libdts.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libwma.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libaac.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libmp3.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libatrc.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libcook.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libsipr.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libamr.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libape.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libogg.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libflac.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libwav.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libGetAudio_format.a \
+	$(LOCAL_PATH)/../CedarAndroidLib/LIB$(CEDARA_VERSION_TAG)$(CEDAR_AUDIOLIB_PATH)/libaacenc.a
 
-ifneq ($(CEDARX_DEBUG_LEVEL),L2)
+ifeq ($(CEDARX_DEBUG_ENABLE),Y)
 LOCAL_STATIC_LIBRARIES += \
 	libcedara_decoder
 endif
@@ -76,11 +76,6 @@ endif
 
 LOCAL_CFLAGS += -Wno-multichar 
 
-#ifeq ($(PLATFORM_VERSION),"2.3")
-#LOCAL_CFLAGS += -D__ANDROID_VERSION_2_3
-#else
-#LOCAL_CFLAGS += -D__ANDROID_VERSION_2_3_4
-#endif
 LOCAL_CFLAGS += $(CEDARX_EXT_CFLAGS)
 LOCAL_MODULE_TAGS := optional
 

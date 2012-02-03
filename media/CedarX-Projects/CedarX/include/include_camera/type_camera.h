@@ -65,6 +65,19 @@ typedef struct JPEG_ENC_t
 	int colorFormat;
 	int quality;
 	int rotate;
+	
+	double		focal_length;
+	
+	int			thumbWidth;
+	int			thumbHeight;
+
+	// gps exif
+	unsigned char	enable_gps;
+	double      gps_latitude;
+	double		gps_longitude;
+	long        gps_altitude;  
+	long        gps_timestamp;
+	char		gps_processing_method[100]; 
 }JPEG_ENC_t;
 
 #endif // __LIB__CAMERA__TYPE__H__

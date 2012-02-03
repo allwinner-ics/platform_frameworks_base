@@ -78,9 +78,27 @@ DisplayHardware::DisplayHardware(
     : DisplayHardwareBase(flinger, dpy),
       mFlinger(flinger), mFlags(0), mHwc(0)
 {
+    char property[PROPERTY_VALUE_MAX];
+    
     init(dpy);
-
-    mDisplayDispatcher = new DisplayDispatcher();
+    mDisplayDispatcher  = NULL;
+    
+    if (property_get("ro.display.switch", property, NULL) > 0) 
+    {
+        if (atoi(property) == 1) 
+        {
+            LOGW("display dispatcher enabled");
+            mDisplayDispatcher = new DisplayDispatcher();
+        }
+        else
+        {
+            LOGW("display dispatcher disable");
+        }
+    }
+    else
+    {
+        LOGW("display dispatcher disable");
+    }
 }
 
 DisplayHardware::~DisplayHardware()
@@ -143,6 +161,17 @@ void DisplayHardware::init(uint32_t dpy)
     mDpiY = mNativeWindow->ydpi;
     mRefreshRate = fbDev->fps;
 
+
+/* FIXME: this is a temporary HACK until we are able to report the refresh rate
+ * properly from the HAL. The WindowManagerService now relies on this value.
+ */
+#ifndef REFRESH_RATE
+    mRefreshRate = fbDev->fps;
+#else
+    mRefreshRate = REFRESH_RATE;
+#warning "refresh rate set via makefile to REFRESH_RATE"
+#endif
+
     EGLint w, h, dummy;
     EGLint numConfigs=0;
     EGLSurface surface;
@@ -153,6 +182,7 @@ void DisplayHardware::init(uint32_t dpy)
     // initialize EGL
     EGLint attribs[] = {
             EGL_SURFACE_TYPE,       EGL_WINDOW_BIT,
+            EGL_SAMPLES,            4,
             EGL_NONE,               0,
             EGL_NONE
     };
@@ -275,22 +305,6 @@ void DisplayHardware::init(uint32_t dpy)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, mMaxViewportDims);
 
-
-#ifdef EGL_ANDROID_swap_rectangle
-    if (extensions.hasExtension("EGL_ANDROID_swap_rectangle")) {
-        if (eglSetSwapRectangleANDROID(display, surface,
-                0, 0, mWidth, mHeight) == EGL_TRUE) {
-            // This could fail if this extension is not supported by this
-            // specific surface (of config)
-            mFlags |= SWAP_RECTANGLE;
-        }
-    }
-    // when we have the choice between PARTIAL_UPDATES and SWAP_RECTANGLE
-    // choose PARTIAL_UPDATES, which should be more efficient
-    if (mFlags & PARTIAL_UPDATES)
-        mFlags &= ~SWAP_RECTANGLE;
-#endif
-
     LOGI("EGL informations:");
     LOGI("# of configs : %d", numConfigs);
     LOGI("vendor    : %s", extensions.getEglVendor());
@@ -382,7 +396,12 @@ void DisplayHardware::flip(const Region& dirty) const
     }
     
     mPageFlipCount++;
-    mDisplayDispatcher->startSwapBuffer();
+    
+    if (mDisplayDispatcher != NULL) 
+    {
+        mDisplayDispatcher->startSwapBuffer();
+    }
+    
     if (mHwc->initCheck() == NO_ERROR) {
         mHwc->commit();
     } else {
@@ -407,12 +426,22 @@ void DisplayHardware::makeCurrent() const
 
 int DisplayHardware::setDispProp(int cmd,int param0,int param1,int param2) const
 {
-    return mDisplayDispatcher->setDispProp(cmd,param0,param1,param2);
+    if (mDisplayDispatcher != NULL) 
+    {
+        return mDisplayDispatcher->setDispProp(cmd,param0,param1,param2);
+    }
+
+    return  0;
 }
 
 int DisplayHardware::getDispProp(int cmd,int param0,int param1) const 
 {
-    return mDisplayDispatcher->getDispProp(cmd,param0,param1);
+    if (mDisplayDispatcher != NULL) 
+    {
+        return mDisplayDispatcher->getDispProp(cmd,param0,param1);
+    }
+    
+    return  0;
 }
 
 void DisplayHardware::dump(String8& res) const

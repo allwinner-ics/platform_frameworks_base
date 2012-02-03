@@ -185,7 +185,14 @@ public abstract class Context {
      * used to reduce the amount that the client process's overall importance
      * is used to impact it.
      */
-    public static final int BIND_ADJUST_WITH_ACTIVITY = 0x0040;
+    public static final int BIND_ADJUST_WITH_ACTIVITY = 0x0080;
+
+    /**
+     * Flag for {@link #bindService}: Don't consider the bound service to be
+     * visible, even if the caller is visible.
+     * @hide
+     */
+    public static final int BIND_NOT_VISIBLE = 0x40000000;
 
     /** Return an AssetManager instance for your application's package. */
     public abstract AssetManager getAssets();
@@ -1377,6 +1384,9 @@ public abstract class Context {
      *  <dt> {@link #WIFI_SERVICE} ("wifi")
      *  <dd> A {@link android.net.wifi.WifiManager WifiManager} for management of
      * Wi-Fi connectivity.
+     *  <dt> {@link #ETHERNET_SERVICE} ("ethernet")
+     *  <dd> A {@link android.net.ethernet.EthernetManager EthernetManager} for management of
+     * Ethernet connectivity.
      * <dt> {@link #INPUT_METHOD_SERVICE} ("input_method")
      * <dd> An {@link android.view.inputmethod.InputMethodManager InputMethodManager}
      * for management of input methods.
@@ -1423,6 +1433,8 @@ public abstract class Context {
      * @see android.net.ConnectivityManager
      * @see #WIFI_SERVICE
      * @see android.net.wifi.WifiManager
+     * @see #ETHERNET_SERVICE
+     * @see android.net.ethernet.EthernetManager
      * @see #AUDIO_SERVICE
      * @see android.media.AudioManager
      * @see #TELEPHONY_SERVICE
@@ -1653,6 +1665,16 @@ public abstract class Context {
      * @see android.net.wifi.p2p.WifiP2pManager
      */
     public static final String WIFI_P2P_SERVICE = "wifip2p";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.net.ethernet.EthernetManager} for handling management of
+     * Ethernet access.
+     *
+     * @see #getSystemService
+     * @see android.net.ethernet.EthernetManager
+     */
+    public static final String ETHERNET_SERVICE = "ethernet";
 
     /**
      * Use with {@link #getSystemService} to retrieve a

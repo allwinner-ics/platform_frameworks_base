@@ -227,6 +227,7 @@ public class RecentTasksLoader {
 
         HashSet<Integer> recentTasksToKeepInCache = new HashSet<Integer>();
         int numTasks = recentTasks.size();
+
         // skip the first task - assume it's either the home screen or the current activity.
         final int first = 1;
         recentTasksToKeepInCache.add(recentTasks.get(0).persistentId);

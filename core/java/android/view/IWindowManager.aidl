@@ -230,5 +230,4 @@ interface IWindowManager
      */
     boolean hasNavigationBar();
     void resetInputCalibration();
-
 }

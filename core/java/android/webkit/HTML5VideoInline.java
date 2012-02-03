@@ -10,13 +10,11 @@ import android.webkit.HTML5VideoViewProxy;
 import android.view.Surface;
 import android.opengl.GLES20;
 import android.os.PowerManager;
-import android.util.Log;
 
 /**
  * @hide This is only used by the browser
  */
 public class HTML5VideoInline extends HTML5VideoView{
-//	private static final String TAG = "HTML5VideoInline";
 
     // Due to the fact that the decoder consume a lot of memory, we make the
     // surface texture as singleton. But the GL texture (m_textureNames)
@@ -76,11 +74,13 @@ public class HTML5VideoInline extends HTML5VideoView{
     public SurfaceTexture getSurfaceTexture(int videoLayerId) {
         // Create the surface texture.
         if (videoLayerId != mVideoLayerUsingSurfaceTexture
-            || mSurfaceTexture == null) {
-            if (mTextureNames == null) {
-                mTextureNames = new int[1];
-                GLES20.glGenTextures(1, mTextureNames, 0);
+            || mSurfaceTexture == null
+            || mTextureNames == null) {
+            if (mTextureNames != null) {
+                GLES20.glDeleteTextures(1, mTextureNames, 0);
             }
+            mTextureNames = new int[1];
+            GLES20.glGenTextures(1, mTextureNames, 0);
             mSurfaceTexture = new SurfaceTexture(mTextureNames[0]);
         }
         mVideoLayerUsingSurfaceTexture = videoLayerId;

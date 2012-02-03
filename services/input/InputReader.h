@@ -293,7 +293,6 @@ public:
     virtual InputReaderPolicyInterface* getPolicy() = 0;
     virtual InputListenerInterface* getListener() = 0;
     virtual EventHubInterface* getEventHub() = 0;
-
 };
 
 
@@ -336,7 +335,7 @@ public:
             size_t numCodes, const int32_t* keyCodes, uint8_t* outFlags);
 
     virtual void requestRefreshConfiguration(uint32_t changes);
-	
+
 	virtual void resetTouchCalibration();
 protected:
     // These members are protected so they can be instrumented by test cases.
@@ -1014,7 +1013,6 @@ public:
 	int _get_item(char *saddr, char *name, char *value, unsigned int line_len);    
 	int _get_line(char *daddr, int  *flag, unsigned int total_len);
 	virtual int tp_getpara(int  *tp_para);
-	
     virtual void configure(nsecs_t when, const InputReaderConfiguration* config, uint32_t changes);
     virtual void reset(nsecs_t when);
     virtual void process(const RawEvent* rawEvent);

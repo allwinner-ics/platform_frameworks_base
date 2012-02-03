@@ -249,8 +249,6 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
             (OMX_COLOR_FORMATTYPE)srcFormat, OMX_COLOR_Format16bitRGB565);
     CHECK(converter.isValid());
 
-    LOGV("Metadata Thumb src w:%d h:%d dst w:%d h:%d",width, height,frame->mWidth,frame->mHeight);
-
     err = converter.convert(
             (const uint8_t *)buffer->data() + buffer->range_offset(),
             width, height,
@@ -420,6 +418,7 @@ void StagefrightMetadataRetriever::parseMetaData() {
         { kKeyYear, METADATA_KEY_YEAR },
         { kKeyWriter, METADATA_KEY_WRITER },
         { kKeyCompilation, METADATA_KEY_COMPILATION },
+        { kKeyLocation, METADATA_KEY_LOCATION },
     };
     static const size_t kNumMapEntries = sizeof(kMap) / sizeof(kMap[0]);
 

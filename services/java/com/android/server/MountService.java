@@ -1024,16 +1024,15 @@ class MountService extends IMountService.Stub
         
         if( mediaShared == false)
         	return;
-          
-        /*
-         * USB mass storage disconnected while enabled
-         */
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    int rc;
-                    Slog.w(TAG, "Disabling UMS after cable disconnect");
+            /*
+             * USB mass storage disconnected while enabled
+             */
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        int rc;
+                        Slog.w(TAG, "Disabling UMS after cable disconnect");
                     for( int i=0;i<size;i++) {
                     	StorageVolume volume = mVolumes.get(i);
                     	String path = volume.getPath();
@@ -1047,13 +1046,12 @@ class MountService extends IMountService.Stub
 	                    	}
                     	}
                 	}
-                    
-                } catch (Exception ex) {
-                    Slog.w(TAG, "Failed to mount media on UMS enabled-disconnect", ex);
+                    } catch (Exception ex) {
+                        Slog.w(TAG, "Failed to mount media on UMS enabled-disconnect", ex);
+                    }
                 }
-            }
-        }.start();        
-    }
+            }.start();
+        }
 
     private void sendStorageIntent(String action, String path) {
         Intent intent = new Intent(action, Uri.parse("file://" + path));
@@ -1332,7 +1330,7 @@ class MountService extends IMountService.Stub
         waitForReady();
         validatePermission(android.Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS);
 
-        // TODO: Add support for multiple share methods		
+        // TODO: Add support for multiple share methods
         int size = mVolumes.size();
 		for(int i=0; i<size; i++) {
 			/*

@@ -41,54 +41,27 @@ LOCAL_SHARED_LIBRARIES := \
         libicuuc \
 		libsurfaceflinger_client \
 		libskia 
-#  		libskiagl 
-	
-ifeq ($(CEDARX_DEBUG_LEVEL),L0)
+
+ifeq ($(CEDARX_DEBUG_FRAMEWORK),Y)
 LOCAL_STATIC_LIBRARIES += \
 	libcedarxplayer \
 	libcedarxcomponents \
 	libcedarxdemuxers \
 	libcedarxstream \
 	libcedarxrender \
+	libdemux_cedarm \
 	libsub \
 	libsub_inline \
-	libjpgenc \
 	libh264enc \
 	libmp4_muxer \
-	libdemux_cedarm \
-	libdemux_asf \
-	libdemux_avi \
-	libdemux_flv \
-	libdemux_mkv \
-	libdemux_mov \
-	libdemux_mpg \
-	libdemux_rmvb \
-	libdemux_ts \
-	libdemux_pmp \
-	libdemux_idxsub \
+	libjpgenc
+
+ifeq ($(CEDARX_RTSP_VERSION),3)
+LOCAL_STATIC_LIBRARIES += \
 	libcedarx_rtsp
-	
-ifeq ($(CEDARX_ENABLE_MEMWATCH),Y)
-LOCAL_STATIC_LIBRARIES += libmemwatch
 endif
 
-else #L0
-
-ifeq ($(CEDARX_DEBUG_LEVEL),L1)
-LOCAL_STATIC_LIBRARIES += \
-	libcedarxplayer \
-	libcedarxcomponents \
-	libcedarxdemuxers \
-	libcedarxstream \
-	libcedarxrender \
-	libdemux_cedarm \
-	libsub \
-	libsub_inline \
-	libh264enc \
-	libmp4_muxer \
-	libjpgenc \
-	libcedarx_rtsp
-else #L2
+else
 LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxplayer.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxcomponents.a \
@@ -101,11 +74,28 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libiconv.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libh264enc.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libmp4_muxer.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libjpgenc.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarx_rtsp.a
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libjpgenc.a
 	
+ifeq ($(CEDARX_RTSP_VERSION),3)
+LOCAL_LDFLAGS += \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarx_rtsp.a
+endif	
+
 endif
 
+ifeq ($(CEDARX_DEBUG_DEMUXER),Y)
+LOCAL_STATIC_LIBRARIES += \
+	libdemux_asf \
+	libdemux_avi \
+	libdemux_flv \
+	libdemux_mkv \
+	libdemux_mov \
+	libdemux_mpg \
+	libdemux_rmvb \
+	libdemux_ts \
+	libdemux_pmp \
+	libdemux_idxsub
+else
 LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_asf.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_avi.a \
@@ -117,60 +107,62 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_ts.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_pmp.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_idxsub.a
-
-
-ifneq ($(CEDARX_DEBUG_LEVEL),L0)
-#LOCAL_LDFLAGS += \
-#	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libm3u.a
+endif
+	
+ifeq ($(CEDARX_DEBUG_FRAMEWORK),Y)
+LOCAL_SHARED_LIBRARIES += libcedarxbase libswdrm 
+ifeq ($(CEDARX_USE_SFTDEMUX),Y)
+LOCAL_SHARED_LIBRARIES += libcedarxsftdemux
+endif
+else
+LOCAL_LDFLAGS += \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxbase.so \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libswdrm.so
+ifeq ($(CEDARX_USE_SFTDEMUX),Y)
+LOCAL_LDFLAGS += $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxsftdemux.so
+endif	
 endif
 
-endif #end L0
+ifeq ($(CEDARX_DEBUG_CEDARV),Y)
+LOCAL_SHARED_LIBRARIES += libcedarv libcedarxosal 
+else
+LOCAL_LDFLAGS += \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarv.so \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxosal.so
+endif
 
-#out/target/product/sun3i/obj/STATIC_LIBRARIES/libiconv_intermediates/libiconv.a
+LOCAL_LDFLAGS += \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libwma.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libaac.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libmp3.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libatrc.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libcook.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libsipr.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libamr.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libape.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libogg.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libflac.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libwav.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libra.a \
+       $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libaacenc.a
 
 ifneq ($(CEDARX_PRODUCTOR),TVD_001)
+ifeq ($(CEDARX_USE_SWAUDIO),Y)
 LOCAL_LDFLAGS += \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libac3_hw.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdts_hw.a
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libac3.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libdts.a
+else
+LOCAL_LDFLAGS += \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libac3_hw.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libdts_hw.a
 endif	
+endif
 
-LOCAL_LDFLAGS += \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libwma.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libaac.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libmp3.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libatrc.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcook.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libsipr.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libamr.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libape.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libogg.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libflac.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libwav.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libra.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libaacenc.a
-
+ifeq ($(CEDARX_ENABLE_MEMWATCH),Y)
+LOCAL_STATIC_LIBRARIES += libmemwatch
+endif
 
 LOCAL_SHARED_LIBRARIES += libstagefright_foundation libstagefright
-
-ifeq ($(CEDARX_DEBUG_LEVEL),L0)
-LOCAL_SHARED_LIBRARIES += libcedarv libcedarxbase libcedarxosal libswdrm
-endif
-
-ifeq ($(CEDARX_DEBUG_LEVEL),L1)
-LOCAL_LDFLAGS += \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarv.so \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxosal.so \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libswdrm.so
-LOCAL_SHARED_LIBRARIES += libcedarxbase
-endif
-
-ifeq ($(CEDARX_DEBUG_LEVEL),L2)
-LOCAL_LDFLAGS += \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarv.so \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxbase.so \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxosal.so \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libswdrm.so
-endif
 
 ifeq ($(TARGET_OS)-$(TARGET_SIMULATOR),linux-true)
         LOCAL_LDLIBS += -lpthread -ldl
@@ -188,7 +180,7 @@ endif
 
 LOCAL_CFLAGS += -Wno-multichar 
 
-ifeq ($(PLATFORM_VERSION),"2.3")
+ifeq ($(CEDARX_ANDROID_VERSION),3)
 LOCAL_CFLAGS += -D__ANDROID_VERSION_2_3
 else
 LOCAL_CFLAGS += -D__ANDROID_VERSION_2_3_4

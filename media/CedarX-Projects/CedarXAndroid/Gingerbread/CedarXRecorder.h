@@ -76,6 +76,8 @@ public:
 	status_t setParamMaxFileSizeBytes(int64_t bytes);
 	status_t setParamVideoRotation(int32_t degrees);
 	
+	int CedarXRecorderCallback(int event, void *info);
+	
 private:
 	enum CameraFlags {
         FLAGS_SET_CAMERA = 1L << 0,

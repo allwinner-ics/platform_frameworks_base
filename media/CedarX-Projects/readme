@@ -16,43 +16,17 @@
 --                                                                            --
 *******************************************************************************/
 
----------------- version release check -------------------
-1. normal play cpu usage.
-2. update static library
-3. remove debug info and change debug level
-4. test new function added
-5. stable test: loop play test one night
 
-------------------------------------------------------------
-
-usage for release user of android:
-	1. check CedarX-Projects/Config.mk variable CEDARX_DEBUG := n
-	2. when you compile for android, and if you modify any code, compile the library; 
-       then run CedarAndroidLib/collect_libs.sh, then recompile the CedarX library.
-       you may touch any CedarXAndroid file to guarantee the compile up to date.
+usage of android version:
+	1. uppack tar package to framework/base/media/
+	2. check file CedarX-Projects/ProductorConfig "CEDARX_DEBUG_ENABLE := N"
+	3. when you partitial update any library of CedarX, you may touch any source 
+	   file under CedarXAndroid folder to guarantee the compile up to date.
    
-usage for release user of linux:
-	1. goto the dir of CedarX-Projects then run shell command "source env_setup.sh"
-	2. edit CedarX-Projects/Makefile, and config CEDARX_DEBUG_LEVER to L2
-	2. make clean && make
+usage of linux version:
+	1. goto the dir of CedarX-Projects, then run shell command "source env_setup.sh"
+	2. check file CedarX-Projects/ProductorConfig "CEDARX_DEBUG_ENABLE := N"
+	3. make clean && make
 	
-
-ANDROID TODO:
-	1. update all audio lib include hardware lib
-	2. subtitle has been disabled
-	3. &cdx_dmxs_mplayer has been comment
-	4. use direct video-fb render currently
-	5. audioSink fillBuffer Size and (Audiorender_Component: if (bytes_to_write <= 0)) may need optimization 
-
-LINUX TODO:
-	1. test setdatasourcefd
-	2. memwatch check include libve
-	
-
-
------------------------- version tag control -----------------------
-version 938: 20110713 for linux bsp tag
-
-
 
 

@@ -125,6 +125,7 @@ LOCAL_SRC_FILES += \
 	core/java/android/os/INetworkManagementService.aidl \
 	core/java/android/os/IPermissionController.aidl \
 	core/java/android/os/IPowerManager.aidl \
+	core/java/android/os/IDynamicPManager.aidl \
 	core/java/android/os/IRemoteCallback.aidl \
 	core/java/android/os/IVibratorService.aidl \
 	core/java/android/service/wallpaper/IWallpaperConnection.aidl \
@@ -197,6 +198,7 @@ LOCAL_SRC_FILES += \
 	telephony/java/com/android/internal/telephony/IWapPushManager.aidl \
 	wifi/java/android/net/wifi/IWifiManager.aidl \
 	wifi/java/android/net/wifi/p2p/IWifiP2pManager.aidl \
+	ethernet/java/android/net/ethernet/IEthernetManager.aidl \
 	telephony/java/com/android/internal/telephony/IExtendedNetworkService.aidl \
 	voip/java/android/net/sip/ISipSession.aidl \
 	voip/java/android/net/sip/ISipSessionListener.aidl \
@@ -330,20 +332,36 @@ non_base_dirs := \
 	../../external/apache-http/src/org/apache/http
 
 # These are relative to frameworks/base
-dirs_to_document := \
-	$(fwbase_dirs_to_document) \
+dirs_to_check_apis := \
+  $(fwbase_dirs_to_document) \
 	$(non_base_dirs)
 
+# These are relative to frameworks/base
+# FRAMEWORKS_BASE_SUBDIRS comes from build/core/pathmap.mk
+dirs_to_document := \
+	$(dirs_to_check_apis) \
+  $(addprefix ../../, $(FRAMEWORKS_SUPPORT_JAVA_SRC_DIRS))
+
+# These are relative to frameworks/base
 html_dirs := \
 	$(FRAMEWORKS_BASE_SUBDIRS) \
 	$(non_base_dirs)
 
+# Common sources for doc check and api check
+common_src_files := \
+	$(call find-other-html-files, $(html_dirs)) \
+	$(addprefix ../../libcore/, $(call libcore_to_document, $(LOCAL_PATH)/../../libcore)) \
+	$(addprefix ../../system/media/mca/, $(call libfilterfw_to_document, $(LOCAL_PATH)/../../system/media/mca)) \
+
 # These are relative to frameworks/base
 framework_docs_LOCAL_SRC_FILES := \
 	$(call find-other-java-files, $(dirs_to_document)) \
-	$(call find-other-html-files, $(html_dirs)) \
-	$(addprefix ../../libcore/, $(call libcore_to_document, $(LOCAL_PATH)/../../libcore)) \
-	$(addprefix ../../system/media/mca/, $(call libfilterfw_to_document, $(LOCAL_PATH)/../../system/media/mca))
+	$(common_src_files)
+
+# These are relative to frameworks/base
+framework_docs_LOCAL_API_CHECK_SRC_FILES := \
+	$(call find-other-java-files, $(dirs_to_check_apis)) \
+	$(common_src_files)
 
 # This is used by ide.mk as the list of source files that are
 # always included.
@@ -413,6 +431,8 @@ web_docs_sample_code_flags := \
 		            resources/samples/BackupRestore "Backup and Restore" \
 		-samplecode $(sample_dir)/BluetoothChat \
 		            resources/samples/BluetoothChat "Bluetooth Chat" \
+		-samplecode $(sample_dir)/BluetoothHDP \
+		            resources/samples/BluetoothHDP "Bluetooth HDP Demo" \
 		-samplecode $(sample_dir)/BusinessCard \
 		            resources/samples/BusinessCard "Business Card" \
 		-samplecode $(sample_dir)/ContactManager \
@@ -431,6 +451,8 @@ web_docs_sample_code_flags := \
 		            resources/samples/MultiResolution "Multiple Resolutions" \
 		-samplecode $(sample_dir)/NFCDemo \
 		            resources/samples/NFCDemo "NFC Demo" \
+		-samplecode $(sample_dir)/training/multiscreen/newsreader \
+		            resources/samples/newsreader "News Reader" \
 		-samplecode $(sample_dir)/NotePad \
 		            resources/samples/NotePad "Note Pad" \
 		-samplecode $(sample_dir)/SpellChecker/SampleSpellCheckerService \
@@ -461,6 +483,8 @@ web_docs_sample_code_flags := \
 		            resources/samples/TicTacToeLib "TicTacToeLib" \
 		-samplecode $(sample_dir)/TicTacToeMain \
 		            resources/samples/TicTacToeMain "TicTacToeMain" \
+		-samplecode $(sample_dir)/ToyVpn \
+		            resources/samples/ToyVpn "Toy VPN Client" \
 		-samplecode $(sample_dir)/USB \
 		            resources/samples/USB "USB" \
 		-samplecode $(sample_dir)/WeatherListWidget \
@@ -494,7 +518,7 @@ framework_docs_LOCAL_DROIDDOC_OPTIONS += \
 # ====  the api stubs and current.xml ===========================
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES:=$(framework_docs_LOCAL_SRC_FILES)
+LOCAL_SRC_FILES:=$(framework_docs_LOCAL_API_CHECK_SRC_FILES)
 LOCAL_INTERMEDIATE_SOURCES:=$(framework_docs_LOCAL_INTERMEDIATE_SOURCES)
 LOCAL_JAVA_LIBRARIES:=$(framework_docs_LOCAL_JAVA_LIBRARIES)
 LOCAL_MODULE_CLASS:=$(framework_docs_LOCAL_MODULE_CLASS)

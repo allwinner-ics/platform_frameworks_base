@@ -96,7 +96,7 @@ extern "C" {
 		CEDARV_ANAGLAGH_HALF_COLOR,
 		CEDARV_ANAGLAGH_OPTIMIZED,
 		CEDARV_ANAGLAGH_YELLOW_BLUE,
-		CEDARV_ANAGLATH_NONE
+		CEDARV_ANAGLAGH_NONE,
 	}cedarv_anaglath_trans_mode_e;
 
     typedef struct CEDARV_STREAM_INFORMATION
@@ -244,7 +244,9 @@ extern "C" {
         CEDARV_COMMAND_JUMP,
         CEDARV_COMMAND_ROTATE,
         CEDARV_COMMAND_SET_TOTALMEMSIZE,
-        
+
+        CEDARV_COMMAND_DISABLE_3D,
+        CEDARV_COMMAN_SET_SYS_TIME,
         //* for preview application.
         CEDARV_COMMAND_PREVIEW_MODE,		//* aux = 0, pbuffer = NULL,
         									//* return value always CEDARV_RESULT_OK, should be called before the 'open' fuction.
@@ -266,6 +268,7 @@ extern "C" {
         CEDARV_COMMAND_SET_ANAGLATH_TRANS_MODE,		//* select an output 3d mode, this will be used only to decide which analagh transform mode is used.
         CEDARV_COMMAND_OPEN_ANAGLATH_TRANSFROM, 	//* open ve anaglath transformation
         CEDARV_COMMAND_CLOSE_ANAGLATH_TRANSFROM,	//* close ve anaglath transformation
+        CEDARV_COMMAND_GET_CHIP_VERSION,
 
         CEDARV_COMMAND_FLUSH
     }cedarv_io_cmd_e;

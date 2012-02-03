@@ -98,6 +98,7 @@ static struct {
     jfieldID mName;
     jfieldID mSources;
     jfieldID mKeyboardType;
+    jfieldID mKeyCharacterMapFile;
 } gInputDeviceClassInfo;
 
 static struct {
@@ -200,9 +201,7 @@ public:
     virtual nsecs_t notifyANR(const sp<InputApplicationHandle>& inputApplicationHandle,
             const sp<InputWindowHandle>& inputWindowHandle);
     virtual void notifyInputChannelBroken(const sp<InputWindowHandle>& inputWindowHandle);
-	
 	virtual void resetTouchCalibration();
-	
     virtual bool filterInputEvent(const InputEvent* inputEvent, uint32_t policyFlags);
     virtual void getDispatcherConfiguration(InputDispatcherConfiguration* outConfig);
     virtual bool isKeyRepeatEnabled();
@@ -757,7 +756,6 @@ void NativeInputManager::resetTouchCalibration()
     mInputManager->getReader()->resetTouchCalibration();
 }
 
-
 void NativeInputManager::interceptKeyBeforeQueueing(const KeyEvent* keyEvent,
         uint32_t& policyFlags) {
     // Policy:
@@ -1240,10 +1238,16 @@ static jobject android_server_InputManager_nativeGetInputDevice(JNIEnv* env,
         return NULL;
     }
 
+    jstring fileStr = env->NewStringUTF(deviceInfo.getKeyCharacterMapFile());
+    if (!fileStr) {
+        return NULL;
+    }
+
     env->SetIntField(deviceObj, gInputDeviceClassInfo.mId, deviceInfo.getId());
     env->SetObjectField(deviceObj, gInputDeviceClassInfo.mName, deviceNameObj);
     env->SetIntField(deviceObj, gInputDeviceClassInfo.mSources, deviceInfo.getSources());
     env->SetIntField(deviceObj, gInputDeviceClassInfo.mKeyboardType, deviceInfo.getKeyboardType());
+    env->SetObjectField(deviceObj, gInputDeviceClassInfo.mKeyCharacterMapFile, fileStr);
 
     const Vector<InputDeviceInfo::MotionRange>& ranges = deviceInfo.getMotionRanges();
     for (size_t i = 0; i < ranges.size(); i++) {
@@ -1409,7 +1413,7 @@ static JNINativeMethod gInputManagerMethods[] = {
     { "nativeDump", "()Ljava/lang/String;",
             (void*) android_server_InputManager_nativeDump },
     { "nativeMonitor", "()V",
-            (void*) android_server_InputManager_nativeMonitor }, 
+            (void*) android_server_InputManager_nativeMonitor },
 	{ "nativeResetTouchCalibration", "()V",
 		 (void*) android_server_InputManager_nativeResetTouchCalibration },
 };
@@ -1537,6 +1541,9 @@ int register_android_server_InputManager(JNIEnv* env) {
     GET_FIELD_ID(gInputDeviceClassInfo.mKeyboardType, gInputDeviceClassInfo.clazz,
             "mKeyboardType", "I");
 
+    GET_FIELD_ID(gInputDeviceClassInfo.mKeyCharacterMapFile, gInputDeviceClassInfo.clazz,
+            "mKeyCharacterMapFile", "Ljava/lang/String;");
+
     // Configuration
 
     FIND_CLASS(clazz, "android/content/res/Configuration");
@@ -1549,7 +1556,6 @@ int register_android_server_InputManager(JNIEnv* env) {
 
     GET_FIELD_ID(gConfigurationClassInfo.navigation, clazz,
             "navigation", "I");
-
 
     return 0;
 }
